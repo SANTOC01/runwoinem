@@ -1,0 +1,26 @@
+.nav-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  padding: 10px 20px;
+
+  display: flex;
+  align-items: center;
+  z-index: 1000;
+
+  .logo-link {
+    display: inline-block;
+    transition: transform 0.2s ease;
+
+    &:hover {
+      transform: scale(1.05);
+    }
+
+    .logo {
+      height: 60px;
+      width: auto;
+    }
+  }
+}

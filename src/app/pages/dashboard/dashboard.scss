@@ -1,0 +1,446 @@
+.dashboard {
+  position: relative;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  min-height: calc(100vh - 80px); // Subtract navbar height
+  padding: 2rem;
+  background: linear-gradient(135deg, rgba(248, 255, 174, 0.1) 0%, rgba(67, 198, 172, 0.1) 100%);
+
+  &::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+      radial-gradient(circle at 20% 20%, rgba(248, 255, 174, 0.4) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(67, 198, 172, 0.4) 0%, transparent 50%);
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  .upcoming-event {
+    background: #e0f7fa;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    h3 {
+      margin: 0 0 0.5rem 0;
+      color: #00796b;
+      span {
+        color: #43c6ac;
+      }
+    }
+    p {
+      margin: 0 0 1rem 0;
+      color: #555;
+    }
+    .pdf-link {
+      color: #00796b;
+      text-decoration: none;
+      font-weight: bold;
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+
+
+  .banner-image {
+    width: 100%;
+    height: 350px;
+    background-image: url('/assets/banner/banner.jpg'); // Update with your actual image path
+    background-size: cover;
+    background-position: center;
+    margin-bottom: 2rem;
+    border-radius: 1rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  }
+
+  .content-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
+
+  // Add this to your existing styles
+.nav-buttons {
+  text-align: center;
+  margin: 2rem 0;
+
+  .challenge-btn {
+    background: #43c6ac;
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 30px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background: #3ab19c;
+      transform: scale(1.05);
+    }
+
+    &.disabled {
+      background: #cccccc !important;
+      cursor: not-allowed;
+      pointer-events: none;
+      opacity: 0.7;
+      transition: all 0.3s ease;
+    }
+  }
+}
+
+.challenge-widget {
+  margin: 2rem 0;
+  border-radius: 1rem;
+  overflow: hidden;
+  background-image: url('https://raw.githubusercontent.com/SANTOC01/gipfelstuermer-tracker/refs/heads/main/assets/mountain.jpg');
+  background-size: cover;
+  background-position: top;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  animation: fadeIn 0.5s ease-in;
+
+  .widget-content {
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(2px);
+
+    h2 {
+      color: #2c3e50;
+      margin-bottom: 1.5rem;
+      text-align: center;
+      font-size: 1.8rem;
+    }
+
+    .widget-data {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      margin-bottom: 2rem;
+
+      .ranking-section {
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 0.5rem;
+        padding: 1rem;
+      }
+    }
+
+    .challenge-btn {
+      display: block;
+      background: #43c6ac;
+      color: white;
+      padding: 1rem 2rem;
+      border-radius: 30px;
+      text-decoration: none;
+      font-weight: bold;
+      text-align: center;
+      transition: all 0.3s ease;
+      margin: 0 auto;
+      max-width: 300px;
+
+      &:hover {
+        background: #3ab19c;
+        transform: scale(1.05);
+      }
+    }
+  }
+}
+
+.events-widget {
+  margin: 2rem 0;
+  border-radius: 1rem;
+  overflow: hidden;
+  background-size: cover;
+  background: white;
+  background-position: top;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  animation: fadeIn 0.5s ease-in;
+  
+
+  .widget-content {
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(2px);
+
+    // Override events container styles
+    ::ng-deep .events-container {
+      width: 100%;
+      max-width: 100%;
+      background: transparent;
+      padding: 0;
+      margin: 0;
+      box-shadow: none;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+
+      h2 {
+        color: #2c3e50;
+        margin-bottom: 1.5rem;
+        text-align: center;
+        font-size: 1.8rem;
+      }
+
+      .events-list {
+        flex: 1;
+        overflow-y: auto;
+      }
+
+      .event-row {
+        background: rgba(255, 255, 255, 1);
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); // Added stronger shadow for cards
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.9);
+          transform: translateY(-2px);
+          box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); // Even stronger shadow on hover
+        }
+      }
+    }
+  }
+}
+
+.widgets-container {
+  display: flex;
+  gap: 2rem;
+  margin: 2rem 0;
+  justify-content: center;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: center; 
+  }
+}
+
+.events-widget,
+.challenge-widget {
+  flex: 1;
+  max-width: 450px; // Add max-width
+  margin: 0;
+  border-radius: 1rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); // Increased shadow
+  animation: fadeIn 0.5s ease-in;
+
+  .widget-content {
+    padding: 2rem;
+    height: 900px;
+    display: flex;
+    flex-direction: column;
+  }
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard {
+    .banner-image {
+      height: 200px; // Smaller height on mobile
+      margin: 1rem 0;
+    }
+  }
+
+  .challenge-widget {
+    .widget-content {
+      .widget-data {
+        flex-direction: column;
+        }
+      }
+    }
+  }
+
+}
+
+.dashboard-banner {
+  width: 100vw;
+  max-width: 100vw;
+  overflow: hidden;
+  height: 300px;
+  position: relative;
+  top: 0;
+  
+  .banner-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+  }
+}
+
+  .welcome-banner {
+    width: 100%;
+    text-align: center;
+    background-color: rgb(255, 255, 255);
+    box-shadow: 0 8px 32px rgba(67, 198, 172, 0.08);
+  
+
+  }
+
+@media (max-width: 768px) {
+  .dashboard-banner {
+    height: 140px;
+  }
+  .welcome-banner {
+    padding: 1rem 0.5rem 1rem 0.5rem;
+    h1 { font-size: 1.2rem; }
+    .subtitle { font-size: 0.85rem; }
+  }
+}
+
+.info-widget {
+  background: #fff;
+  border-radius: 1rem;
+  box-shadow: 0 4px 16px rgba(67, 198, 172, 0.08);
+  padding: 2rem 1.5rem;
+  margin-bottom: 2rem;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: left;
+  max-width: 930px;
+
+  h2 {
+    margin-top: 0;
+    color: #222;
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+  }
+
+  p {
+    color: #222;
+    font-size: 1.05rem;
+    margin: 0;
+    line-height: 1.6;
+  }
+}
+
+.map-popup {
+  width: 100%;
+  max-width: 930px;
+  margin: 0 auto 2rem auto;
+  border-radius: 1rem;
+  box-shadow: 0 4px 16px rgba(67, 198, 172, 0.10);
+  background: #fff;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+
+  img {
+    width: 100%;
+    max-height: 150px;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+    background: #f8f8f8;
+    filter: saturate(1.1) contrast(1.05);
+    transition: max-height 0.4s cubic-bezier(.4,2,.6,1), box-shadow 0.2s;
+    border-bottom: 1px solid #e0e0e0;
+    user-select: none;
+    pointer-events: none;
+  }
+
+  .map-caption {
+    width: 100%;
+    text-align: center;
+    padding: 0.7rem 0;
+    background: linear-gradient(90deg, #e8f9f6 0%, #f8ffae 100%);
+    color: #179c7d;
+    font-weight: 600;
+    font-size: 1.1rem;
+    letter-spacing: 0.02em;
+    border-bottom-left-radius: 1rem;
+    border-bottom-right-radius: 1rem;
+    box-shadow: 0 2px 8px rgba(67, 198, 172, 0.03);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+
+    .expand-hint {
+      color: #888;
+      font-size: 0.95rem;
+      margin-left: 1rem;
+      opacity: 0.8;
+      transition: opacity 0.2s;
+      user-select: none;
+      pointer-events: none;
+    }
+  }
+
+  .close-map-overlay {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    z-index: 10;
+    cursor: pointer;
+  }
+
+  &.open {
+    box-shadow: 0 8px 32px rgba(67, 198, 172, 0.18);
+
+    img {
+      max-height: 620px;
+      pointer-events: auto;
+      cursor: default;
+    }
+    cursor: pointer;
+    .expand-hint {
+      display: none;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .map-popup img {
+    max-height: 48px;
+  }
+  .map-popup.open img {
+    max-height: 220px;
+  }
+  .map-popup .map-caption {
+    font-size: 0.95rem;
+    padding: 0.5rem 0;
+  }
+}
+
+.insta-link {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 0.5rem;
+  transition: transform 0.15s;
+  line-height: 1;
+  left: 10px;
+
+  .insta-icon {
+    width: 3.7rem;
+    height: auto;
+    vertical-align: middle;
+    filter: grayscale(0.2) brightness(1.1);
+    transition: filter 0.2s, transform 0.2s;
+  }
+
+  &:hover .insta-icon {
+    filter: none;
+    transform: scale(1.12);
+  }
+}

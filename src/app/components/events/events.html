@@ -1,0 +1,32 @@
+<div class="events-widget">
+  <div class="widget-content">
+    <div class="events-container">
+      <h2>📰 Nächste Events
+        <span class="info-container">
+          <img src="assets/info.png" alt="Description" class="info-icon">
+          <span class="info-tooltip">
+            ⚫ 42KM<br>
+            🔴 21KM<br>
+            🟡 10KM<br>
+            🟢 5KM<br>
+            🌄 Trail
+          </span>
+        </span>
+      </h2>
+
+      <ul class="events-list">
+        <li *ngFor="let event of events" class="event-row" (click)="openEventModalHandler(event)">
+          <div class="event-left">
+            <div>
+              <strong>{{event.name}}</strong><br>
+              <small>{{event.dist}}</small><br>
+              <small>📅 {{formatDate(event.date)}}</small>
+            </div>
+          </div>
+          <span class="days-left">🕒 {{event.daysLeft}} Tage</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+  
+</div>

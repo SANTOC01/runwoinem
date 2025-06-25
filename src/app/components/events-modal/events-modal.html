@@ -1,0 +1,31 @@
+<div class="modal" [class.show-modal]="show">
+  <div class="modal-content">
+    <div class="modal-header">
+      <button class="close-button" (click)="closeModal()">✖</button>
+    </div>
+    <div *ngIf="event" class="event-details">
+      <h3>{{ event.name }}</h3>
+      <p>
+        <span *ngIf="event.dist">{{ event.dist }}</span>
+        <span *ngIf="event.date"> - {{ event.date | date:'fullDate' }}</span>
+      </p>
+      <h4>Teilnehmer:</h4>
+      <ul class="participant-list">
+        <li *ngFor="let participant of event.participants">{{ participant }}</li>
+        <li *ngIf="!event.participants?.length">🦗 Noch keine Teilnehmer</li>
+      </ul>
+      <!-- Add Participant Button -->
+      <button 
+        class="add-participant-btn" 
+        *ngIf="!showAddParticipantForm"
+        (click)="showAddParticipantForm = true">
+        + Teilnehmer hinzufügen
+      </button>
+      <!-- Add Participant Form -->
+      <div class="add-participant-form" *ngIf="showAddParticipantForm">
+        <input type="text" [(ngModel)]="newParticipantName" placeholder="Teilnehmer eintragen" (keyup.enter)="addParticipant()" />
+        <button (click)="addParticipant()">Hinzufügen</button>
+      </div>
+    </div>
+  </div>
+</div>

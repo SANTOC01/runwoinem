@@ -1,0 +1,618 @@
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  background-image: url('https://raw.githubusercontent.com/SANTOC01/gipfelstuermer-tracker/refs/heads/main/assets/mountain.jpg'); /* Your image path */
+  background-size: cover; /* Scale image to cover the entire screen */
+  background-position: center; /* Center the image */
+  background-repeat: no-repeat; /* Prevent tiling */
+  background-attachment: scroll; /* Keep it fixed while scrolling */
+
+  @media (max-width: 768px) {
+    /* ✅ Only for mobile */
+    background-attachment: scroll; /* ✅ Fixes scrolling issue */
+  }
+
+  h1 {
+    font-size: 3rem;
+    font-weight: bold;
+    color: white;
+    text-align: center;
+    font-family: Arial, sans-serif;
+
+    /* Soft border around text */
+    text-shadow:
+        -2px -2px 3px black,
+        2px -2px 3px black,
+        -2px  2px 3px black,
+        2px  2px 3px black;
+  }
+
+
+  margin: 0; /* Remove default margin */
+  padding: 0; /* Remove default padding */
+  min-height: 100vh; /* ✅ Ensures the page takes full height but expands when needed */
+  display: flex;
+  justify-content: flex-start; /* ✅ Align content at the top */
+  align-items: center; /* ✅ Keeps horizontal centering */
+  flex-direction: column;
+  overflow: auto;
+}
+
+input, button {
+  margin: 10px;
+  padding: 10px;
+  font-size: 16px;
+}
+
+img {
+  height: 35%;
+  width: 35%;
+  float: left;
+}
+
+a {
+  color: white;
+  font-size: 70%;
+}
+
+#loading {
+  display: none; /* Hidden by default */
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+  background-color: rgba(255, 255, 255, 0.95); /* White background */
+  padding: 3px; /* Add some padding around the GIF */
+  border-radius: 100px; /* Optional: rounded corners for a soft look */
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2); /* Optional: shadow to make it stand out */
+}
+
+#loading img {
+  width: 150px; /* Adjust size if needed */
+  height: auto;
+}
+
+.content-wrapper {
+  display: flex;
+  flex-direction: column; /* Stack content vertically */
+  align-items: center; /* Center content horizontally */
+  width: 100%; /* Full width */
+  max-width: 700px; /* Limit max width */
+  padding: 20px;
+  box-sizing: border-box; /* Include padding in width/height */
+}
+
+.content {
+  position: relative;
+  z-index: 1; /* Ensures the content is above the background */
+  text-align: center;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.8); /* Semi-transparent background */
+  display: flex;
+  flex-direction: column; /* Stack elements vertically */
+  border-radius: 10px;
+  margin: 20px 0; /* Vertical margin */
+  width: 100%; /* Full width */
+  box-sizing: border-box; /* Include padding in width/height */
+}
+
+.container {
+  display: flex;
+  flex-direction: column; /* Stack content vertically on smaller screens */
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+
+.tables-wrapper {
+  display: flex;
+  justify-content: space-between; /* ✅ Even spacing */
+  align-items: stretch;
+  width: 100%;
+  max-width: 700px; /* ✅ Matches the transparent container */
+  gap: 5px; /* ✅ Reduce space between tables */
+}
+
+.table-container, .ranking-container {
+  flex: 1; /* ✅ Both take equal space */
+  background: white;
+  padding: 10px;
+  border-radius: 10px;
+  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+  overflow: auto; /* ✅ Stops tables from overflowing */
+  max-width: 340px; /* ✅ Scales down for fitting inside */
+  max-height: 400px; /* Adjust the height as needed */
+}
+
+.table-container {
+  flex: 0 0 60%; /* ✅ Slightly bigger */
+}
+
+.ranking-container {
+  flex: 0 0 36%; /* ✅ Slightly smaller */
+}
+
+.table-container table,
+.ranking-container table {
+  width: 100%; /* ✅ Forces table to fit inside */
+  table-layout: fixed; /* ✅ Prevents expanding */
+  font-size: 12px; /* ✅ Reduce text size */
+}
+
+th, td {
+  border: 1px solid black;
+  padding: 2px; /* ✅ Reduce padding */
+  text-align: center;
+  word-wrap: normal;
+  overflow: hidden;
+  white-space: normal; /* ✅ Allows wrapping */
+}
+
+/* ✅ Make tables stack on small screens */
+@media (max-width: 768px) {
+  .tables-wrapper {
+    flex-direction: column;
+    max-width: 90%; /* ✅ Reduce width on mobile */
+  }
+
+  .table-container, .ranking-container {
+    flex: 0 0 100%;
+    max-width: none; /* ✅ Full width on small screens */
+  }
+}
+
+.progress-bar {
+  width: 100%;
+  background: #ddd;
+  border-radius: 20px;
+  overflow: hidden; /* Add this to clip the contents */
+}
+
+.progress {
+  width: 0%;
+  height: 20px;
+  background-color: #4caf50;
+  text-align: center;
+  line-height: 20px;
+  color: white;
+  font-weight: bold;
+}
+
+.goal {
+  font-size: 20px;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+.banner {
+  background: #ffcc00;
+  padding: 10px;
+  font-size: 18px;
+  font-weight: bold;
+  margin: 10px auto;
+  display: none;
+  width: 80%;
+  border-radius: 10px;
+}
+
+@media (min-width: 768px) {
+  .container {
+    flex-direction: row; /* Align content horizontally on larger screens */
+  }
+}
+
+.goal-container {
+  width: 80%; /* Ensure all containers are the same width */
+  max-width: 600px; /* Limit max width */
+  background: white; /* Optional: makes it stand out */
+  padding: 20px;
+  margin-bottom: 20px; /* Space between sections */
+  border-radius: 10px; /* Optional: Rounded corners */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Optional: subtle shadow */
+  align-items: center;
+  text-align: center;
+  max-height: 400px; /* Adjust the height as needed */
+  overflow-y: auto;
+
+  :last-child {
+    /*text-align: left; !* Align text to the left *!*/
+  }
+}
+
+.goal-list {
+  list-style-type: none;
+  padding: 0;
+  text-align: left; /* Align list to the left */
+}
+
+.goal-wrapper {
+  display: flex; /* Flexbox layout */
+  flex-direction: column; /* Stack elements vertically */
+  align-items: center; /* Center them horizontally */
+  width: 100%; /* Full width */
+}
+
+.completed {
+  color: green;
+  font-weight: bold;
+}
+.completed label {
+  text-decoration: line-through;
+}
+
+.chart-container, .rewards-container {
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+h2 {
+  margin-bottom: 10px;
+  font-size: 22px;
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+ul li {
+  font-size: 16px;
+  padding: 5px 0;
+}
+
+
+.toast {
+  visibility: hidden;
+  min-width: 300px; /* Increased minimum width */
+  background-color: #333; /* Dark background for contrast */
+  color: #fff; /* White text for better readability */
+  border-left: 5px solid #ff9800; /* Accent color */
+  text-align: center;
+  border-radius: 8px; /* Softer rounded corners */
+  padding: 20px;
+  position: fixed;
+  z-index: 1000;
+  left: 50%;
+  top: 30px; /* Position it from the top instead of the bottom */
+  transform: translateX(-50%); /* Keep it centered horizontally */
+  font-size: 18px; /* Increased font size */
+  opacity: 0;
+  transition: opacity 0.5s, top 0.5s ease-in-out;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Adds subtle depth */
+  font-family: 'Roboto', sans-serif; /* Modern font */
+}
+
+/* Add an animation when visible */
+.toast.show {
+  visibility: visible;
+  opacity: 1;
+  top: 50px; /* Moves down a bit when shown */
+}
+
+.event-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.event-left {
+  text-align: left;
+}
+
+.event-right {
+  font-weight: bold;
+  white-space: nowrap;
+}
+.days-left {
+  text-align: right;
+}
+
+.info-container {
+  position: relative;
+  display: inline-block;
+  margin-left: 5px;
+}
+
+.info-icon {
+  width: 1em; /* Adjust to match the font size of the <h2> */
+  height: auto;
+  cursor: pointer;
+}
+
+.info-tooltip {
+  visibility: hidden;
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  background-color: rgba(255, 255, 255, 0.8); /* translucent white */
+  color: #222;
+  padding: 10px 14px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  font-size: 0.875rem;
+  line-height: 1.4;
+  white-space: nowrap;
+  text-align: left;
+
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.info-container:hover .info-tooltip {
+  visibility: visible;
+  opacity: 1;
+  transform: translateX(-50%) translateY(8px);
+  pointer-events: auto;
+}
+
+#trainingPopup {
+  position: absolute;
+  top: 10vh;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 300px;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+  background-color: rgba(255, 255, 255, 0.8);
+  background-size: cover;
+  background-position: center;
+  color: white;
+  text-shadow:
+      -2px -2px 3px black,
+      2px -2px 3px black,
+      -2px  2px 3px black,
+      2px  2px 3px black; /* Strong text stroke/shadow */
+  opacity: 1;
+  transition: opacity 1.5s ease; /* smooth fade over 1.5s */
+}
+
+/* Overlay for better readability */
+.training-popup-content {
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Headline and text styling */
+.training-popup-content h3 {
+  margin: 0.5em 0;
+  font-size: 1.4rem;
+  color: #222;
+}
+
+.training-popup-content p {
+  margin: 0.5em 0;
+  font-size: 2rem;
+  color: #333;
+}
+
+/* Button styling */
+.training-popup-content button {
+  background: #333;
+  color: white;
+  border: none;
+  padding: 0.5em 1em;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: background 0.3s;
+}
+
+.training-popup-content button:hover {
+  background: #555;
+}
+
+.close {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 32px;
+  font-weight: bold;
+  color: red;
+  cursor: pointer;
+  text-shadow: 0 0 5px rgba(0, 0, 0, 0.9); /* Makes it stand out */
+  z-index: 1001;
+}
+
+#trainingPopup.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+/* Lock scrolling when popup is active */
+body.lock-scroll {
+  overflow: hidden;
+}
+
+/* Vertically centered popup */
+.unlock-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+
+.unlock-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 60px);
+  grid-template-rows: repeat(3, 60px);
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.grid-button {
+  width: 60px;
+  height: 60px;
+  background-color: #ddd;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 16px;
+
+
+}
+
+.grid-container {
+  position: relative; /* Make sure this is set for proper canvas positioning */
+}
+
+.pattern-canvas {
+  touch-action: none; /* Prevents touch scrolling gestures */
+}
+
+.grid-button.active {
+  background-color: rgba(25, 184, 33, 0.51); /* Match the line color */
+  transition: background-color 0.2s ease;
+}
+
+
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.2); /* Semi-transparent background */
+  justify-content: center; /* Centers modal horizontally */
+  align-items: center; /* Centers modal vertically */
+  z-index: 9999; /* Ensure it's on top */
+}
+
+/* Modal content */
+.modal-content {
+  background-color: #fefefe;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+  max-width: 600px;
+  position: relative;
+  border-radius: 12px; /* Rounded corners */
+  z-index: 3; /* Ensure modal content is above overlay */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Optional: shadow for better visibility */
+}
+
+/* Modal header containing the close button */
+.modal-header {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 4;
+}
+
+/* Close button styling */
+.close-button {
+  background-color: #ff4d4d;
+  color: white;
+  font-size: 20px;
+  padding: 5px 10px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.close-button:hover {
+  background-color: #ff1a1a;
+}
+
+/* Styling for participants list inside the modal */
+#participantList {
+  list-style-type: none;
+  padding: 0;
+}
+
+#participantList li {
+  padding: 5px;
+  margin: 5px 0;
+  border: 1px solid #ddd;
+  background-color: #f9f9f9;
+  border-radius: 3px;
+}
+
+#participantList li:hover {
+  background-color: #f1f1f1;
+}
+
+/* Button for adding a new participant */
+#addParticipantBtn {
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  margin-top: 10px;
+}
+
+#addParticipantBtn:hover {
+  background-color: #45a049;
+}
+
+/* Participant form inside modal */
+#addParticipantForm {
+  display: none;
+  margin-top: 10px;
+}
+
+#addParticipationForm input[type="text"] {
+  width: 100%; /* Ensures the input takes up the available width */
+  max-width: 100%; /* Ensures the input doesn't overflow the container */
+  box-sizing: border-box; /* Makes sure padding and border are included in the width */
+}
+
+#submitParticipant {
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+#submitParticipant:hover {
+  background-color: #45a049;
+}
+
+/* List items in events list */
+#eventsList li {
+  padding: 15px;
+  margin: 10px 0;
+  border: 1px solid #ddd;
+  background-color: #f9f9f9;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+#eventsList li:hover {
+  background-color: #f1f1f1;
+}
+
+
+
+
+

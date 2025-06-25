@@ -1,0 +1,22 @@
+<div class="table-container">
+  <h2>📋 Letzte Einträge</h2>
+
+  <table>
+    <tr>
+      <th>Name</th>
+      <th>HM</th>
+      <th>Datum</th>
+      <th>Löschen</th>
+    </tr>
+    <tr *ngFor="let entry of entries; let i = index">
+      <td>{{entry.name}}</td>
+      <td>{{entry.hohenmeter}}</td>
+      <td>{{formatDate(entry.date)}}</td>
+      <td>
+        <button *ngIf="i === 0" 
+                (click)="deleteEntry(entry)" 
+                class="delete-btn">❌</button>
+      </td>
+    </tr>
+  </table>
+</div>

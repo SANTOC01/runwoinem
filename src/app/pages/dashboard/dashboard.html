@@ -1,0 +1,72 @@
+<div class="dashboard-banner">
+    <img src="/assets/banner/banner.jpg" alt="Banner" class="banner-img" />
+  </div>
+  
+  <div class="welcome-banner">
+  <h1>Lauftreff Runwoinem</h1> 
+</div>
+
+<div class="dashboard">
+ 
+  <div class="content-wrapper">
+
+    <div class="info-widget">
+  <h2><a href="https://www.instagram.com/runwoinem/" target="_blank" rel="noopener" class="insta-link" title="Instagram">
+      <img src="/assets/banner/instagram.svg" alt="Instagram" class="insta-icon" />
+    </a>Infos</h2>
+  <p>
+    Unser Lauftreff findet jeden Dienstag um 18 Uhr am Fahrradständer
+     am Waidsee statt. Gemeinsam laufen wir etwa eine Stunde,
+      um Freude an der Bewegung zu haben,
+       fit zu bleiben und den Sport in geselliger Runde zu genießen.
+        Die Streckenlänge und das Tempo passen wir dabei flexibel an die 
+        Bedürfnisse und Vorlieben aller Teilnehmer an, damit jeder in seinem 
+        eigenen Tempo mitlaufen kann.
+  </p>
+</div>
+
+<div class="map-popup" [class.open]="mapOpen" (click)="toggleMap()">
+  <img src="/assets/map.png" alt="Treffpunkt am Waidsee - Karte" />
+  <div class="map-caption">
+    <span>📍 Treffpunkt am Waidsee</span>
+    <span *ngIf="!mapOpen" class="expand-hint">Karte anzeigen ▼</span>
+  </div>
+  <div *ngIf="mapOpen" class="close-map-overlay"></div>
+</div>
+
+    <!-- Widgets Container -->
+    <div class="widgets-container" *ngIf="showWidget">
+      <!-- Events Widget -->
+      <div class="events-widget">
+        <div class="widget-content">
+          <app-events
+            (openEventModal)="openEventModal($event)">
+          </app-events>
+        </div>
+      </div>
+      <!-- Challenge Widget -->
+      <div class="challenge-widget">
+        <div class="widget-content">
+          <h2>🏔️ Gipfelstürmer Challenge</h2>
+          <div class="widget-data">
+            <app-goal-banner></app-goal-banner>
+            <div class="ranking-section">
+              <app-ranking-table></app-ranking-table>
+            </div>
+          </div>
+          <a [routerLink]="['/challenge']" 
+             class="challenge-btn">
+            🎯 Gipfelstürmer Challenge
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal goes here, outside the dashboard/widgets -->
+<app-events-modal
+  [event]="selectedEvent"
+  [show]="!!selectedEvent"
+  (close)="closeEventModal()">
+</app-events-modal>

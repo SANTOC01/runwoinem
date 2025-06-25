@@ -1,0 +1,44 @@
+<div class="challenge-container">
+  <!-- Loading overlay -->
+
+  <!-- Content always visible -->
+  <div class="content-wrapper">
+    <div class="header">
+      <h1>Gipfelstürmer Event 2025</h1>
+      <app-goal-banner></app-goal-banner>
+    </div>
+
+    <div class="input-section">
+      <input type="text" [(ngModel)]="name" placeholder="Dein Name"/>
+      <input type="number" 
+             [(ngModel)]="hohenmeter" 
+             placeholder="Höhenmeter" 
+             max="1200"
+             (input)="validateHohenmeter()"/>
+      <button (click)="submitData()">Absenden</button>
+    </div>
+
+    <div class="data-section">
+      <app-stats-table></app-stats-table>
+      <app-ranking-table></app-ranking-table>
+    </div>
+
+    <div class="progress-section">
+      <div class="progress-header">
+        <h2>📈 Fortschritt Gesamt: {{totalHM}} HM</h2>
+        <div class="progress-bar">
+          <div class="progress" [style.width.%]="progressPercentage">
+            {{progressPercentage}}%
+          </div>
+        </div>
+      </div>
+      <app-progress-chart></app-progress-chart>
+    </div>
+  </div>
+
+  <app-lock-screen 
+    *ngIf="lockService.showLockScreen$ | async"
+    (success)="lockService.handleUnlockSuccess()"
+    (cancel)="lockService.handleUnlockCancel()">
+  </app-lock-screen>
+</div>
