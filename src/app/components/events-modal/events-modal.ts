@@ -20,7 +20,7 @@ export class EventsModalComponent {
   newParticipantName = '';
 
   constructor(public challengeService: ChallengeService) {}
-  
+
 
   closeModal() {
     this.close.emit();
@@ -31,7 +31,7 @@ export class EventsModalComponent {
 
     try {
       const success = await this.challengeService.addParticipant(
-        this.event.name, 
+        this.event.name,
         this.newParticipantName
       );
       if (success) {
@@ -43,4 +43,15 @@ export class EventsModalComponent {
       console.error('Error adding participant:', error);
     }
   }
+  formatDate(dateString: string): string {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return dateString;
+    return date.toLocaleDateString('de-DE', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  }
+
 }

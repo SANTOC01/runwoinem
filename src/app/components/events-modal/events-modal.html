@@ -7,7 +7,7 @@
       <h3>{{ event.name }}</h3>
       <p>
         <span *ngIf="event.dist">{{ event.dist }}</span>
-        <span *ngIf="event.date"> - {{ event.date | date:'fullDate' }}</span>
+        <span *ngIf="event.date"> - {{ formatDate(event.date) }}</span>
       </p>
       <h4>Teilnehmer:</h4>
       <ul class="participant-list">
@@ -15,8 +15,8 @@
         <li *ngIf="!event.participants?.length">🦗 Noch keine Teilnehmer</li>
       </ul>
       <!-- Add Participant Button -->
-      <button 
-        class="add-participant-btn" 
+      <button
+        class="add-participant-btn"
         *ngIf="!showAddParticipantForm"
         (click)="showAddParticipantForm = true">
         + Teilnehmer hinzufügen
