@@ -2,7 +2,11 @@ import { Injectable } from '@angular/core';
 
 @Injectable({ providedIn: 'root' })
 export class ToastService {
+
   show(message: string, duration = 3000) {
+
+    if(message.includes("🟢")){ duration = 1000}
+
     let toast = document.getElementById('toast');
     if (!toast) {
       toast = document.createElement('div');
