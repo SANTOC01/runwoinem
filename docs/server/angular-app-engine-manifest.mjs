@@ -1,6 +1,6 @@
 
 export default {
-  basePath: '/',
+  basePath: '/runwoinem',
   supportedLocales: {
   "en-US": ""
 },
