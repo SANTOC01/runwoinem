@@ -38,7 +38,7 @@
           },
           "configurations": {
             "production": {
-              "baseHref": "/runwoinem/",
+              "baseHref": "/",
               "budgets": [
                 {
                   "type": "initial",
