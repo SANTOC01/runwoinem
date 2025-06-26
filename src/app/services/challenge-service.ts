@@ -96,7 +96,8 @@ export class ChallengeService {
     }
   }
 
-  private async refreshAllData(): Promise<void> {
+  // Add this line to make the refreshAllData method public
+  public async refreshAllData(): Promise<void> {
     try {
       const response = await this.fetchAllData();
       if (response) {

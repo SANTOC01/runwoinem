@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { RankingTable } from '../../components/ranking-table/ranking-table';
@@ -7,7 +7,8 @@ import { Events } from '../../components/events/events';
 import { ChallengeService } from '../../services/challenge-service';
 import { Subscription } from 'rxjs';
 import { EventsModalComponent } from "../../components/events-modal/events-modal";
-import { AppEvent } from '../../models/app-event'; // <-- Add this import
+import { AppEvent } from '../../models/app-event';
+import { ToastService } from '../../services/toast-service';
 
 @Component({
   selector: 'app-dashboard',
@@ -19,7 +20,7 @@ import { AppEvent } from '../../models/app-event'; // <-- Add this import
     GoalBanner,
     Events,
     EventsModalComponent
-],
+  ],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.scss']
 })
@@ -28,17 +29,22 @@ export class Dashboard implements OnInit, OnDestroy {
   buttonEnabled = false;
   private subscription: Subscription | null = null;
   mapOpen = false;
-  selectedEvent: AppEvent | null = null; // <-- Use AppEvent
+  selectedEvent: AppEvent | null = null;
 
-  constructor(private challengeService: ChallengeService) {}
+  constructor(
+    private challengeService: ChallengeService,
+    private toast: ToastService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit() {
-    // Show widget when rankings data is available
-    this.subscription = this.challengeService.rankings$.subscribe(rankings => {
-      if (rankings.length > 0) {
-        this.showWidget = true;
-      }
-    });
+    // Initial load
+    this.loadDashboardData();
+
+    // Background refresh after 5 seconds
+    setTimeout(() => {
+      this.forceRefreshData();
+    }, 5000);
   }
 
   ngOnDestroy() {
@@ -47,11 +53,30 @@ export class Dashboard implements OnInit, OnDestroy {
     }
   }
 
+  private async loadDashboardData() {
+    // Show widget when rankings data is available
+    this.subscription = this.challengeService.rankings$.subscribe(rankings => {
+      if (rankings.length > 0) {
+        this.showWidget = true;
+        this.cdr.detectChanges();
+      }
+    });
+
+    await this.challengeService.loadData();
+    this.cdr.detectChanges();
+  }
+
+  private async forceRefreshData() {
+    await this.challengeService.refreshAllData();
+    this.cdr.detectChanges();
+    this.toast.show('🟢 Live');
+  }
+
   toggleMap() {
     this.mapOpen = !this.mapOpen;
   }
 
-  openEventModal(event: AppEvent) { // <-- Use AppEvent
+  openEventModal(event: AppEvent) {
     this.selectedEvent = event;
   }
 
