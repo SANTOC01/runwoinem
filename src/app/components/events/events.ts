@@ -18,7 +18,7 @@ export class Events implements OnInit, OnDestroy {
   events: AppEvent[] = [];
   selectedEvent: AppEvent | null = null;
   showAddParticipantForm = false;
-  newParticipantName = '';
+
   private subscription: Subscription | null = null;
 
   @Output() openEventModal = new EventEmitter<AppEvent>();
@@ -56,7 +56,7 @@ export class Events implements OnInit, OnDestroy {
     this.showAddParticipantForm = false;
   }
 
-  
+
 
   formatDate(dateString: string): string {
     const date = new Date(dateString);
@@ -68,4 +68,13 @@ export class Events implements OnInit, OnDestroy {
       day: 'numeric'
     });
   }
+  getParticipantCount(event: AppEvent): number {
+    return event.participants?.length ?? 0;
+  }
+
+  getParticipantText(count: number): string {
+    return count === 1 ? 'Teilnehmer' : 'Teilnehmer';
+  }
+
+
 }

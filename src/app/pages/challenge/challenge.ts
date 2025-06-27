@@ -34,20 +34,13 @@ export class Challenge implements OnInit, OnDestroy {
   hohenmeter: number | null = null;
   totalHM = 0;
   progressPercentage = 0;
-  private subscriptions: Subscription[] = [];
+  private readonly subscriptions: Subscription[] = [];
 
   constructor(
-    private challengeService: ChallengeService,
+    private readonly challengeService: ChallengeService,
     public lockService: LockService,
-    @Inject(PLATFORM_ID) private platformId: Object
-  ) {
-    if (isPlatformBrowser(this.platformId)) {
-      // Use window.location.href instead of router.navigate
-      if (performance.navigation.type === 1) {
-        window.location.href = '/dashboard';
-      }
-    }
-  }
+    @Inject(PLATFORM_ID) private readonly platformId: Object
+  ) {}
 
   ngOnInit() {
 

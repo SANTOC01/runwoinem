@@ -20,13 +20,16 @@
             <div>
               <strong>{{event.name}}</strong><br>
               <small>{{event.dist}}</small><br>
-              <small>📅 {{formatDate(event.date)}}</small>
+              <small *ngIf="getParticipantCount(event) > 0">{{
+                  getParticipantCount(event)
+                }} {{ getParticipantText(getParticipantCount(event)) }}</small><br>
+              <small>📅 {{ formatDate(event.date) }}</small>
             </div>
           </div>
-          <span class="days-left">🕒 {{event.daysLeft}} Tage</span>
-        </li>
-      </ul>
-    </div>
+          <div class="no-events" *ngIf="!events?.length">
+            Keine Events geplant 🏃‍♂️
+          </div>
+        </ul></div>
+      </div>
+
   </div>
-  
-</div>
