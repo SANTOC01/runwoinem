@@ -1,5 +1,5 @@
-<div class="loading-overlay" *ngIf="isLoading">
-    <div class="loading">
-        <img src="assets/loadingman.gif" alt="Loading...">
-    </div>
+<div *ngIf="isLoading" [ngClass]="{'loading-overlay': useOverlay}">
+  <div class="loading">
+    <img src="/assets/loadingman.gif" alt="Loading..." />
+  </div>
 </div>

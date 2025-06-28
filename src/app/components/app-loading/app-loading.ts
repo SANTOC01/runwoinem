@@ -9,5 +9,6 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./app-loading.scss']
 })
 export class Loading {
-  @Input() isLoading: boolean = false;
+  @Input() isLoading = false;
+  @Input() useOverlay = true; // default: overlay
 }

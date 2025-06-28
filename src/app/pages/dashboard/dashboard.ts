@@ -9,7 +9,7 @@ import { Subscription } from 'rxjs';
 import { EventsModalComponent } from "../../components/events-modal/events-modal";
 import { AppEvent } from '../../models/app-event';
 import { ToastService } from '../../services/toast-service';
-
+import { Loading } from '../../components/app-loading/app-loading';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -19,7 +19,8 @@ import { ToastService } from '../../services/toast-service';
     RankingTable,
     GoalBanner,
     Events,
-    EventsModalComponent
+    EventsModalComponent,
+    Loading
   ],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.scss']

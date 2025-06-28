@@ -35,6 +35,11 @@
       <div *ngIf="mapOpen" class="close-map-overlay"></div>
     </div>
 
+    <!-- Loading animation in a container under the map -->
+    <div class="dashboard-loading-container" *ngIf="!showWidget">
+      <app-loading [isLoading]="true" [useOverlay]="false"></app-loading>
+    </div>
+
     <!-- Widgets Container -->
     <div class="widgets-container" *ngIf="showWidget">
       <!-- Events Widget -->

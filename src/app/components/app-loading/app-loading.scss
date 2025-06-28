@@ -1,5 +1,5 @@
-    .loading-overlay {
-      position: fixed;
+.loading-overlay {
+      position: absolute;
       top: 0;
       left: 0;
       width: 100%;
@@ -8,7 +8,6 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      visibility: hidden;
 
     
     }
@@ -23,4 +22,16 @@
     .loading img {
       width: 150px;
       height: auto;
+      /* Animation for running man */
+      position: relative;
+      animation: runman-move 2s linear infinite;
+    }
+
+    @keyframes runman-move {
+      0% {
+        left: 0;
+      }
+      100% {
+        left: 100vb;
+      }
     }
