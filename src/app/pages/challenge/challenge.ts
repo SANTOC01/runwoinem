@@ -1,8 +1,6 @@
-import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router} from '@angular/router';
-import { isPlatformBrowser } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { ChallengeService } from '../../services/challenge-service';
 import { StatsTable } from '../../components/stats-table/stats-table';
@@ -11,7 +9,7 @@ import { ProgressChart } from '../../components/progress-chart/progress-chart';
 import { GoalBanner } from '../../components/goal-banner/goal-banner';
 import {LockScreen} from '../../components/app-lock-screen/app-lock-screen'
 import { LockService } from '../../services/lock-service';
-
+import confetti from 'canvas-confetti';
 
 @Component({
   selector: 'app-challenge',
@@ -36,6 +34,10 @@ export class Challenge implements OnInit, OnDestroy {
   progressPercentage = 0;
   private readonly subscriptions: Subscription[] = [];
 
+  @ViewChild('confettiCanvas', { static: false }) confettiCanvas!: ElementRef<HTMLCanvasElement>;
+  private confettiInterval: any = null;
+  private confettiFired = false;
+
   constructor(
     private readonly challengeService: ChallengeService,
     public lockService: LockService,
@@ -43,10 +45,17 @@ export class Challenge implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-
       this.challengeService.totalHM$.subscribe(total => {
         this.totalHM = total;
         this.progressPercentage = Math.min(Math.round((total / 100000) * 100), 100);
+
+        if (total >= 100000 && !this.confettiFired && total < 101000) {
+        this.launchConfetti();
+        this.confettiFired = true;
+      }
+      if (total < 100000) {
+        this.confettiFired = false;
+      }
       })
   }
 
@@ -101,4 +110,16 @@ export class Challenge implements OnInit, OnDestroy {
       }, 300); // Wait for hide animation to complete
     }, 3000);
   }
+
+  launchConfetti() {
+      if (!this.confettiCanvas) return;
+          const myConfetti = confetti.create(this.confettiCanvas.nativeElement, { resize: true, useWorker: true });
+          this.confettiInterval = setInterval(() => {
+            myConfetti({
+              particleCount: 80,
+              spread: 70,
+              origin: { y: 0.6 }
+            });
+          }, 1600); // every 1.2 seconds
+        }
 }

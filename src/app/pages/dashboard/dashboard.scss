@@ -448,3 +448,13 @@
     width: 100%;
   }
 }
+
+.confetti-canvas {
+  position: absolute;
+  pointer-events: none;
+  top: 0;
+  left: 0;
+  width: 100% !important;
+  height: 100% !important;
+  z-index: 10;
+}

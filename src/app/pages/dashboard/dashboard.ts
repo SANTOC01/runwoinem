@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { RankingTable } from '../../components/ranking-table/ranking-table';
@@ -10,6 +10,8 @@ import { EventsModalComponent } from "../../components/events-modal/events-modal
 import { AppEvent } from '../../models/app-event';
 import { ToastService } from '../../services/toast-service';
 import { Loading } from '../../components/app-loading/app-loading';
+import confetti from 'canvas-confetti';
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -31,6 +33,9 @@ export class Dashboard implements OnInit, OnDestroy {
   private subscription: Subscription | null = null;
   mapOpen = false;
   selectedEvent: AppEvent | null = null;
+  @ViewChild('confettiCanvas', { static: false }) confettiCanvas!: ElementRef<HTMLCanvasElement>;
+  private confettiInterval: any = null;
+  private confettiFired = false;
 
   constructor(
     private challengeService: ChallengeService,
@@ -46,6 +51,17 @@ export class Dashboard implements OnInit, OnDestroy {
     setTimeout(() => {
       this.forceRefreshData();
     }, 5000);
+
+    // Subscribe to totalHM to trigger confetti
+    this.challengeService.totalHM$.subscribe(total => {
+      if (total >= 100000 && !this.confettiFired && total < 101000) {
+        this.launchConfetti();
+        this.confettiFired = true;
+      }
+      if (total < 100000) {
+        this.confettiFired = false;
+      }
+    });
   }
 
   ngOnDestroy() {
@@ -84,4 +100,17 @@ export class Dashboard implements OnInit, OnDestroy {
   closeEventModal() {
     this.selectedEvent = null;
   }
-}
+
+  launchConfetti() {
+    if (!this.confettiCanvas) return;
+        const myConfetti = confetti.create(this.confettiCanvas.nativeElement, { resize: true, useWorker: true });
+        this.confettiInterval = setInterval(() => {
+          myConfetti({
+            particleCount: 80,
+            spread: 70,
+            origin: { y: 0.6 }
+          });
+        }, 1600); // every 1.2 seconds
+      }
+
+  }
