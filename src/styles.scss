@@ -131,3 +131,30 @@ html {
   opacity: 1;
   top: 50px;
 }
+
+// Add to your global styles (e.g., styles.scss) or dashboard.scss
+
+.social-icon-link {
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 0.5rem;
+  transition: transform 0.15s;
+  line-height: 1;
+
+  &:last-child {
+    margin-right: 0;
+  }
+}
+
+.social-icon {
+  width: 2.2rem;
+  height: 2.2rem;
+  vertical-align: middle;
+  filter: grayscale(0.2) brightness(1.1);
+  transition: filter 0.2s, transform 0.2s;
+}
+
+.social-icon-link:hover .social-icon {
+  filter: none;
+  transform: scale(1.12);
+}

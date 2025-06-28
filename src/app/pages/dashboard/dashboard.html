@@ -11,10 +11,9 @@
   <div class="content-wrapper">
 
     <div class="info-widget">
-      <h2><a href="https://www.instagram.com/runwoinem/" target="_blank" rel="noopener"
-             class="insta-link" title="Instagram">
-        <img src="/assets/banner/instagram.svg" alt="Instagram" class="insta-icon"/>
-      </a>Infos</h2>
+      <h2>
+        ℹ️ Infos
+      </h2>
       <p>
         Unser Lauftreff findet jeden Dienstag um 18 Uhr am Fahrradständer
         am Waidsee statt. Gemeinsam laufen wir etwa eine Stunde,
@@ -23,9 +22,23 @@
         Die Streckenlänge und das Tempo passen wir dabei flexibel an die
         Bedürfnisse und Vorlieben aller Teilnehmer an, damit jeder in seinem
         eigenen Tempo mitlaufen kann.
-      </p>
-    </div>
+      </p> <br>
 
+      <h2>Social Media</h2>
+      <a href="https://www.strava.com/clubs/runwoinem" target="_blank" rel="noopener"
+         class="social-icon-link" title="Strava">
+        <img src="/assets/banner/strava.png" alt="Strava" class="social-icon"/>
+      </a>
+      <a href="https://www.instagram.com/runwoinem/" target="_blank" rel="noopener"
+         class="social-icon-link" title="Instagram">
+        <img src="/assets/banner/instagram.png" alt="Instagram" class="social-icon"/>
+      </a>
+      <a href="https://chat.whatsapp.com/ERi10lC4L8d9vwRW2m2Js1" target="_blank" rel="noopener"
+         class="social-icon-link" title="WhatsApp">
+        <img src="/assets/banner/whatsapp.png" alt="WhatsApp" class="social-icon"/>
+      </a>
+    </div>
+ 
     <div class="map-popup" [class.open]="mapOpen" (click)="toggleMap()">
       <img src="/assets/map.png" alt="Treffpunkt am Waidsee - Karte"/>
       <div class="map-caption">
@@ -35,14 +48,14 @@
       <div *ngIf="mapOpen" class="close-map-overlay"></div>
     </div>
 
-    <!-- Loading animation in a container under the map -->
+
     <div class="dashboard-loading-container" *ngIf="!showWidget">
       <app-loading [isLoading]="true" [useOverlay]="false"></app-loading>
     </div>
 
-    <!-- Widgets Container -->
+
     <div class="widgets-container" *ngIf="showWidget">
-      <!-- Events Widget -->
+
       <div class="events-widget">
         <div class="widget-content">
           <app-events
@@ -50,7 +63,7 @@
           </app-events>
         </div>
       </div>
-      <!-- Challenge Widget -->
+
       <div class="challenge-widget">
         <div class="widget-content">
           <h2>🏔️ Gipfelstürmer Challenge</h2>
@@ -70,7 +83,6 @@
   </div>
 </div>
 
-<!-- Modal goes here, outside the dashboard/widgets -->
 <app-events-modal
   [event]="selectedEvent"
   [show]="!!selectedEvent"

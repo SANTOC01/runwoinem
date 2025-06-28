@@ -448,25 +448,3 @@
     width: 100%;
   }
 }
-
-.insta-link {
-  display: inline-block;
-  vertical-align: middle;
-  margin-left: 0.5rem;
-  transition: transform 0.15s;
-  line-height: 1;
-  left: 10px;
-
-  .insta-icon {
-    width: 3.7rem;
-    height: auto;
-    vertical-align: middle;
-    filter: grayscale(0.2) brightness(1.1);
-    transition: filter 0.2s, transform 0.2s;
-  }
-
-  &:hover .insta-icon {
-    filter: none;
-    transform: scale(1.12);
-  }
-}
