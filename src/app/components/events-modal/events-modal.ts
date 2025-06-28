@@ -29,16 +29,15 @@ export class EventsModalComponent {
   async addParticipant() {
     if (!this.event || !this.newParticipantName) return;
 
+    this.closeModal();
+
     try {
-      const success = await this.challengeService.addParticipant(
+      await this.challengeService.addParticipant(
         this.event.name,
         this.newParticipantName
       );
-      if (success) {
-        this.showAddParticipantForm = false;
-        this.newParticipantName = '';
-        this.closeModal();
-      }
+      this.showAddParticipantForm = false;
+      this.newParticipantName = '';
     } catch (error) {
       console.error('Error adding participant:', error);
     }

@@ -17,12 +17,14 @@
       padding: 3px;
       border-radius: 100px;
       box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+      overflow-x: hidden; // Ensure animation stays inside
+      position: relative; // Needed for child absolute/relative positioning
+      min-width: 150px;
     }
 
     .loading img {
       width: 150px;
       height: auto;
-      /* Animation for running man */
       position: relative;
       animation: runman-move 2s linear infinite;
     }
@@ -32,6 +34,8 @@
         left: 0;
       }
       100% {
-        left: 100vb;
+        left: calc(100% - 150px); // Stay inside the box
       }
     }
+
+
