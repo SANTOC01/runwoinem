@@ -1,5 +1,6 @@
-import { Component, ElementRef, EventEmitter, Output, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Output, ViewChild, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ToastService } from '../../services/toast-service';
 
 @Component({
   selector: 'app-lock-screen',
@@ -10,12 +11,12 @@ import { CommonModule } from '@angular/common';
       <div class="unlock-content">
         <h2>Entsperren</h2>
         <p>Zeichne das Muster zum Entsperren</p>
-        
+
         <div class="grid-container" #gridContainer>
           <canvas #patternCanvas></canvas>
           <div class="grid-row" *ngFor="let row of [0,1,2]">
-            <button 
-              *ngFor="let col of [1,2,3]" 
+            <button
+              *ngFor="let col of [1,2,3]"
               class="grid-button"
               [attr.data-value]="row * 3 + col"
               (mousedown)="handleMouseDown($event)"
@@ -30,7 +31,9 @@ import { CommonModule } from '@angular/common';
   `,
   styleUrls: ['./app-lock-screen.scss']
 })
-export class LockScreen implements AfterViewInit {
+export class LockScreen implements AfterViewInit, OnDestroy {
+  constructor(private toastService: ToastService) {}
+
   @Output() success = new EventEmitter<void>();
   @Output() cancel = new EventEmitter<void>();
   @ViewChild('gridContainer') gridContainer!: ElementRef;
@@ -42,10 +45,19 @@ export class LockScreen implements AfterViewInit {
   private isTouchActive = false;
   private lastPoint: { x: number; y: number } | null = null;
   private buttonPositions: { [key: string]: { x: number; y: number } } = {};
+  // @ts-ignore
+  private boundMouseMove: (event: MouseEvent) => void;
+  // @ts-ignore
+  private boundMouseUp: (event: MouseEvent) => void;
+  // @ts-ignore
+  private boundTouchMove: (event: TouchEvent) => void;
+  // @ts-ignore
+  private boundTouchEnd: (event: TouchEvent) => void;
 
   ngAfterViewInit() {
     this.setupCanvas();
     this.setupEventListeners();
+    this.disableScrolling();
   }
 
   private setupCanvas() {
@@ -61,78 +73,60 @@ export class LockScreen implements AfterViewInit {
     this.storeButtonPositions();
   }
 
-  private updateCanvasSize() {
-    const canvas = this.canvasRef.nativeElement as HTMLCanvasElement;
-    const container = this.gridContainer.nativeElement as HTMLElement;
-    canvas.width = container.offsetWidth;
-    canvas.height = container.offsetHeight;
-  }
-
   private setupEventListeners() {
-    document.addEventListener('mousemove', this.handleMouseMove.bind(this));
-    document.addEventListener('mouseup', this.handleMouseUp.bind(this));
-    document.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
-    document.addEventListener('touchend', this.handleTouchEnd.bind(this));
+    // Properly bind event Handlers once
+    this.boundMouseMove = this.handleMouseMove.bind(this);
+    this.boundMouseUp = this.handleMouseUp.bind(this);
+    this.boundTouchMove = this.handleTouchMove.bind(this);
+    this.boundTouchEnd = this.handleTouchEnd.bind(this);
+
+    document.addEventListener('mousemove', this.boundMouseMove);
+    document.addEventListener('mouseup', this.boundMouseUp);
+    document.addEventListener('touchmove', this.boundTouchMove, { passive: false });
+    document.addEventListener('touchend', this.boundTouchEnd);
   }
 
-  private storeButtonPositions() {
-    const buttons = this.gridContainer.nativeElement.querySelectorAll('.grid-button');
-    buttons.forEach((button: HTMLElement) => {
-      const rect = button.getBoundingClientRect();
-      const containerRect = this.gridContainer.nativeElement.getBoundingClientRect();
-      const value = button.getAttribute('data-value');
-      if (value) {
-        this.buttonPositions[value] = {
-          x: rect.left + rect.width / 2 - containerRect.left,
-          y: rect.top + rect.height / 2 - containerRect.top
-        };
-      }
-    });
+  private disableScrolling() {
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
   }
 
   handleMouseDown(event: MouseEvent) {
+    this.resetPattern();
     this.isMouseDown = true;
     const button = event.target as HTMLElement;
-    const value = button.getAttribute('data-value');
-    if (value && !this.inputPattern.includes(value)) {
-      this.inputPattern.push(value);
-      button.classList.add('active');
-      this.lastPoint = this.buttonPositions[value];
-      this.drawLines();
-    }
+    this.addPointToPattern(button);
   }
 
   private handleMouseMove(event: MouseEvent) {
     if (!this.isMouseDown) return;
-    
+
     const container = this.gridContainer.nativeElement;
     const rect = container.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
-    
+
     this.checkIntersection(x, y);
     this.drawLines(x, y);
   }
 
   private handleMouseUp() {
     if (this.isMouseDown) {
+      this.isMouseDown = false;
       this.checkPattern();
+      this.resetActiveButtons();
+      this.clearCanvas();
     }
-    this.resetState();
   }
 
   handleTouchStart(event: TouchEvent) {
     event.preventDefault();
+    this.resetPattern();
     this.isTouchActive = true;
     const touch = event.touches[0];
     const button = document.elementFromPoint(touch.clientX, touch.clientY) as HTMLElement;
-    const value = button?.getAttribute('data-value');
-    if (value && !this.inputPattern.includes(value)) {
-      this.inputPattern.push(value);
-      button.classList.add('active');
-      this.lastPoint = this.buttonPositions[value];
-      this.drawLines();
-    }
+    this.addPointToPattern(button);
   }
 
   private handleTouchMove(event: TouchEvent) {
@@ -151,10 +145,94 @@ export class LockScreen implements AfterViewInit {
 
   private handleTouchEnd() {
     if (this.isTouchActive) {
+      this.isTouchActive = false;
       this.checkPattern();
+      this.resetActiveButtons();
+      this.clearCanvas();
     }
-    this.resetState();
   }
+
+  private resetPattern() {
+    this.inputPattern = [];
+    this.lastPoint = null;
+    this.resetActiveButtons();
+    this.clearCanvas();
+  }
+
+  private resetActiveButtons() {
+    const buttons = this.gridContainer.nativeElement.querySelectorAll('.grid-button');
+    buttons.forEach((button: HTMLElement) => button.classList.remove('active'));
+  }
+
+  private clearCanvas() {
+    const canvas = this.canvasRef.nativeElement as HTMLCanvasElement;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  }
+
+  private addPointToPattern(button: HTMLElement) {
+    const value = button?.getAttribute('data-value');
+    if (value && !this.inputPattern.includes(value)) {
+      this.inputPattern.push(value);
+      button.classList.add('active');
+      this.lastPoint = this.buttonPositions[value];
+      this.drawLines();
+    }
+  }
+
+  private checkPattern() {
+    const enteredPattern = this.inputPattern.join('-');
+    if (enteredPattern === this.CORRECT_PATTERN) {
+      this.success.emit();
+    } else if (this.inputPattern.length > 0) {
+      this.toastService.show('Muster falsch, versuche es erneut.');
+    }
+  }
+
+  onCancel() {
+    this.cancel.emit();
+  }
+
+  ngOnDestroy() {
+    // Remove event listeners using the bound functions
+    document.removeEventListener('mousemove', this.boundMouseMove);
+    document.removeEventListener('mouseup', this.boundMouseUp);
+    document.removeEventListener('touchmove', this.boundTouchMove);
+    document.removeEventListener('touchend', this.boundTouchEnd);
+
+    // Reset body styles
+    document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.width = '';
+  }
+
+
+  private updateCanvasSize() {
+    const canvas = this.canvasRef.nativeElement as HTMLCanvasElement;
+    const container = this.gridContainer.nativeElement as HTMLElement;
+    canvas.width = container.offsetWidth;
+    canvas.height = container.offsetHeight;
+  }
+
+
+
+  private storeButtonPositions() {
+    const buttons = this.gridContainer.nativeElement.querySelectorAll('.grid-button');
+    buttons.forEach((button: HTMLElement) => {
+      const rect = button.getBoundingClientRect();
+      const containerRect = this.gridContainer.nativeElement.getBoundingClientRect();
+      const value = button.getAttribute('data-value');
+      if (value) {
+        this.buttonPositions[value] = {
+          x: rect.left + rect.width / 2 - containerRect.left,
+          y: rect.top + rect.height / 2 - containerRect.top
+        };
+      }
+    });
+  }
+
 
   private checkIntersection(x: number, y: number) {
     Object.entries(this.buttonPositions).forEach(([value, pos]) => {
@@ -199,60 +277,4 @@ export class LockScreen implements AfterViewInit {
     ctx.stroke();
   }
 
-  private checkPattern() {
-    const enteredPattern = this.inputPattern.join('-');
-    if (enteredPattern === this.CORRECT_PATTERN) {
-      this.success.emit();
-    } else {
-      this.showToast('Muster falsch, versuche es erneut.');
-      this.resetGridState();
-    }
-  }
-
-  private resetState() {
-    this.isMouseDown = false;
-    this.isTouchActive = false;
-    this.lastPoint = null;
-    if (!this.inputPattern.join('-').includes(this.CORRECT_PATTERN)) {
-      this.resetGridState();
-    }
-  }
-
-  private resetGridState() {
-    this.inputPattern = [];
-    const buttons = this.gridContainer.nativeElement.querySelectorAll('.grid-button');
-    buttons.forEach((button: HTMLElement) => button.classList.remove('active'));
-    const canvas = this.canvasRef.nativeElement as HTMLCanvasElement;
-    const ctx = canvas.getContext('2d');
-    if (ctx) {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
-  }
-
-  private showToast(message: string) {
-    const toast = document.createElement('div');
-    toast.className = 'toast';
-    toast.textContent = message;
-    document.body.appendChild(toast);
-
-    setTimeout(() => {
-      toast.classList.add('show');
-    }, 10);
-
-    setTimeout(() => {
-      toast.classList.remove('show');
-      setTimeout(() => toast.remove(), 300);
-    }, 3000);
-  }
-
-  onCancel() {
-    this.cancel.emit();
-  }
-
-  ngOnDestroy() {
-    document.removeEventListener('mousemove', this.handleMouseMove.bind(this));
-    document.removeEventListener('mouseup', this.handleMouseUp.bind(this));
-    document.removeEventListener('touchmove', this.handleTouchMove.bind(this));
-    document.removeEventListener('touchend', this.handleTouchEnd.bind(this));
-  }
 }
