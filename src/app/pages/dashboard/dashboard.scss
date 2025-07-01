@@ -2,7 +2,6 @@
   position: relative;
   font-family: 'Segoe UI', Arial, sans-serif;
   min-height: calc(100vh - 80px); // Subtract navbar height
-  padding: 2rem;
   background: linear-gradient(135deg, rgba(248, 255, 174, 0.1) 0%, rgba(67, 198, 172, 0.1) 100%);
 
   &::before {
@@ -56,17 +55,16 @@
     background-size: cover;
     background-position: center;
     margin-bottom: 2rem;
-    border-radius: 1rem;
+
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   }
 
   .content-wrapper {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0 2rem;
+
   }
 
-  // Add this to your existing styles
   .nav-buttons {
     text-align: center;
     margin: 2rem 0;
@@ -320,6 +318,16 @@
   margin-right: auto;
   text-align: left;
   max-width: 930px;
+  width: 100%;
+
+  @media (max-width: 768px) {
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    border-radius: 0 !important;
+    padding: 1.5rem 1rem !important;
+  }
+
 
   h2 {
     margin-top: 0;
