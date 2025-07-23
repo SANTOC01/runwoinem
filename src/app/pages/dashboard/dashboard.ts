@@ -101,16 +101,4 @@ export class Dashboard implements OnInit, OnDestroy {
     this.selectedEvent = null;
   }
 
-  launchConfetti() {
-    if (!this.confettiCanvas) return;
-        const myConfetti = confetti.create(this.confettiCanvas.nativeElement, { resize: true, useWorker: true });
-        this.confettiInterval = setInterval(() => {
-          myConfetti({
-            particleCount: 80,
-            spread: 70,
-            origin: { y: 0.6 }
-          });
-        }, 1600); // every 1.2 seconds
-      }
-
   }
