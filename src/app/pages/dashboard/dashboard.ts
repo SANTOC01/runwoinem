@@ -10,8 +10,6 @@ import { EventsModalComponent } from "../../components/events-modal/events-modal
 import { AppEvent } from '../../models/app-event';
 import { ToastService } from '../../services/toast-service';
 import { Loading } from '../../components/app-loading/app-loading';
-import confetti from 'canvas-confetti';
-
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -51,17 +49,6 @@ export class Dashboard implements OnInit, OnDestroy {
     setTimeout(() => {
       this.forceRefreshData();
     }, 5000);
-
-    // Subscribe to totalHM to trigger confetti
-    this.challengeService.totalHM$.subscribe(total => {
-      if (total >= 100000 && !this.confettiFired && total < 101000) {
-        this.launchConfetti();
-        this.confettiFired = true;
-      }
-      if (total < 100000) {
-        this.confettiFired = false;
-      }
-    });
   }
 
   ngOnDestroy() {
@@ -71,7 +58,7 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   private async loadDashboardData() {
-    // Show widget when rankings data is available
+    // Show widget when ranking data is available
     this.subscription = this.challengeService.rankings$.subscribe(rankings => {
       if (rankings.length > 0) {
         this.showWidget = true;

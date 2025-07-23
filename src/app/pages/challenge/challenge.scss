@@ -25,9 +25,9 @@
 
   .input-section {
     display: flex;
-    flex-direction: column;  
-    align-items: center; 
-    gap: 1rem;             
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
     margin-bottom: 2rem;
     width: 100%;
     max-width: 170px;       // Limit width of input section
@@ -78,7 +78,7 @@
 }
 
 #loading img {
-  width: 150px; 
+  width: 150px;
   height: auto;
 }
 
@@ -95,7 +95,7 @@
     border-radius: 15px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 
-    app-stats-table, 
+    app-stats-table,
     app-ranking-table {
       flex: 1;
       min-width: 0;      // Prevent flex items from overflowing
@@ -141,16 +141,6 @@
       }
     }
   }
-
-  .confetti-canvas {
-  position: absolute;
-  pointer-events: none;
-  top: 0;
-  left: 0;
-  width: 100% !important;
-  height: 100% !important;
-  z-index: 10;
-}
 
   @media (max-width: 768px) {
     .content-wrapper {

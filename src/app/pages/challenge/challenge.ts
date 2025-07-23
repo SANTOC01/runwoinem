@@ -9,7 +9,6 @@ import { ProgressChart } from '../../components/progress-chart/progress-chart';
 import { GoalBanner } from '../../components/goal-banner/goal-banner';
 import {LockScreen} from '../../components/app-lock-screen/app-lock-screen'
 import { LockService } from '../../services/lock-service';
-import confetti from 'canvas-confetti';
 
 @Component({
   selector: 'app-challenge',
@@ -48,14 +47,6 @@ export class Challenge implements OnInit, OnDestroy {
       this.challengeService.totalHM$.subscribe(total => {
         this.totalHM = total;
         this.progressPercentage = Math.min(Math.round((total / 100000) * 100), 100);
-
-        if (total >= 100000 && !this.confettiFired && total < 101000) {
-        this.launchConfetti();
-        this.confettiFired = true;
-      }
-      if (total < 100000) {
-        this.confettiFired = false;
-      }
       })
   }
 
@@ -97,7 +88,7 @@ export class Challenge implements OnInit, OnDestroy {
     toast.textContent = message;
     document.body.appendChild(toast);
 
-    // Add animation class after a brief delay
+    // Add an animation class after a brief delay
     setTimeout(() => {
       toast.classList.add('show');
     }, 10);
@@ -110,16 +101,4 @@ export class Challenge implements OnInit, OnDestroy {
       }, 300); // Wait for hide animation to complete
     }, 3000);
   }
-
-  launchConfetti() {
-      if (!this.confettiCanvas) return;
-          const myConfetti = confetti.create(this.confettiCanvas.nativeElement, { resize: true, useWorker: true });
-          this.confettiInterval = setInterval(() => {
-            myConfetti({
-              particleCount: 80,
-              spread: 70,
-              origin: { y: 0.6 }
-            });
-          }, 1600); // every 1.2 seconds
-        }
 }
