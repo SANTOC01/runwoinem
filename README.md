@@ -1,59 +1,39 @@
-# Runwoinem
+# Runwoinem - Running Group Webpage
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.0.2.
+## Project Overview
+Runwoinem is a web application designed to help running groups track activities, challenges, and progress. Built with Angular 20, this project demonstrates my ability to develop modern, responsive web applications while expanding my technical stack beyond Java.
 
-## Development server
+## Key Features
+- **Activity Dashboard**: Visualizes running statistics and group progress
+- **Challenge Management**: Allows users to create and participate in running challenges
+- **Leaderboard**: Tracks individual runner's progress
+- **Events**: Helps to keep track of incoming events and participants
+- **Responsive Design**: Works seamlessly across desktop and mobile devices
 
-To start a local development server, run:
+## Technologies Used
+- **Frontend**: Angular 20, TypeScript 5.8, HTML5, SCSS
+- **Backend**: JavaScript, Google Apps Script
+- **Visualization**: Chart.js for performance metrics and statistics
 
+## Development Process
+This project was created as a self-learning initiative to enhance my frontend skills. As a Java developer, I wanted to expand my knowledge into modern JavaScript frameworks. Key learning objectives included:
+
+- Implementing component-based architecture
+- Working with reactive programming patterns
+- Developing responsive UIs with modern CSS
+- Creating data visualizations for activity metrics
+
+## Future Enhancements
+- New Challenges
+- Display incoming training-sessions
+- Integration with running APIs (Strava)
+
+## Running the Application
+The application can be run locally using:
 ```bash
 ng serve
 ```
-
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
+and it is live at:
 ```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
+runwoinem.de
 ```
-
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
