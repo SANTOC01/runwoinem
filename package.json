@@ -4,7 +4,8 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build",
+    "build": "ng build && npm run move-build",
+    "move-build": "powershell -Command \"if (Test-Path 'docs/browser') { Get-ChildItem -Path 'docs/browser' | Move-Item -Destination 'docs' -Force; Remove-Item 'docs/browser' -Force }\"",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
