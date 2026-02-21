@@ -1,7 +1,6 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Subscription, combineLatest } from 'rxjs';
-import { ChallengeService } from '../../services/challenge-service';
+import { ChallengeRanking } from '../../interfaces/challenge.interface';
 
 @Component({
   selector: 'app-ranking-table',
@@ -10,32 +9,12 @@ import { ChallengeService } from '../../services/challenge-service';
   templateUrl: './ranking-table.html',
   styleUrls: ['./ranking-table.scss']
 })
-export class RankingTable implements OnInit, OnDestroy {
-  rankings: { name: string, hohenmeter: number }[] = [];
-  isLoading = true;
-  private subscription: Subscription | null = null;
-
-  constructor(private challengeService: ChallengeService) {}
-
-  ngOnInit() {
-    this.subscription = combineLatest([
-      this.challengeService.rankings$
-    ]).subscribe({
-      next: ([rankings]) => {
-
-        this.rankings = rankings;
-      }
-    });
-  }
-
-  ngOnDestroy() {
-    if (this.subscription) {
-      this.subscription.unsubscribe();
-    }
-  }
+export class RankingTable {
+  @Input() rankings: ChallengeRanking[] = [];
+  @Input() unit = '';
 
   getRankEmoji(index: number): string {
-    switch(index) {
+    switch (index) {
       case 0: return '🏆';
       case 1: return '🥈';
       case 2: return '🥉';

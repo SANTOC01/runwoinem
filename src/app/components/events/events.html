@@ -15,21 +15,23 @@
       </h2>
 
       <ul class="events-list">
-        <li *ngFor="let event of events" class="event-row" (click)="openEventModalHandler(event)">
-          <div class="event-left">
-            <div>
-              <strong>{{event.name}}</strong><br>
-              <small>{{event.dist}}</small><br>
-              <small *ngIf="getParticipantCount(event) > 0">{{
-                  getParticipantCount(event)
-                }} {{ getParticipantText(getParticipantCount(event)) }}</small><br>
-              <small>📅 {{ formatDate(event.date) }}</small>
+        @for (event of events; track event.name) {
+          <li class="event-row" (click)="openEventModalHandler(event)">
+            <div class="event-left">
+              <div>
+                <strong>{{event.name}}</strong><br>
+                <small>{{event.dist}}</small><br>
+                @if (getParticipantCount(event) > 0) {
+                  <small>{{ getParticipantCount(event) }} Teilnehmer</small><br>
+                }
+                <small>📅 {{ formatDate(event.date) }}</small>
+              </div>
             </div>
-          </div>
-          <div class="no-events" *ngIf="!events?.length">
-            Keine Events geplant 🏃‍♂️
-          </div>
-        </ul></div>
-      </div>
-
+          </li>
+        } @empty {
+          <li class="no-events">Keine Events geplant 🏃‍♂️</li>
+        }
+      </ul>
+    </div>
   </div>
+</div>

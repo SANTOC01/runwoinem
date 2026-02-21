@@ -1,15 +1,17 @@
 <div class="ranking-container">
-  <h2>🏆 Höhenmeter-Helden</h2>
+  <h2>🏆 Rangliste</h2>
   <table>
     <tr>
       <th>Platz</th>
       <th>Name</th>
-      <th>Höhenmeter</th>
+      <th>{{unit}}</th>
     </tr>
-    <tr *ngFor="let rank of rankings; let i = index">
-      <td>{{ getRankText(i, rank.name) }} {{ getRankEmoji(i) }}</td>
-      <td>{{ rank.name }}</td>
-      <td>{{ rank.hohenmeter }}</td>
-    </tr>
+    @for (rank of rankings; track rank.name; let i = $index) {
+      <tr>
+        <td>{{ getRankText(i, rank.name) }} {{ getRankEmoji(i) }}</td>
+        <td>{{ rank.name }}</td>
+        <td>{{ rank.value }} {{unit}}</td>
+      </tr>
+    }
   </table>
 </div>

@@ -3,9 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ChallengeService } from '../../services/challenge-service';
 import { Subscription } from 'rxjs';
-import { BehaviorSubject } from 'rxjs';
-import { shareReplay } from 'rxjs/operators';
-import { AppEvent } from '../../models/app-event'; // <-- Add this import
+import { AppEvent } from '../../models/app-event';
 
 @Component({
   selector: 'app-events',
@@ -16,28 +14,16 @@ import { AppEvent } from '../../models/app-event'; // <-- Add this import
 })
 export class Events implements OnInit, OnDestroy {
   events: AppEvent[] = [];
-  selectedEvent: AppEvent | null = null;
-  showAddParticipantForm = false;
 
   private subscription: Subscription | null = null;
 
   @Output() openEventModal = new EventEmitter<AppEvent>();
 
-  // In your service and everywhere else
-  private eventsSubject = new BehaviorSubject<AppEvent[]>([]);
-  readonly events$ = this.eventsSubject.asObservable().pipe(shareReplay(1));
-
   constructor(private challengeService: ChallengeService) {}
 
   ngOnInit() {
     this.subscription = this.challengeService.events$.subscribe(events => {
-      this.events = events.map((event: any) => ({
-        name: event.name,
-        dist: event.dist,
-        date: event.date,
-        daysLeft: event.daysLeft,
-        participants: event.participants
-      }));
+      this.events = events;
     });
   }
 
@@ -51,13 +37,6 @@ export class Events implements OnInit, OnDestroy {
     this.openEventModal.emit(event);
   }
 
-  closeModal() {
-    this.selectedEvent = null;
-    this.showAddParticipantForm = false;
-  }
-
-
-
   formatDate(dateString: string): string {
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return dateString;
@@ -68,13 +47,8 @@ export class Events implements OnInit, OnDestroy {
       day: 'numeric'
     });
   }
+
   getParticipantCount(event: AppEvent): number {
     return event.participants?.length ?? 0;
   }
-
-  getParticipantText(count: number): string {
-    return count === 1 ? 'Teilnehmer' : 'Teilnehmer';
-  }
-
-
 }

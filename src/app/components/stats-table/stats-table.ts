@@ -1,13 +1,6 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Subscription, combineLatest, map } from 'rxjs';
-import { ChallengeService } from '../../services/challenge-service';
-
-interface DataRow {
-  name: string;
-  hohenmeter: number;
-  date: string;
-}
+import { ChallengeEntry } from '../../interfaces/challenge.interface';
 
 @Component({
   selector: 'app-stats-table',
@@ -16,34 +9,10 @@ interface DataRow {
   templateUrl: './stats-table.html',
   styleUrls: ['./stats-table.scss']
 })
-export class StatsTable implements OnInit, OnDestroy {
-  entries: DataRow[] = [];
-  private subscription: Subscription | null = null;
-
-  constructor(private challengeService: ChallengeService) {}
-
-  ngOnInit() {
-    this.subscription = combineLatest([
-      this.challengeService.entries$
-    ]).pipe(
-      map(([entries]) => {
-        // Sort entries by date in descending order
-        return entries.sort((a, b) => 
-          new Date(b.date).getTime() - new Date(a.date).getTime()
-        );
-      })
-    ).subscribe({
-      next: (sortedEntries) => {
-        this.entries = sortedEntries;
-      }
-    });
-  }
-
-  ngOnDestroy() {
-    if (this.subscription) {
-      this.subscription.unsubscribe();
-    }
-  }
+export class StatsTable {
+  @Input() entries: ChallengeEntry[] = [];
+  @Input() unit = '';
+  @Output() deleteRequested = new EventEmitter<ChallengeEntry>();
 
   formatDate(dateString: string): string {
     return new Date(dateString).toLocaleDateString('de-DE', {
@@ -53,11 +22,7 @@ export class StatsTable implements OnInit, OnDestroy {
     });
   }
 
-  async deleteEntry(entry: DataRow) {
-    try {
-      await this.challengeService.deleteData(entry);
-    } catch (error) {
-      console.error('Error deleting entry:', error);
-    }
+  deleteEntry(entry: ChallengeEntry) {
+    this.deleteRequested.emit(entry);
   }
 }

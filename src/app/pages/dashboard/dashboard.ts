@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { RankingTable } from '../../components/ranking-table/ranking-table';
@@ -31,12 +31,9 @@ export class Dashboard implements OnInit, OnDestroy {
   private subscription: Subscription | null = null;
   mapOpen = false;
   selectedEvent: AppEvent | null = null;
-  @ViewChild('confettiCanvas', { static: false }) confettiCanvas!: ElementRef<HTMLCanvasElement>;
-  private confettiInterval: any = null;
-  private confettiFired = false;
 
   constructor(
-    private challengeService: ChallengeService,
+    public challengeService: ChallengeService,
     private toast: ToastService,
     private cdr: ChangeDetectorRef
   ) {}
@@ -60,7 +57,7 @@ export class Dashboard implements OnInit, OnDestroy {
   private async loadDashboardData() {
     // Show widget when ranking data is available
     this.subscription = this.challengeService.rankings$.subscribe(rankings => {
-      if (rankings.length > 0) {
+      if (rankings && rankings.length > 0) {
         this.showWidget = true;
         this.cdr.detectChanges();
       }

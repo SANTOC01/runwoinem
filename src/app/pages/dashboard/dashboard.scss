@@ -164,43 +164,6 @@
       padding: 2rem;
       background: rgba(255, 255, 255, 0.3);
       backdrop-filter: blur(2px);
-
-      // Override events container styles
-      ::ng-deep .events-container {
-        width: 100%;
-        max-width: 100%;
-        background: transparent;
-        padding: 0;
-        margin: 0;
-        box-shadow: none;
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-
-        h2 {
-          color: #2c3e50;
-          margin-bottom: 1.5rem;
-          text-align: center;
-          font-size: 1.8rem;
-        }
-
-        .events-list {
-          flex: 1;
-          overflow-y: auto;
-        }
-
-        .event-row {
-          background: rgba(255, 255, 255, 1);
-          transition: all 0.3s ease;
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); // Added stronger shadow for cards
-
-          &:hover {
-            background: rgba(255, 255, 255, 0.9);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); // Even stronger shadow on hover
-          }
-        }
-      }
     }
   }
 
@@ -321,11 +284,11 @@
   width: 100%;
 
   @media (max-width: 768px) {
-    max-width: 100% !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-    border-radius: 0 !important;
-    padding: 1.5rem 1rem !important;
+    max-width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+    border-radius: 0;
+    padding: 1.5rem 1rem;
   }
 
 
@@ -457,12 +420,3 @@
   }
 }
 
-.confetti-canvas {
-  position: absolute;
-  pointer-events: none;
-  top: 0;
-  left: 0;
-  width: 100% !important;
-  height: 100% !important;
-  z-index: 10;
-}

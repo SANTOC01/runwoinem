@@ -1,15 +1,17 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit, Inject, PLATFORM_ID } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { Subscription } from 'rxjs';
-import { ChallengeService } from '../../services/challenge-service';
-import { Chart, ChartConfiguration } from 'chart.js/auto';
+import {
+  Component, Input, OnChanges, SimpleChanges,
+  ViewChild, ElementRef, AfterViewInit, OnDestroy,
+  Inject, PLATFORM_ID
+} from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { Chart, ChartConfiguration } from 'chart.js/auto';
 import { Loading } from '../../components/app-loading/app-loading';
+import { ChallengeConfig } from '../../interfaces/challenge.interface';
 
 @Component({
   selector: 'app-progress-chart',
   standalone: true,
-  imports: [CommonModule, Loading],
+  imports: [Loading],
   template: `
     <div class="chart-container">
       <app-loading [isLoading]="isLoading"></app-loading>
@@ -24,66 +26,42 @@ import { Loading } from '../../components/app-loading/app-loading';
     }
   `]
 })
-export class ProgressChart implements OnInit, OnDestroy, AfterViewInit {
+export class ProgressChart implements OnChanges, AfterViewInit, OnDestroy {
+  @Input() total = 0;
+  @Input() config!: ChallengeConfig;
+
   @ViewChild('myChart') chartCanvas!: ElementRef;
   private chart: Chart | null = null;
-  private subscription: Subscription | null = null;
-  private pendingTotal: number | null = null;
   isLoading = true;
-  
-  private readonly mountainData = [
-    {x: 0, y: 0},
-    {x: 10000, y: 10000},
-    {x: 12500, y: 8000},
-    {x: 25000, y: 25000},
-    {x: 29000, y: 20000},
-    {x: 50000, y: 50000},
-    {x: 55000, y: 45000},
-    {x: 75000, y: 75000},
-    {x: 82000, y: 69000},
-    {x: 100000, y: 100000},
-    {x: 103000, y: 93000},
-    {x: 110000, y: 70000},
-  ];
 
-  constructor(
-    private challengeService: ChallengeService,
-    @Inject(PLATFORM_ID) private platformId: Object
-  ) {}
+  constructor(@Inject(PLATFORM_ID) private platformId: object) {}
 
-  ngOnInit() {
-    if (isPlatformBrowser(this.platformId)) {
-      this.subscription = this.challengeService.totalHM$
-        .subscribe(total => {
-          this.pendingTotal = total;
-          this.isLoading = false;
-          if (this.chart) {
-            this.updateChart(total);
-          }
-        });
+  ngAfterViewInit() {
+    if (isPlatformBrowser(this.platformId) && this.config) {
+      this.initializeChart(this.total);
+      this.isLoading = false;
     }
   }
 
-  ngAfterViewInit() {
-    if (isPlatformBrowser(this.platformId)) {
-      this.initializeChart(this.pendingTotal || 0);
+  ngOnChanges(changes: SimpleChanges) {
+    // Chart not initialized yet — ngAfterViewInit will init with the latest value
+    if (!this.chart) return;
+    if (changes['total']) {
+      this.updateChart(this.total);
     }
   }
 
   ngOnDestroy() {
-    if (this.subscription) {
-      this.subscription.unsubscribe();
-    }
     if (this.chart) {
       this.chart.destroy();
     }
   }
 
   private initializeChart(total: number) {
-    if (!isPlatformBrowser(this.platformId)) return;
-    
+    if (!isPlatformBrowser(this.platformId) || !this.chartCanvas || !this.config) return;
+
     const ctx = this.chartCanvas.nativeElement.getContext('2d');
-    
+
     const config: ChartConfiguration = {
       type: 'line',
       data: {
@@ -101,7 +79,7 @@ export class ProgressChart implements OnInit, OnDestroy, AfterViewInit {
           },
           {
             label: 'Ziele',
-            data: this.mountainData,
+            data: this.config.chartProfile,
             borderColor: 'saddlebrown',
             backgroundColor: 'rgba(139, 69, 19, 0.6)',
             fill: true,
@@ -119,14 +97,14 @@ export class ProgressChart implements OnInit, OnDestroy, AfterViewInit {
           legend: { display: false }
         },
         scales: {
-          x: { 
+          x: {
             type: 'linear',
             min: 0,
-            max: 110000
+            max: this.config.chartMaxScale
           },
-          y: { 
+          y: {
             min: 0,
-            max: 120000,
+            max: this.config.chartMaxScale * 1.1,
             display: false
           }
         }
@@ -137,17 +115,18 @@ export class ProgressChart implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private calculateProgressData(total: number) {
-    const progressData = [{x: 0, y: 0}];
+    const profile = this.config.chartProfile;
+    const progressData: { x: number; y: number }[] = [{ x: 0, y: 0 }];
 
-    for (let i = 0; i < this.mountainData.length - 1; i++) {
-      const start = this.mountainData[i];
-      const end = this.mountainData[i + 1];
+    for (let i = 0; i < profile.length - 1; i++) {
+      const start = profile[i];
+      const end = profile[i + 1];
 
       if (total >= end.y) {
-        progressData.push({x: end.x, y: end.y});
+        progressData.push({ x: end.x, y: end.y });
       } else if (total > start.y) {
         const ratio = (total - start.y) / (end.y - start.y);
-        progressData.push({x: start.x + ratio * (end.x - start.x), y: total});
+        progressData.push({ x: start.x + ratio * (end.x - start.x), y: total });
         break;
       } else {
         break;

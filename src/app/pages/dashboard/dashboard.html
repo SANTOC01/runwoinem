@@ -38,48 +38,62 @@
         <img src="/assets/banner/whatsapp.png" alt="WhatsApp" class="social-icon"/>
       </a>
     </div>
- 
+
     <div class="map-popup" [class.open]="mapOpen" (click)="toggleMap()">
       <img src="/assets/map.png" alt="Treffpunkt am Waidsee - Karte"/>
       <div class="map-caption">
         <span>📍 Treffpunkt am Waidsee</span>
-        <span *ngIf="!mapOpen" class="expand-hint">Karte anzeigen ▼</span>
+        @if (!mapOpen) {
+          <span class="expand-hint">Karte anzeigen ▼</span>
+        }
       </div>
-      <div *ngIf="mapOpen" class="close-map-overlay"></div>
+      @if (mapOpen) {
+        <div class="close-map-overlay"></div>
+      }
     </div>
 
-
-    <div class="dashboard-loading-container" *ngIf="!showWidget">
-      <app-loading [isLoading]="true" [useOverlay]="false"></app-loading>
-    </div>
-
-
-    <div class="widgets-container" *ngIf="showWidget">
-
-      <div class="events-widget">
-        <div class="widget-content">
-          <app-events
-            (openEventModal)="openEventModal($event)">
-          </app-events>
-        </div>
+    @if (!showWidget) {
+      <div class="dashboard-loading-container">
+        <app-loading [isLoading]="true" [useOverlay]="false"></app-loading>
       </div>
+    }
 
-      <div class="challenge-widget">
-        <div class="widget-content" style="position:relative;">
-          <h2>🏔️ Gipfelstürmer Challenge</h2>
-          <div class="widget-data">
-            <app-goal-banner></app-goal-banner>
-            <div class="ranking-section">
-              <app-ranking-table></app-ranking-table>
-            </div>
+    @if (showWidget) {
+      <div class="widgets-container">
+
+        <div class="events-widget">
+          <div class="widget-content">
+            <app-events
+              (openEventModal)="openEventModal($event)">
+            </app-events>
           </div>
-          <a routerLink="/challenge"
-             class="challenge-btn">
-            🎯 Gipfelstürmer Challenge
-          </a>
+        </div>
+
+        <div class="challenge-widget" role="region" aria-label="Gipfelstürmer Challenge Widget">
+          <div class="widget-content" style="position:relative;">
+            <h2 id="challenge-title">🏔️ Gipfelstürmer Challenge</h2>
+            <div class="widget-data" aria-describedby="challenge-title">
+              <app-goal-banner 
+                [total]="(challengeService.total$ | async) || 0"
+                [goals]="challengeService.config.goals"
+                [unit]="challengeService.config.metricUnit">
+              </app-goal-banner>
+              <div class="ranking-section">
+                <app-ranking-table 
+                  [rankings]="(challengeService.rankings$ | async) || []"
+                  [unit]="challengeService.config.metricUnit">
+                </app-ranking-table>
+              </div>
+            </div>
+            <a routerLink="/challenge"
+               class="challenge-btn"
+               aria-label="Navigiere zur Gipfelstürmer Challenge Detailseite">
+              🎯 Gipfelstürmer Challenge
+            </a>
+          </div>
         </div>
       </div>
-    </div>
+    }
   </div>
 </div>
 

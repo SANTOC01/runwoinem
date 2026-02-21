@@ -4,19 +4,21 @@
   <table>
     <tr>
       <th>Name</th>
-      <th>HM</th>
+      <th>{{unit}}</th>
       <th>Datum</th>
       <th>Löschen</th>
     </tr>
-    <tr *ngFor="let entry of entries; let i = index">
-      <td>{{entry.name}}</td>
-      <td>{{entry.hohenmeter}}</td>
-      <td>{{formatDate(entry.date)}}</td>
-      <td>
-        <button *ngIf="i === 0" 
-                (click)="deleteEntry(entry)" 
-                class="delete-btn">❌</button>
-      </td>
-    </tr>
+    @for (entry of entries; track entry.date + entry.name; let i = $index) {
+      <tr>
+        <td>{{entry.name}}</td>
+        <td>{{entry.value}} {{unit}}</td>
+        <td>{{formatDate(entry.date)}}</td>
+        <td>
+          @if (i === 0) {
+            <button (click)="deleteEntry(entry)" class="delete-btn">❌</button>
+          }
+        </td>
+      </tr>
+    }
   </table>
 </div>

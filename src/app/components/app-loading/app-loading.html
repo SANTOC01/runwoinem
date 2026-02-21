@@ -1,5 +1,7 @@
-<div *ngIf="isLoading" [ngClass]="{'loading-overlay': useOverlay}">
-  <div class="loading">
-    <img src="/assets/loadingman.gif" alt="Loading..." />
+@if (isLoading) {
+  <div [ngClass]="{'loading-overlay': useOverlay}">
+    <div class="loading">
+      <img src="/assets/loadingman.gif" alt="Loading..." />
+    </div>
   </div>
-</div>
+}

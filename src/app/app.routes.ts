@@ -7,4 +7,8 @@ export const routes: Routes = [
     path: 'challenge',
     loadComponent: () => import('./pages/challenge/challenge').then(m => m.Challenge)
   },
+  {
+    path: 'km-challenge',
+    loadComponent: () => import('./pages/km-challenge/km-challenge').then(m => m.KmChallenge)
+  },
 ];

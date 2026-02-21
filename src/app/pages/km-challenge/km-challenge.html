@@ -1,16 +1,16 @@
 <div class="challenge-container">
   <div class="content-wrapper">
     <div class="header">
-      <h1>{{ challengeService.config.title }}</h1>
+      <h1>{{ kmChallengeService.config.title }}</h1>
       <app-goal-banner
         [total]="total"
-        [goals]="challengeService.config.goals"
-        [unit]="challengeService.config.metricUnit">
+        [goals]="kmChallengeService.config.goals"
+        [unit]="kmChallengeService.config.metricUnit">
       </app-goal-banner>
     </div>
 
     <app-challenge-form
-      [config]="challengeService.config"
+      [config]="kmChallengeService.config"
       (submitted)="onSubmit($event)"
       (valueChanged)="onValueChange($event)">
     </app-challenge-form>
@@ -18,18 +18,18 @@
     <div class="data-section">
       <app-stats-table
         [entries]="entries"
-        [unit]="challengeService.config.metricUnit"
+        [unit]="kmChallengeService.config.metricUnit"
         (deleteRequested)="onDelete($event)">
       </app-stats-table>
       <app-ranking-table
         [rankings]="rankings"
-        [unit]="challengeService.config.metricUnit">
+        [unit]="kmChallengeService.config.metricUnit">
       </app-ranking-table>
     </div>
 
     <div class="progress-section">
       <div class="progress-header">
-        <h2>📈 Fortschritt Gesamt: {{total}} {{challengeService.config.metricUnit}}</h2>
+        <h2>📈 Fortschritt Gesamt: {{total}} {{kmChallengeService.config.metricUnit}}</h2>
         <div class="progress-bar">
           <div class="progress" [style.width.%]="progressPercentage">
             {{progressPercentage}}%
@@ -38,7 +38,7 @@
       </div>
       <app-progress-chart
         [total]="total"
-        [config]="challengeService.config">
+        [config]="kmChallengeService.config">
       </app-progress-chart>
     </div>
   </div>

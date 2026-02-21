@@ -1,3 +1,5 @@
-<div class="banner" *ngIf="isVisible">
-  {{ message }}
-</div>
+@if (isVisible) {
+  <div class="banner">
+    {{ message }}
+  </div>
+}

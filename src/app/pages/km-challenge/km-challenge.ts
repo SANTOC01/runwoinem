@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
-import { ChallengeService } from '../../services/challenge-service';
+import { KmChallengeService } from '../../services/km-challenge-service';
 import { StatsTable } from '../../components/stats-table/stats-table';
 import { RankingTable } from '../../components/ranking-table/ranking-table';
 import { ProgressChart } from '../../components/progress-chart/progress-chart';
@@ -13,7 +13,7 @@ import { ChallengeForm } from '../../components/challenge-form/challenge-form';
 import { ChallengeEntry, ChallengeRanking } from '../../interfaces/challenge.interface';
 
 @Component({
-  selector: 'app-challenge',
+  selector: 'app-km-challenge',
   standalone: true,
   imports: [
     CommonModule,
@@ -24,10 +24,10 @@ import { ChallengeEntry, ChallengeRanking } from '../../interfaces/challenge.int
     LockScreen,
     ChallengeForm
   ],
-  templateUrl: './challenge.html',
-  styleUrls: ['./challenge.scss']
+  templateUrl: './km-challenge.html',
+  styleUrls: ['./km-challenge.scss']
 })
-export class Challenge implements OnInit, OnDestroy {
+export class KmChallenge implements OnInit, OnDestroy {
   entries: ChallengeEntry[] = [];
   rankings: ChallengeRanking[] = [];
   total = 0;
@@ -35,25 +35,25 @@ export class Challenge implements OnInit, OnDestroy {
   private readonly subscriptions: Subscription[] = [];
 
   constructor(
-    public readonly challengeService: ChallengeService,
+    public readonly kmChallengeService: KmChallengeService,
     public readonly lockService: LockService,
     private readonly toast: ToastService
   ) {}
 
   ngOnInit() {
     this.subscriptions.push(
-      this.challengeService.entries$.subscribe(entries => {
+      this.kmChallengeService.entries$.subscribe(entries => {
         this.entries = [...entries].sort(
           (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
         );
       }),
-      this.challengeService.rankings$.subscribe(rankings => {
+      this.kmChallengeService.rankings$.subscribe(rankings => {
         this.rankings = rankings;
       }),
-      this.challengeService.total$.subscribe(total => {
+      this.kmChallengeService.total$.subscribe(total => {
         this.total = total;
         this.progressPercentage = Math.min(
-          Math.round((total / this.challengeService.config.goalValue) * 100),
+          Math.round((total / this.kmChallengeService.config.goalValue) * 100),
           100
         );
       })
@@ -66,18 +66,18 @@ export class Challenge implements OnInit, OnDestroy {
 
   onValueChange(event: { name: string; value: number }) {
     const { name, value } = event;
-    if (value > this.challengeService.config.maxEntryValue) {
+    if (value > this.kmChallengeService.config.maxEntryValue) {
       this.toast.show('Sei ehrlich 🤥😏😳');
-    } else if (value > 350) {
+    } else if (value > 30) {
       this.toast.show('Boaah 😨');
-    } else if (value > 100) {
+    } else if (value > 10) {
       this.toast.show(`Stark ${name.split(' ')[0]} 💪`);
     }
   }
 
   async onSubmit(event: { name: string; value: number }) {
     try {
-      await this.challengeService.submitData(event.name, event.value);
+      await this.kmChallengeService.submitData(event.name, event.value);
     } catch (error) {
       console.error('Error submitting data:', error);
     }
@@ -85,7 +85,7 @@ export class Challenge implements OnInit, OnDestroy {
 
   async onDelete(entry: ChallengeEntry) {
     try {
-      await this.challengeService.deleteData(entry);
+      await this.kmChallengeService.deleteData(entry);
     } catch (error) {
       console.error('Error deleting entry:', error);
     }
