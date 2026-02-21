@@ -29,17 +29,14 @@
 
     <div class="progress-section">
       <div class="progress-header">
-        <h2>📈 Fortschritt Gesamt: {{total}} {{kmChallengeService.config.metricUnit}}</h2>
+        <h2>🗺️ Fortschritt Gesamt: {{total}} {{kmChallengeService.config.metricUnit}}</h2>
         <div class="progress-bar">
           <div class="progress" [style.width.%]="progressPercentage">
             {{progressPercentage}}%
           </div>
         </div>
       </div>
-      <app-progress-chart
-        [total]="total"
-        [config]="kmChallengeService.config">
-      </app-progress-chart>
+      <app-europe-map [total]="total"></app-europe-map>
     </div>
   </div>
 

@@ -4,7 +4,7 @@ import { Subscription } from 'rxjs';
 import { KmChallengeService } from '../../services/km-challenge-service';
 import { StatsTable } from '../../components/stats-table/stats-table';
 import { RankingTable } from '../../components/ranking-table/ranking-table';
-import { ProgressChart } from '../../components/progress-chart/progress-chart';
+import { EuropeMap } from '../../components/europe-map/europe-map';
 import { GoalBanner } from '../../components/goal-banner/goal-banner';
 import { LockScreen } from '../../components/app-lock-screen/app-lock-screen';
 import { LockService } from '../../services/lock-service';
@@ -19,7 +19,7 @@ import { ChallengeEntry, ChallengeRanking } from '../../interfaces/challenge.int
     CommonModule,
     StatsTable,
     RankingTable,
-    ProgressChart,
+    EuropeMap,
     GoalBanner,
     LockScreen,
     ChallengeForm
@@ -41,6 +41,7 @@ export class KmChallenge implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
+    this.kmChallengeService.loadData();
     this.subscriptions.push(
       this.kmChallengeService.entries$.subscribe(entries => {
         this.entries = [...entries].sort(

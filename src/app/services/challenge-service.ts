@@ -161,7 +161,7 @@ export class ChallengeService extends BaseChallengeService {
     try {
       this.updateLocalState(newEntry, 'add');
       await firstValueFrom(
-        this.http.get(`${this.SHEET_URL}?action=add&name=${encodeURIComponent(name)}&hohenmeter=${value}`)
+        this.http.get(`${this.SHEET_URL}?action=add&name=${encodeURIComponent(name)}&hohenmeter=${value}&challenge=HM1`)
       );
       this.toast.show('Eintrag erfolgreich hinzugefügt!');
     } catch (error) {
@@ -179,7 +179,7 @@ export class ChallengeService extends BaseChallengeService {
     try {
       this.updateLocalState(entry, 'delete');
       await firstValueFrom(
-        this.http.get(`${this.SHEET_URL}?action=delete&name=${encodeURIComponent(entry.name)}&hohenmeter=${entry.value}`)
+        this.http.get(`${this.SHEET_URL}?action=delete&name=${encodeURIComponent(entry.name)}&hohenmeter=${entry.value}&challenge=HM1`)
       );
       this.toast.show('Eintrag gelöscht.');
     } catch (error) {
@@ -289,7 +289,7 @@ export class ChallengeService extends BaseChallengeService {
         this.http.get<AppEvent[]>(`${this.SHEET_URL}?action=getAllParticipants`)
       );
       const mainResponse = await firstValueFrom(
-        this.http.get<{ main: unknown[][], ranking: unknown[] }>(`${this.SHEET_URL}?action=get`)
+        this.http.get<{ main: unknown[][], ranking: unknown[] }>(`${this.SHEET_URL}?action=get&challenge=HM1`)
       );
 
       const today = new Date();
