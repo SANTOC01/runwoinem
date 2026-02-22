@@ -143,9 +143,14 @@
 
   <!-- ── Info strip below the map ── -->
   <div class="map-info">
+    @if (weatherTemp !== null) {
+      <div class="weather-badge">
+        <span>{{ weatherIcon }} Wetter in {{ weatherCity }}: {{ weatherTemp }}°C</span>
+      </div>
+    }
     <div class="location-badge">
-      <span class="location-icon">📍</span>
-      <span class="location-text">{{ nearestCityName }}</span>
+      <span class="location-icon">🏁</span>
+      <span class="location-text">Noch {{ kmToNextCity.toLocaleString('de-DE') }} km bis {{ nearestCityName }}</span>
     </div>
     @if (lapMessage) {
       <div class="lap-message">{{ lapMessage }}</div>

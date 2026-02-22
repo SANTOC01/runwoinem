@@ -1,4 +1,5 @@
-<div class="challenge-container">
+<div class="challenge-container"
+     [style.backgroundImage]="cityBgPath ? 'url(' + cityBgPath + ')' : 'url(assets/mountain.jpg)'">
   <div class="content-wrapper">
     <div class="header">
       <h1>{{ kmChallengeService.config.title }}</h1>
@@ -36,7 +37,7 @@
           </div>
         </div>
       </div>
-      <app-europe-map [total]="total"></app-europe-map>
+      <app-europe-map [total]="total" (bgImagePath)="cityBgPath = $event"></app-europe-map>
     </div>
   </div>
 

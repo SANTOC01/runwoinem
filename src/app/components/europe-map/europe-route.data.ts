@@ -9,6 +9,8 @@ export interface RouteWaypoint {
   /** SVG label offset from the dot (defaults: dx=8, dy=-12) */
   labelDx?: number;
   labelDy?: number;
+  /** Filename in assets/images/locations/ (e.g. 'paris.png') */
+  image?: string;
 }
 
 export const LAP_DISTANCE_KM = 15010;
@@ -18,9 +20,9 @@ export const TOTAL_GOAL_KM = 50000;
 // One full lap ≈ 15,010 km
 // The route closes back to Weinheim, enabling endless laps
 export const EUROPE_ROUTE_WAYPOINTS: RouteWaypoint[] = [
-  { name: 'Weinheim',   country: 'DE', lat: 49.545, lon:   8.665, cumulativeKm:     0, isMilestone: true,  emoji: '🏁' },
-  { name: 'Köln',       country: 'DE', lat: 50.938, lon:   6.960, cumulativeKm:   190, isMilestone: false, labelDx: -45, labelDy: 14 },
-  { name: 'Paris',      country: 'FR', lat: 48.853, lon:   2.350, cumulativeKm:   690, isMilestone: true,  emoji: '🗼', labelDy: 18 },
+  { name: 'Weinheim',   country: 'DE', lat: 49.545, lon:   8.665, cumulativeKm:     0, isMilestone: true,  emoji: '🏁', image: 'weinheim.png' },
+  { name: 'Köln',       country: 'DE', lat: 50.938, lon:   6.960, cumulativeKm:   190, isMilestone: false, labelDx: -45, labelDy: 14, image: 'cologne.png' },
+  { name: 'Paris',      country: 'FR', lat: 48.853, lon:   2.350, cumulativeKm:   690, isMilestone: true,  emoji: '🗼', labelDy: 18, image: 'paris.png' },
   { name: 'Madrid',     country: 'ES', lat: 40.416, lon:  -3.703, cumulativeKm:  1990, isMilestone: true,  emoji: '🐂' },
   { name: 'Lissabon',   country: 'PT', lat: 38.716, lon:  -9.139, cumulativeKm:  2630, isMilestone: true,  emoji: '🎯' },
   { name: 'Marseille',  country: 'FR', lat: 43.297, lon:   5.381, cumulativeKm:  4530, isMilestone: false, labelDy: 18 },

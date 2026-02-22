@@ -32,12 +32,12 @@ export class KmChallengeService extends BaseChallengeService {
     goalValue: 50000,
     maxEntryValue: 200,
     goals: [
-      { target:  2630, emoji: '🏖️', reward: 'Wir erreichen Lissabon!' },
+      /*{ target:  2630, emoji: '🏖️', reward: 'Wir erreichen Lissabon!' },
       { target:  7330, emoji: '🏺', reward: 'Wir erreichen Athen!' },
       { target: 15010, emoji: '🔄', reward: 'Erste Runde abgeschlossen!' },
       { target: 30020, emoji: '🔄', reward: 'Zweite Runde abgeschlossen!' },
       { target: 45030, emoji: '🔄', reward: 'Dritte Runde abgeschlossen!' },
-      { target: 50000, emoji: '🏆', reward: '50.000km – Eurotrip Legende!' },
+      { target: 50000, emoji: '🏆', reward: '50.000km – Eurotrip Legende!' },*/
     ],
     chartProfile: [],
     chartMaxScale: 0

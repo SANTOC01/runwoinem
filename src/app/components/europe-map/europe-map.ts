@@ -1,5 +1,6 @@
-import { Component, Input, OnChanges } from '@angular/core';
+import { Component, Input, OnChanges, Output, EventEmitter, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import {
   EUROPE_ROUTE_WAYPOINTS,
   LAP_DISTANCE_KM,
@@ -87,7 +88,11 @@ const MILESTONE_RADIUS_KM = 300; // within this range we show the "X. Mal" messa
   styleUrl: './europe-map.scss',
 })
 export class EuropeMap implements OnChanges {
+  private readonly http = inject(HttpClient);
+  private readonly cdr = inject(ChangeDetectorRef);
+
   @Input() total = 0;
+  @Output() bgImagePath = new EventEmitter<string>();
 
   readonly waypoints: RouteWaypoint[] = EUROPE_ROUTE_WAYPOINTS;
   readonly lapDistance = LAP_DISTANCE_KM;
@@ -125,8 +130,13 @@ export class EuropeMap implements OnChanges {
   progressPath = '';
   currentSegmentIndex = 0;
   nearestCityName = EUROPE_ROUTE_WAYPOINTS[0].name;
+  kmToNextCity = 0;
   lapMessage = '';
   nearMilestoneCity: RouteWaypoint | null = null;
+  weatherTemp: number | null = null;
+  weatherIcon = '';
+  weatherCity = '';
+  private lastWeatherCity = '';
 
   ngOnChanges(): void {
     this.updatePosition();
@@ -183,8 +193,20 @@ export class EuropeMap implements OnChanges {
       this.progressPath = d;
     }
 
-    // Nearest city (the waypoint we most recently passed)
-    this.nearestCityName = wps[segIdx].name;
+    // Next city (the waypoint we are heading towards)
+    const nextIdx = lapKm >= closingSegStart ? 0 : segIdx + 1;
+    this.nearestCityName = wps[nextIdx].name;
+    const nextCityKm = lapKm >= closingSegStart ? LAP_DISTANCE_KM : wps[nextIdx].cumulativeKm;
+    this.kmToNextCity = Math.round(nextCityKm - lapKm);
+    const img = wps[segIdx].image;
+    this.bgImagePath.emit(img ? `assets/images/locations/${img}` : '');
+
+    // Fetch weather for the last reached city only when it changes
+    const lastWp = wps[segIdx];
+    if (lastWp.name !== this.lastWeatherCity) {
+      this.lastWeatherCity = lastWp.name;
+      this.fetchWeather(lastWp.lat, lastWp.lon, lastWp.name);
+    }
 
     // Check for "X. Mal in Y" message – within MILESTONE_RADIUS_KM of a milestone city
     this.nearMilestoneCity = null;
@@ -230,5 +252,32 @@ export class EuropeMap implements OnChanges {
 
   get totalKmFormatted(): string {
     return this.total.toLocaleString('de-DE');
+  }
+
+  private fetchWeather(lat: number, lon: number, city: string): void {
+    this.http.get<{ current: { temperature_2m: number; weather_code: number } }>(
+      `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code`
+    ).subscribe({
+      next: (data) => {
+        this.weatherTemp = Math.round(data.current.temperature_2m);
+        this.weatherIcon = this.getWeatherIcon(data.current.weather_code);
+        this.weatherCity = city;
+        this.cdr.markForCheck();
+      },
+      error: () => { this.weatherTemp = null; }
+    });
+  }
+
+  private getWeatherIcon(code: number): string {
+    if (code === 0)          return '☀️';
+    if (code <= 2)           return '🌤️';
+    if (code === 3)          return '☁️';
+    if (code <= 48)          return '🌫️';
+    if (code <= 55)          return '🌦️';
+    if (code <= 65)          return '🌧️';
+    if (code <= 77)          return '🌨️';
+    if (code <= 82)          return '🌦️';
+    if (code <= 86)          return '🌨️';
+    return '⛈️';
   }
 }

@@ -32,6 +32,7 @@ export class KmChallenge implements OnInit, OnDestroy {
   rankings: ChallengeRanking[] = [];
   total = 0;
   progressPercentage = 0;
+  cityBgPath = '';
   private readonly subscriptions: Subscription[] = [];
 
   constructor(
