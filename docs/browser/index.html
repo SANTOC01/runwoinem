@@ -6,8 +6,18 @@
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <script>
+    // Restore path encoded by 404.html before Angular boots.
+    (function() {
+      var params = new URLSearchParams(window.location.search);
+      var path = params.get('path');
+      if (path) {
+        window.history.replaceState(null, '', path);
+      }
+    })();
+  </script>
 <style>body{min-height:100vh;width:100%;overflow-x:hidden;background:#fff;background-attachment:fixed;font-family:Arial,sans-serif}body:before{content:"";position:fixed;inset:0;opacity:.02;pointer-events:none;z-index:-1}*{margin:0;padding:0;box-sizing:border-box}html{overflow-x:hidden}</style><link rel="stylesheet" href="styles-YSYT3C2M.css" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="styles-YSYT3C2M.css"></noscript></head>
 <body>
   <app-root></app-root>
-<link rel="modulepreload" href="chunk-PDDFBCIV.js"><link rel="modulepreload" href="chunk-XPV6J6NS.js"><script src="polyfills-B6TNHZQ6.js" type="module"></script><script src="main-PZW3V4IZ.js" type="module"></script></body>
+<link rel="modulepreload" href="chunk-W7EYHD67.js"><link rel="modulepreload" href="chunk-QC2FVDBE.js"><link rel="modulepreload" href="chunk-6XXALYC7.js"><script src="polyfills-B6TNHZQ6.js" type="module"></script><script src="main-UYTTTAX5.js" type="module"></script></body>
 </html>
