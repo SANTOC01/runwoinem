@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { RankingTable } from '../../components/ranking-table/ranking-table';
@@ -34,17 +34,18 @@ export class Dashboard implements OnInit, OnDestroy {
 
   constructor(
     public challengeService: ChallengeService,
-    private toast: ToastService,
-    private cdr: ChangeDetectorRef
+    private toast: ToastService
   ) {}
 
   ngOnInit() {
     // Initial load
     this.loadDashboardData();
 
-    // Background refresh after 5 seconds
+    // Background refresh after 5 seconds — skip if data was just freshly loaded
     setTimeout(() => {
-      this.forceRefreshData();
+      if (!this.challengeService.isFreshlyLoaded()) {
+        this.forceRefreshData();
+      }
     }, 5000);
   }
 
@@ -55,21 +56,17 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   private async loadDashboardData() {
-    // Show widget when ranking data is available
     this.subscription = this.challengeService.rankings$.subscribe(rankings => {
       if (rankings && rankings.length > 0) {
         this.showWidget = true;
-        this.cdr.detectChanges();
       }
     });
 
     await this.challengeService.loadData();
-    this.cdr.detectChanges();
   }
 
   private async forceRefreshData() {
     await this.challengeService.refreshAllData();
-    this.cdr.detectChanges();
     this.toast.show('🟢 Live');
   }
 

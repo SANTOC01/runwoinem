@@ -1,6 +1,6 @@
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, firstValueFrom, shareReplay } from 'rxjs';
+import { BehaviorSubject, firstValueFrom } from 'rxjs';
 import { isPlatformBrowser } from '@angular/common';
 import { LockService } from './lock-service';
 import { AppEvent } from '../models/app-event';
@@ -16,9 +16,8 @@ interface CacheData {
   timestamp: number;
 }
 
-interface FetchAllDataResponse {
+interface GetAllResponse {
   main: unknown[][];
-  ranking: unknown[];
   events: AppEvent[];
 }
 
@@ -67,18 +66,19 @@ export class ChallengeService extends BaseChallengeService {
   };
 
   private eventsSubject = new BehaviorSubject<AppEvent[]>([]);
-  readonly events$ = this.eventsSubject.asObservable().pipe(shareReplay(1));
+  readonly events$ = this.eventsSubject.asObservable();
 
   private entriesSubject   = new BehaviorSubject<ChallengeEntry[]>([]);
   private rankingsSubject  = new BehaviorSubject<ChallengeRanking[]>([]);
   private totalSubject     = new BehaviorSubject<number>(0);
   private chartDataSubject = new BehaviorSubject<ChartData>({ labels: [], values: [] });
   private dataLoaded = false;
+  private fetchedAt: number | null = null;
 
-  readonly entries$   = this.entriesSubject.asObservable().pipe(shareReplay(1));
-  readonly rankings$  = this.rankingsSubject.asObservable().pipe(shareReplay(1));
-  readonly total$     = this.totalSubject.asObservable().pipe(shareReplay(1));
-  readonly chartData$ = this.chartDataSubject.asObservable().pipe(shareReplay(1));
+  readonly entries$   = this.entriesSubject.asObservable();
+  readonly rankings$  = this.rankingsSubject.asObservable();
+  readonly total$     = this.totalSubject.asObservable();
+  readonly chartData$ = this.chartDataSubject.asObservable();
 
   constructor(
     private http: HttpClient,
@@ -107,6 +107,7 @@ export class ChallengeService extends BaseChallengeService {
           this.updateState(entries);
           this.eventsSubject.next(events);
           this.dataLoaded = true;
+          this.fetchedAt = timestamp;
           return true;
         }
         localStorage.removeItem(this.CACHE_KEY);
@@ -129,13 +130,16 @@ export class ChallengeService extends BaseChallengeService {
 
   public async refreshAllData(): Promise<void> {
     try {
-      const response = await this.fetchAllData();
-      const entries = this.processEntries(response.main);
-      const events = response.events;
+      const response = await firstValueFrom(
+        this.http.get<GetAllResponse>(`${this.SHEET_URL}?action=getAll&challenge=HM1`)
+      );
+      const entries = this.processEntries(response?.main ?? []);
+      const events = response?.events ?? [];
       this.updateState(entries);
       this.eventsSubject.next(events);
       this.saveToCache(entries, events);
       this.dataLoaded = true;
+      this.fetchedAt = Date.now();
     } catch (error) {
       console.error('Error refreshing all data:', error);
       this.toast.show('Fehler beim Laden der Daten!', 4000);
@@ -145,6 +149,11 @@ export class ChallengeService extends BaseChallengeService {
   async loadData(): Promise<void> {
     if (this.dataLoaded) return;
     await this.refreshAllData();
+  }
+
+  /** Returns true if data was fetched or loaded from cache within the last `withinMs` ms. */
+  isFreshlyLoaded(withinMs = 30_000): boolean {
+    return this.fetchedAt !== null && (Date.now() - this.fetchedAt) < withinMs;
   }
 
   async submitData(name: string, value: number): Promise<void> {
@@ -247,7 +256,7 @@ export class ChallengeService extends BaseChallengeService {
     this.rankingsSubject.next(this.calculateRankings(entries));
     this.totalSubject.next(this.calculateTotal(entries));
     this.chartDataSubject.next(this.calculateChartData(entries));
-    this.dataLoaded = entries.length > 0;
+    this.dataLoaded = true;
   }
 
   private processEntries(data: unknown[][]): ChallengeEntry[] {
@@ -283,52 +292,7 @@ export class ChallengeService extends BaseChallengeService {
     };
   }
 
-  private async fetchAllData(): Promise<FetchAllDataResponse> {
-    try {
-      const eventsWithParticipants = await firstValueFrom(
-        this.http.get<AppEvent[]>(`${this.SHEET_URL}?action=getAllParticipants`)
-      );
-      const mainResponse = await firstValueFrom(
-        this.http.get<{ main: unknown[][], ranking: unknown[] }>(`${this.SHEET_URL}?action=get&challenge=HM1`)
-      );
-
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      const events = eventsWithParticipants
-        .filter(event => {
-          const eventDate = new Date(event.date);
-          eventDate.setHours(0, 0, 0, 0);
-          return eventDate >= today;
-        })
-        .map(event => ({
-          ...event,
-          daysLeft: this.calculateDaysLeft(event.date),
-          participants: event.participants ?? []
-        }))
-        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-
-      return {
-        main: mainResponse?.main ?? [],
-        ranking: mainResponse?.ranking ?? [],
-        events
-      };
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      return { main: [], ranking: [], events: [] };
-    }
-  }
-
   isDataLoaded(): boolean {
-    return this.entriesSubject.value.length > 0;
-  }
-
-  private calculateDaysLeft(dateString: string): number {
-    const eventDate = new Date(dateString);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    eventDate.setHours(0, 0, 0, 0);
-    const diffTime = eventDate.getTime() - today.getTime();
-    return Math.round(diffTime / (1000 * 60 * 60 * 24));
+    return this.dataLoaded;
   }
 }

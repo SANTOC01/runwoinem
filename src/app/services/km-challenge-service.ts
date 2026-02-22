@@ -1,6 +1,6 @@
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, firstValueFrom, Observable, shareReplay } from 'rxjs';
+import { BehaviorSubject, firstValueFrom, Observable } from 'rxjs';
 import { isPlatformBrowser } from '@angular/common';
 import { LockService } from './lock-service';
 import { ToastService } from './toast-service';
@@ -49,10 +49,10 @@ export class KmChallengeService extends BaseChallengeService {
   private chartDataSubject = new BehaviorSubject<ChartData>({ labels: [], values: [] });
   private dataLoaded = false;
 
-  readonly entries$:   Observable<ChallengeEntry[]>   = this.entriesSubject.asObservable().pipe(shareReplay(1));
-  readonly rankings$:  Observable<ChallengeRanking[]> = this.rankingsSubject.asObservable().pipe(shareReplay(1));
-  readonly total$:     Observable<number>             = this.totalSubject.asObservable().pipe(shareReplay(1));
-  readonly chartData$: Observable<ChartData>          = this.chartDataSubject.asObservable().pipe(shareReplay(1));
+  readonly entries$:   Observable<ChallengeEntry[]>   = this.entriesSubject.asObservable();
+  readonly rankings$:  Observable<ChallengeRanking[]> = this.rankingsSubject.asObservable();
+  readonly total$:     Observable<number>             = this.totalSubject.asObservable();
+  readonly chartData$: Observable<ChartData>          = this.chartDataSubject.asObservable();
 
   constructor(
     private http: HttpClient,
@@ -191,7 +191,7 @@ export class KmChallengeService extends BaseChallengeService {
     this.rankingsSubject.next(this.calculateRankings(entries));
     this.totalSubject.next(this.calculateTotal(entries));
     this.chartDataSubject.next(this.calculateChartData(entries));
-    this.dataLoaded = entries.length > 0;
+    this.dataLoaded = true;
   }
 
   private processEntries(data: unknown[][]): ChallengeEntry[] {

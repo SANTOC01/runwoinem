@@ -1,6 +1,8 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { NavHeader } from './components/nav-header/nav-header';
+import { ChallengeService } from './services/challenge-service';
+import { KmChallengeService } from './services/km-challenge-service';
 
 @Component({
   selector: 'app-root',
@@ -25,4 +27,13 @@ import { NavHeader } from './components/nav-header/nav-header';
     }
   `]
 })
-export class App { }
+export class App {
+  // Injecting both services here ensures they are instantiated (and begin
+  // fetching data) at app boot, before any route component renders.
+  // This keeps the dashboard widgets populated and prepares km-challenge data
+  // for when a widget is added there too.
+  constructor(
+    private readonly _challenge: ChallengeService,
+    private readonly _kmChallenge: KmChallengeService
+  ) {}
+}

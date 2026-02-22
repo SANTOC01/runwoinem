@@ -41,6 +41,7 @@ export class Challenge implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
+    this.challengeService.loadData();
     this.subscriptions.push(
       this.challengeService.entries$.subscribe(entries => {
         this.entries = [...entries].sort(

@@ -6,8 +6,15 @@
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <script>
+    // GitHub Pages SPA redirect: encode the current path as a query param
+    // so index.html can restore it via history.replaceState.
+    var l = window.location;
+    l.replace(
+      l.protocol + '//' + l.host + '/?path=' +
+      encodeURIComponent(l.pathname + l.search) + l.hash
+    );
+  </script>
 </head>
-<body>
-  <app-root></app-root>
-</body>
+<body></body>
 </html>

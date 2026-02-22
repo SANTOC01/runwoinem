@@ -6,6 +6,16 @@
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <script>
+    // Restore path encoded by 404.html before Angular boots.
+    (function() {
+      var params = new URLSearchParams(window.location.search);
+      var path = params.get('path');
+      if (path) {
+        window.history.replaceState(null, '', path);
+      }
+    })();
+  </script>
 </head>
 <body>
   <app-root></app-root>
