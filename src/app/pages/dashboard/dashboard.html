@@ -61,37 +61,48 @@
     @if (showWidget) {
       <div class="widgets-container">
 
-        <div class="events-widget">
-          <div class="widget-content">
-            <app-events
-              (openEventModal)="openEventModal($event)">
-            </app-events>
-          </div>
+        <div class="events-widget-container">
+          <app-events
+            (openEventModal)="openEventModal($event)">
+          </app-events>
+          <div class="events-scroll-guard"></div>
         </div>
 
-        <div class="challenge-widget" role="region" aria-label="Gipfelstürmer Challenge Widget">
-          <div class="widget-content" style="position:relative;">
-            <h2 id="challenge-title">🏔️ Gipfelstürmer Challenge</h2>
-            <div class="widget-data" aria-describedby="challenge-title">
-              <app-goal-banner 
-                [total]="(challengeService.total$ | async) || 0"
-                [goals]="challengeService.config.goals"
-                [unit]="challengeService.config.metricUnit">
-              </app-goal-banner>
-              <div class="ranking-section">
-                <app-ranking-table 
-                  [rankings]="(challengeService.rankings$ | async) || []"
-                  [unit]="challengeService.config.metricUnit">
-                </app-ranking-table>
+        <div class="challenge-column">
+
+          <div class="eurotrip-widget"
+               [style.backgroundImage]="eurotripBgImage ? 'url(' + eurotripBgImage + ')' : 'none'"
+               role="region" aria-label="Eurotrip Challenge Widget">
+            <div class="widget-content">
+              <h2 class="widget-title">🗺️ Eurotrip Challenge</h2>
+              <div class="widget-data">
+                <app-europe-map
+                  [total]="(kmChallengeService.total$ | async) || 0"
+                  (bgImagePath)="eurotripBgImage = $event">
+                </app-europe-map>
               </div>
+              <a routerLink="/km-challenge"
+                 class="challenge-btn"
+                 aria-label="Navigiere zur Eurotrip Challenge Detailseite">
+                🚀 Eurotrip Challenge
+              </a>
             </div>
-            <a routerLink="/challenge"
-               class="challenge-btn"
-               aria-label="Navigiere zur Gipfelstürmer Challenge Detailseite">
-              🎯 Gipfelstürmer Challenge
-            </a>
           </div>
+
+          <div class="challenge-widget-mini" role="region" aria-label="Gipfelstürmer Challenge (beendet)">
+            <div class="widget-content-mini">
+              <h3>🏔️ Gipfelstürmer Challenge</h3>
+              <p class="challenge-ended-text">🔒 Challenge beendet – danke für eure Teilnahme!</p>
+              <a routerLink="/challenge"
+                 class="challenge-btn-mini"
+                 aria-label="Gipfelstürmer Challenge Detailseite">
+                🎯 Gipfelstürmer Challenge
+              </a>
+            </div>
+          </div>
+
         </div>
+
       </div>
     }
   </div>

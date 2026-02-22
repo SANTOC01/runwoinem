@@ -1,10 +1,10 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { RankingTable } from '../../components/ranking-table/ranking-table';
-import { GoalBanner } from '../../components/goal-banner/goal-banner';
 import { Events } from '../../components/events/events';
 import { ChallengeService } from '../../services/challenge-service';
+import { KmChallengeService } from '../../services/km-challenge-service';
+import { EuropeMap } from '../../components/europe-map/europe-map';
 import { Subscription } from 'rxjs';
 import { EventsModalComponent } from "../../components/events-modal/events-modal";
 import { AppEvent } from '../../models/app-event';
@@ -16,11 +16,10 @@ import { Loading } from '../../components/app-loading/app-loading';
   imports: [
     CommonModule,
     RouterModule,
-    RankingTable,
-    GoalBanner,
     Events,
     EventsModalComponent,
-    Loading
+    Loading,
+    EuropeMap
   ],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.scss']
@@ -28,12 +27,14 @@ import { Loading } from '../../components/app-loading/app-loading';
 export class Dashboard implements OnInit, OnDestroy {
   showWidget = false;
   buttonEnabled = false;
+  eurotripBgImage = '';
   private subscription: Subscription | null = null;
   mapOpen = false;
   selectedEvent: AppEvent | null = null;
 
   constructor(
     public challengeService: ChallengeService,
+    public kmChallengeService: KmChallengeService,
     private toast: ToastService
   ) {}
 
@@ -56,17 +57,35 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   private async loadDashboardData() {
-    this.subscription = this.challengeService.rankings$.subscribe(rankings => {
-      if (rankings && rankings.length > 0) {
-        this.showWidget = true;
-      }
-    });
+    this.subscription = new Subscription();
 
-    await this.challengeService.loadData();
+    this.subscription.add(
+      this.challengeService.rankings$.subscribe(rankings => {
+        if (rankings && rankings.length > 0) {
+          this.showWidget = true;
+        }
+      })
+    );
+
+    this.subscription.add(
+      this.kmChallengeService.rankings$.subscribe(rankings => {
+        if (rankings && rankings.length > 0) {
+          this.showWidget = true;
+        }
+      })
+    );
+
+    await Promise.all([
+      this.challengeService.loadData(),
+      this.kmChallengeService.loadData()
+    ]);
   }
 
   private async forceRefreshData() {
-    await this.challengeService.refreshAllData();
+    await Promise.all([
+      this.challengeService.refreshAllData(),
+      this.kmChallengeService.refreshAllData()
+    ]);
     this.toast.show('🟢 Live');
   }
 
@@ -82,4 +101,4 @@ export class Dashboard implements OnInit, OnDestroy {
     this.selectedEvent = null;
   }
 
-  }
+}

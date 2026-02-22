@@ -25,7 +25,7 @@ export class KmChallengeService extends BaseChallengeService {
 
   readonly config: ChallengeConfig = {
     id: 'eurotrip-km-2025',
-    title: 'Eurotrip 50.000km Challenge',
+    title: 'Eurotrip Challenge',
     active: true,
     metricLabel: 'Kilometer',
     metricUnit: 'km',

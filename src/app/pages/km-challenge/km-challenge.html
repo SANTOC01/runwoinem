@@ -32,9 +32,8 @@
       <div class="progress-header">
         <h2>🗺️ Fortschritt Gesamt: {{total}} {{kmChallengeService.config.metricUnit}}</h2>
         <div class="progress-bar">
-          <div class="progress" [style.width.%]="progressPercentage">
-            {{progressPercentage}}%
-          </div>
+          <div class="progress" [style.width.%]="progressPercentage"></div>
+          <span class="progress-label">{{progressPercentage}}%</span>
         </div>
       </div>
       <app-europe-map [total]="total" (bgImagePath)="cityBgPath = $event"></app-europe-map>
