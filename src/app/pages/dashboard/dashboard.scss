@@ -175,6 +175,100 @@
     }
   }
 
+  // ── Construction / countdown overlay ──────────────────────────────────────
+  .eurotrip-widget.construction-mode {
+    background-color: rgba(67, 198, 172, 0.06);
+  }
+
+  .construction-content {
+    justify-content: flex-start;
+    align-items: center;
+    text-align: center;
+
+    .widget-title {
+      margin-bottom: 0 !important;
+    }
+
+    .construction-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      padding-bottom: 1rem;
+    }
+
+    .construction-icon {
+      font-size: 3rem;
+      line-height: 1;
+      animation: constructionWobble 2.4s ease-in-out infinite;
+    }
+
+    .construction-text {
+      font-size: 1rem;
+      color: #2c3e50;
+      margin: 0;
+      line-height: 1.6;
+
+      strong {
+        color: #179c7d;
+        font-weight: 700;
+      }
+    }
+
+    .countdown-grid {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.4rem;
+    }
+
+    .countdown-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 58px;
+      background: rgba(67, 198, 172, 0.12);
+      border-radius: 0.75rem;
+      padding: 0.75rem 0.5rem 0.6rem;
+
+      .countdown-num {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1a4a3a;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: -0.02em;
+      }
+
+      .countdown-label {
+        font-size: 0.62rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #555;
+        margin-top: 0.3rem;
+      }
+    }
+
+    .countdown-sep {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #43c6ac;
+      line-height: 1;
+      padding-top: 0.55rem;
+      user-select: none;
+    }
+  }
+
+  @keyframes constructionWobble {
+    0%, 100% { transform: rotate(0deg) scale(1); }
+    20%       { transform: rotate(-12deg) scale(1.05); }
+    40%       { transform: rotate(10deg) scale(1.05); }
+    60%       { transform: rotate(-6deg) scale(1); }
+    80%       { transform: rotate(4deg) scale(1); }
+  }
+
   // ── Mini Gipfelstürmer widget ──────────────────────────────────────────────
   .challenge-widget-mini {
     flex-shrink: 0;

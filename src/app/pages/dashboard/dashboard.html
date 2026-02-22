@@ -71,22 +71,56 @@
         <div class="challenge-column">
 
           <div class="eurotrip-widget"
-               [style.backgroundImage]="eurotripBgImage ? 'url(' + eurotripBgImage + ')' : 'none'"
+               [style.backgroundImage]="isKmChallengeOpen && eurotripBgImage ? 'url(' + eurotripBgImage + ')' : 'none'"
+               [class.construction-mode]="!isKmChallengeOpen"
                role="region" aria-label="Eurotrip Challenge Widget">
-            <div class="widget-content">
-              <h2 class="widget-title">🗺️ Eurotrip Challenge</h2>
-              <div class="widget-data">
-                <app-europe-map
-                  [total]="(kmChallengeService.total$ | async) || 0"
-                  (bgImagePath)="eurotripBgImage = $event">
-                </app-europe-map>
+
+            @if (isKmChallengeOpen) {
+              <div class="widget-content">
+                <h2 class="widget-title">🗺️ Eurotrip Challenge</h2>
+                <div class="widget-data">
+                  <app-europe-map
+                    [total]="(kmChallengeService.total$ | async) || 0"
+                    (bgImagePath)="eurotripBgImage = $event">
+                  </app-europe-map>
+                </div>
+                <a routerLink="/km-challenge"
+                   class="challenge-btn"
+                   aria-label="Navigiere zur Eurotrip Challenge Detailseite">
+                  🚀 Eurotrip Challenge
+                </a>
               </div>
-              <a routerLink="/km-challenge"
-                 class="challenge-btn"
-                 aria-label="Navigiere zur Eurotrip Challenge Detailseite">
-                🚀 Eurotrip Challenge
-              </a>
-            </div>
+            } @else {
+              <div class="widget-content construction-content">
+                <h2 class="widget-title">Nächste Etappe</h2>
+                <div class="construction-body">
+                  <div class="construction-icon">🚧</div>
+                  <p class="construction-text">Die Strecke wird noch geplant...<br>Startet am <strong>1. März 2026</strong></p>
+                  <div class="countdown-grid">
+                    <div class="countdown-block">
+                      <span class="countdown-num">{{ countdown.days }}</span>
+                      <span class="countdown-label">Tage</span>
+                    </div>
+                    <div class="countdown-sep">:</div>
+                    <div class="countdown-block">
+                      <span class="countdown-num">{{ countdown.hours | number:'2.0-0' }}</span>
+                      <span class="countdown-label">Std</span>
+                    </div>
+                    <div class="countdown-sep">:</div>
+                    <div class="countdown-block">
+                      <span class="countdown-num">{{ countdown.minutes | number:'2.0-0' }}</span>
+                      <span class="countdown-label">Min</span>
+                    </div>
+                    <div class="countdown-sep">:</div>
+                    <div class="countdown-block">
+                      <span class="countdown-num">{{ countdown.seconds | number:'2.0-0' }}</span>
+                      <span class="countdown-label">Sek</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+
           </div>
 
           <div class="challenge-widget-mini" role="region" aria-label="Gipfelstürmer Challenge (beendet)">

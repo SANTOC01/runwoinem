@@ -32,6 +32,11 @@ export class Dashboard implements OnInit, OnDestroy {
   mapOpen = false;
   selectedEvent: AppEvent | null = null;
 
+  private readonly KM_OPEN_DATE = new Date('2026-03-01T00:00:00');
+  isKmChallengeOpen = false;
+  countdown = { days: 0, hours: 0, minutes: 0, seconds: 0 };
+  private countdownInterval: ReturnType<typeof setInterval> | null = null;
+
   constructor(
     public challengeService: ChallengeService,
     public kmChallengeService: KmChallengeService,
@@ -39,6 +44,11 @@ export class Dashboard implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
+    this.updateCountdown();
+    if (!this.isKmChallengeOpen) {
+      this.countdownInterval = setInterval(() => this.updateCountdown(), 1000);
+    }
+
     // Initial load
     this.loadDashboardData();
 
@@ -54,6 +64,25 @@ export class Dashboard implements OnInit, OnDestroy {
     if (this.subscription) {
       this.subscription.unsubscribe();
     }
+    if (this.countdownInterval) {
+      clearInterval(this.countdownInterval);
+    }
+  }
+
+  private updateCountdown() {
+    const diff = this.KM_OPEN_DATE.getTime() - Date.now();
+    if (diff <= 0) {
+      this.isKmChallengeOpen = true;
+      if (this.countdownInterval) {
+        clearInterval(this.countdownInterval);
+        this.countdownInterval = null;
+      }
+      return;
+    }
+    this.countdown.days    = Math.floor(diff / 86400000);
+    this.countdown.hours   = Math.floor((diff % 86400000) / 3600000);
+    this.countdown.minutes = Math.floor((diff % 3600000) / 60000);
+    this.countdown.seconds = Math.floor((diff % 60000) / 1000);
   }
 
   private async loadDashboardData() {
