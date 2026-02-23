@@ -43,7 +43,13 @@ export class EventsModalComponent {
     }
   }
   formatDate(dateString: string): string {
-    const date = new Date(dateString);
+    let year: number, month: number, day: number;
+    if (/^\d{2}\.\d{2}\.\d{4}$/.test(dateString.trim())) {
+      [day, month, year] = dateString.trim().split('.').map(Number);
+    } else {
+      [year, month, day] = dateString.substring(0, 10).split('-').map(Number);
+    }
+    const date = new Date(year, month - 1, day, 12, 0, 0);
     if (isNaN(date.getTime())) return dateString;
     return date.toLocaleDateString('de-DE', {
       weekday: 'long',
