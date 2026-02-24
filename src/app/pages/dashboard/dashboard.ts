@@ -32,7 +32,7 @@ export class Dashboard implements OnInit, OnDestroy {
   mapOpen = false;
   selectedEvent: AppEvent | null = null;
 
-  private readonly KM_OPEN_DATE = new Date('2026-03-01T00:00:00');
+  private readonly KM_OPEN_DATE = new Date('2026-03-03T18:10:00+01:00');
   isKmChallengeOpen = false;
   countdown = { days: 0, hours: 0, minutes: 0, seconds: 0 };
   private countdownInterval: ReturnType<typeof setInterval> | null = null;
