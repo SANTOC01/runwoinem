@@ -10,8 +10,8 @@
           @if (event.dist) {
             <span>{{ event.dist }}</span>
           }
-          @if (event.date) {
-            <span> - {{ formatDate(event.date) }}</span>
+          @if (event.link) {
+          <a class="register-btn" [href]="event.link" target="_blank" rel="noopener noreferrer" (click)="$event.stopPropagation()">Anmelden →</a>
           }
         </p>
         <h4>Teilnehmer:</h4>

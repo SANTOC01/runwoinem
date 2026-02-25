@@ -44,7 +44,7 @@ export class Events implements OnInit, OnDestroy {
     } else {
       [year, month, day] = dateString.substring(0, 10).split('-').map(Number);
     }
-    const date = new Date(year, month - 1, day + 1, 12, 0, 0);
+    const date = new Date(year, month - 1, day, 12, 0, 0);
     if (isNaN(date.getTime())) return dateString;
     return date.toLocaleDateString('de-DE', {
       weekday: 'long',

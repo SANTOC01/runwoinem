@@ -3,5 +3,6 @@ export interface AppEvent {
   dist: string;
   date: string;
   daysLeft: number;
+  link?: string;
   participants?: string[];
 }

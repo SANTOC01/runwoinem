@@ -62,9 +62,13 @@
   }
 
   p {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     color: #666;
     font-size: 16px;
     margin-bottom: 25px;
+    width: 100%;
   }
 }
 
@@ -136,5 +140,23 @@
       background-color: #eeeeee;
       transform: translateX(2px);
     }
+  }
+}
+
+.register-btn {
+  display: inline-block;
+  background-color: #4caf50;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+  text-decoration: none;
+  transition: all 0.2s;
+
+  &:hover {
+    background-color: #43a047;
+    transform: translateY(-1px);
   }
 }
