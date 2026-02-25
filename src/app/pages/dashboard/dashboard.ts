@@ -10,6 +10,7 @@ import { EventsModalComponent } from "../../components/events-modal/events-modal
 import { AppEvent } from '../../models/app-event';
 import { ToastService } from '../../services/toast-service';
 import { Loading } from '../../components/app-loading/app-loading';
+import { TrainingPopup } from '../../components/training-popup/training-popup';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -19,7 +20,8 @@ import { Loading } from '../../components/app-loading/app-loading';
     Events,
     EventsModalComponent,
     Loading,
-    EuropeMap
+    EuropeMap,
+    TrainingPopup
   ],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.scss']

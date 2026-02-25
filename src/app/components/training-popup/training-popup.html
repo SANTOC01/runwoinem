@@ -1,0 +1,10 @@
+@if (show) {
+  <div class="training-popup"
+       [class.fade-out]="fadeOut"
+       [style.backgroundImage]="bgImage">
+    <span class="close" (click)="close()">×</span>
+    <h2>Nächstes Training</h2>
+    <p class="training-date">{{ trainingDate }}</p>
+    <p class="training-description">{{ trainingDescription }}</p>
+  </div>
+}
