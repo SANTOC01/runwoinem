@@ -72,17 +72,23 @@
 
           <div class="eurotrip-widget"
                [style.backgroundImage]="isKmChallengeOpen && eurotripBgImage ? 'url(' + eurotripBgImage + ')' : 'none'"
+               [class.has-bg]="isKmChallengeOpen && !!eurotripBgImage"
                [class.construction-mode]="!isKmChallengeOpen"
                role="region" aria-label="Eurotrip Challenge Widget">
 
             @if (isKmChallengeOpen) {
+              <!-- Hidden: still instantiated to emit the background image path -->
+              <div class="widget-map-hidden" aria-hidden="true">
+                <app-europe-map
+                  [total]="(kmChallengeService.total$ | async) || 0"
+                  (bgImagePath)="eurotripBgImage = $event">
+                </app-europe-map>
+              </div>
               <div class="widget-content">
                 <h2 class="widget-title">🗺️ Eurotrip Challenge</h2>
-                <div class="widget-data">
-                  <app-europe-map
-                    [total]="(kmChallengeService.total$ | async) || 0"
-                    (bgImagePath)="eurotripBgImage = $event">
-                  </app-europe-map>
+                <div class="widget-km-display">
+                  <span class="widget-km-number">{{ (kmChallengeService.total$ | async) || 0 | number:'1.0-0' }}</span>
+                  <span class="widget-km-unit">km gelaufen</span>
                 </div>
                 <a routerLink="/km-challenge"
                    class="challenge-btn"
