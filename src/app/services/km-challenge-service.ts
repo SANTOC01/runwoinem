@@ -29,7 +29,7 @@ export class KmChallengeService extends BaseChallengeService {
     active: true,
     metricLabel: 'Kilometer',
     metricUnit: 'km',
-    goalValue: 50000,
+    goalValue: 15010,
     maxEntryValue: 200,
     goals: [
       /*{ target:  2630, emoji: '🏖️', reward: 'Wir erreichen Lissabon!' },

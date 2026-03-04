@@ -16,7 +16,7 @@ export interface RouteWaypoint {
 }
 
 export const LAP_DISTANCE_KM = 15010;
-export const TOTAL_GOAL_KM = 50000;
+export const TOTAL_GOAL_KM = LAP_DISTANCE_KM;
 
 // Grand European Tour starting from Weinheim, BW
 // One full lap ≈ 15,010 km
