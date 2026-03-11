@@ -162,6 +162,8 @@ export class ChallengeService extends BaseChallengeService {
       return;
     }
 
+    name = name.trim();
+
     const isUnlocked = await this.lockService.requestUnlock();
     if (!isUnlocked) return;
 

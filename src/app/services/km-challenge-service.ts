@@ -126,6 +126,8 @@ export class KmChallengeService extends BaseChallengeService {
       return;
     }
 
+    name = name.trim();
+
     const isUnlocked = await this.lockService.requestUnlock();
     if (!isUnlocked) return;
 
