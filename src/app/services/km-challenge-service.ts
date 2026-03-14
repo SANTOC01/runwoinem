@@ -61,14 +61,6 @@ export class KmChallengeService extends BaseChallengeService {
     private toast: ToastService
   ) {
     super();
-    this.initializeData();
-  }
-
-  private async initializeData(): Promise<void> {
-    const cacheLoaded = this.loadFromCache();
-    if (!cacheLoaded) {
-      await this.refreshAllData();
-    }
   }
 
   private loadFromCache(): boolean {
@@ -103,7 +95,7 @@ export class KmChallengeService extends BaseChallengeService {
   public async refreshAllData(): Promise<void> {
     try {
       const response = await firstValueFrom(
-        this.http.get<{ main: unknown[][] }>(`${this.SHEET_URL}?action=get&challenge=${this.CHALLENGE_ID}`)
+        this.http.get<{ main: unknown[][] }>(`${this.SHEET_URL}?action=getAll&challenge=${this.CHALLENGE_ID}`)
       );
       const entries = this.processEntries(response?.main ?? []);
       this.updateState(entries);
@@ -117,6 +109,7 @@ export class KmChallengeService extends BaseChallengeService {
 
   async loadData(): Promise<void> {
     if (this.dataLoaded) return;
+    if (this.loadFromCache()) return;
     await this.refreshAllData();
   }
 

@@ -1,4 +1,4 @@
 export const environment = {
   production: false,
-  gipfelstuermerSheetUrl: 'https://script.google.com/macros/s/AKfycbx5Sh4KRfcwnXj2ZLK4oJG-Q7P8ScVdt0kzb7NU3cQoQZgWbnmqfoqw1y26VmBWhMnO/exec'
+  gipfelstuermerSheetUrl: 'https://script.google.com/macros/s/AKfycby0eVSr4Pr4XDK5viO6vrWzoxf6u5DVROGgfHdCI5GL-3VIrTVsA-T2VyUcLB9VJnDl/exec'
 };

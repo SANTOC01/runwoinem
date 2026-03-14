@@ -10,14 +10,21 @@ import { ChallengeConfig, ChallengeEntry, ChallengeRanking } from '../interfaces
 import { BaseChallengeService } from './base-challenge.service';
 import { environment } from '../../environments/environment';
 
-interface CacheData {
+interface EntriesCacheData {
   entries: ChallengeEntry[];
+  timestamp: number;
+}
+
+interface EventsCacheData {
   events: AppEvent[];
   timestamp: number;
 }
 
 interface GetAllResponse {
   main: unknown[][];
+}
+
+interface GetEventsResponse {
   events: AppEvent[];
 }
 
@@ -30,7 +37,8 @@ interface ParticipantResponse {
 })
 export class ChallengeService extends BaseChallengeService {
   private readonly SHEET_URL = environment.gipfelstuermerSheetUrl;
-  private readonly CACHE_KEY = 'gipfelstuermer_data';
+  private readonly ENTRIES_CACHE_KEY = 'gipfelstuermer_entries';
+  private readonly EVENTS_CACHE_KEY = 'events_data';
   private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
   readonly config: ChallengeConfig = {
@@ -80,6 +88,8 @@ export class ChallengeService extends BaseChallengeService {
   readonly total$     = this.totalSubject.asObservable();
   readonly chartData$ = this.chartDataSubject.asObservable();
 
+  private eventsLoaded = false;
+
   constructor(
     private http: HttpClient,
     @Inject(PLATFORM_ID) private platformId: object,
@@ -87,44 +97,37 @@ export class ChallengeService extends BaseChallengeService {
     private toast: ToastService
   ) {
     super();
-    this.initializeData();
   }
 
-  private async initializeData(): Promise<void> {
-    const cacheLoaded = this.loadFromCache();
-    if (!cacheLoaded) {
-      await this.refreshAllData();
-    }
-  }
+  // ─── Entries (HM1 challenge) ──────────────────────────────────────────────
 
-  private loadFromCache(): boolean {
+  private loadEntriesFromCache(): boolean {
     if (!isPlatformBrowser(this.platformId)) return false;
     try {
-      const cached = localStorage.getItem(this.CACHE_KEY);
+      const cached = localStorage.getItem(this.ENTRIES_CACHE_KEY);
       if (cached) {
-        const { entries, events, timestamp } = JSON.parse(cached) as CacheData;
+        const { entries, timestamp } = JSON.parse(cached) as EntriesCacheData;
         if (Date.now() - timestamp < this.CACHE_DURATION) {
           this.updateState(entries);
-          this.eventsSubject.next(events);
           this.dataLoaded = true;
           this.fetchedAt = timestamp;
           return true;
         }
-        localStorage.removeItem(this.CACHE_KEY);
+        localStorage.removeItem(this.ENTRIES_CACHE_KEY);
       }
     } catch (error) {
-      console.error('Error reading from cache:', error);
+      console.error('Error reading entries cache:', error);
     }
     return false;
   }
 
-  private saveToCache(entries: ChallengeEntry[], events: AppEvent[]): void {
+  private saveEntriesToCache(entries: ChallengeEntry[]): void {
     if (!isPlatformBrowser(this.platformId)) return;
     try {
-      const cache: CacheData = { entries, events, timestamp: Date.now() };
-      localStorage.setItem(this.CACHE_KEY, JSON.stringify(cache));
+      const cache: EntriesCacheData = { entries, timestamp: Date.now() };
+      localStorage.setItem(this.ENTRIES_CACHE_KEY, JSON.stringify(cache));
     } catch (error) {
-      console.error('Error saving to cache:', error);
+      console.error('Error saving entries cache:', error);
     }
   }
 
@@ -134,26 +137,77 @@ export class ChallengeService extends BaseChallengeService {
         this.http.get<GetAllResponse>(`${this.SHEET_URL}?action=getAll&challenge=HM1`)
       );
       const entries = this.processEntries(response?.main ?? []);
-      const events = response?.events ?? [];
       this.updateState(entries);
-      this.eventsSubject.next(events);
-      this.saveToCache(entries, events);
+      this.saveEntriesToCache(entries);
       this.dataLoaded = true;
       this.fetchedAt = Date.now();
     } catch (error) {
-      console.error('Error refreshing all data:', error);
+      console.error('Error refreshing HM1 data:', error);
       this.toast.show('Fehler beim Laden der Daten!', 4000);
     }
   }
 
   async loadData(): Promise<void> {
     if (this.dataLoaded) return;
+    if (this.loadEntriesFromCache()) return;
     await this.refreshAllData();
   }
 
   /** Returns true if data was fetched or loaded from cache within the last `withinMs` ms. */
   isFreshlyLoaded(withinMs = 30_000): boolean {
     return this.fetchedAt !== null && (Date.now() - this.fetchedAt) < withinMs;
+  }
+
+  // ─── Events (shared, not tied to a challenge) ────────────────────────────
+
+  private loadEventsFromCache(): boolean {
+    if (!isPlatformBrowser(this.platformId)) return false;
+    try {
+      const cached = localStorage.getItem(this.EVENTS_CACHE_KEY);
+      if (cached) {
+        const { events, timestamp } = JSON.parse(cached) as EventsCacheData;
+        if (Date.now() - timestamp < this.CACHE_DURATION) {
+          this.eventsSubject.next(events);
+          this.eventsLoaded = true;
+          return true;
+        }
+        localStorage.removeItem(this.EVENTS_CACHE_KEY);
+      }
+    } catch (error) {
+      console.error('Error reading events cache:', error);
+    }
+    return false;
+  }
+
+  private saveEventsToCache(events: AppEvent[]): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    try {
+      const cache: EventsCacheData = { events, timestamp: Date.now() };
+      localStorage.setItem(this.EVENTS_CACHE_KEY, JSON.stringify(cache));
+    } catch (error) {
+      console.error('Error saving events cache:', error);
+    }
+  }
+
+  async loadEvents(): Promise<void> {
+    if (this.eventsLoaded) return;
+    if (this.loadEventsFromCache()) return;
+    await this.refreshEvents();
+  }
+
+  async refreshEvents(): Promise<void> {
+    try {
+      const response = await firstValueFrom(
+        this.http.get<GetEventsResponse>(`${this.SHEET_URL}?action=getEvents`)
+      );
+      const events = response?.events ?? [];
+      this.eventsSubject.next(events);
+      this.saveEventsToCache(events);
+      this.eventsLoaded = true;
+    } catch (error) {
+      console.error('Error refreshing events:', error);
+      this.toast.show('Fehler beim Laden der Events!', 4000);
+    }
   }
 
   async submitData(name: string, value: number): Promise<void> {
@@ -201,6 +255,31 @@ export class ChallengeService extends BaseChallengeService {
     }
   }
 
+  async loadPastYears(): Promise<Record<string, number>> {
+    try {
+      const response = await firstValueFrom(
+        this.http.get<{ years: Record<string, number> }>(`${this.SHEET_URL}?action=getPastEvents`)
+      );
+      return response?.years ?? {};
+    } catch (error) {
+      console.error('Error loading past years:', error);
+      return {};
+    }
+  }
+
+  async loadPastEvents(year: number): Promise<AppEvent[]> {
+    try {
+      const response = await firstValueFrom(
+        this.http.get<{ events: AppEvent[] }>(`${this.SHEET_URL}?action=getPastEvents&year=${year}`)
+      );
+      return response?.events ?? [];
+    } catch (error) {
+      console.error('Error loading past events:', error);
+      this.toast.show('Fehler beim Laden vergangener Events!', 4000);
+      return [];
+    }
+  }
+
   async addParticipant(eventName: string, participantName: string): Promise<boolean> {
     try {
       const response = await firstValueFrom(
@@ -216,7 +295,7 @@ export class ChallengeService extends BaseChallengeService {
           if (!event.participants) event.participants = [];
           event.participants.push(participantName);
           this.eventsSubject.next(events);
-          this.saveToCache(this.entriesSubject.value, events);
+          this.saveEventsToCache(events);
         }
         this.toast.show('Teilnehmer hinzugefügt!');
         return true;
@@ -249,7 +328,7 @@ export class ChallengeService extends BaseChallengeService {
 
     if (changed) {
       this.updateState(currentEntries);
-      this.saveToCache(currentEntries, this.eventsSubject.value);
+      this.saveEntriesToCache(currentEntries);
     }
   }
 

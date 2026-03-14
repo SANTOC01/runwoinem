@@ -9,4 +9,14 @@ import { CommonModule } from '@angular/common';
   templateUrl: './nav-header.html',
   styleUrls: ['./nav-header.scss']
 })
-export class NavHeader {}
+export class NavHeader {
+  menuOpen = false;
+
+  toggleMenu() {
+    this.menuOpen = !this.menuOpen;
+  }
+
+  closeMenu() {
+    this.menuOpen = false;
+  }
+}

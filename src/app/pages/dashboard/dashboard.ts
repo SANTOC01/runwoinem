@@ -107,6 +107,7 @@ export class Dashboard implements OnInit, OnDestroy {
     );
 
     await Promise.all([
+      this.challengeService.loadEvents(),
       this.challengeService.loadData(),
       this.kmChallengeService.loadData()
     ]);
@@ -114,6 +115,7 @@ export class Dashboard implements OnInit, OnDestroy {
 
   private async forceRefreshData() {
     await Promise.all([
+      this.challengeService.refreshEvents(),
       this.challengeService.refreshAllData(),
       this.kmChallengeService.refreshAllData()
     ]);

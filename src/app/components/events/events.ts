@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { ChallengeService } from '../../services/challenge-service';
 import { Subscription } from 'rxjs';
 import { AppEvent } from '../../models/app-event';
@@ -8,7 +9,7 @@ import { AppEvent } from '../../models/app-event';
 @Component({
   selector: 'app-events',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './events.html',
   styleUrls: ['./events.scss']
 })

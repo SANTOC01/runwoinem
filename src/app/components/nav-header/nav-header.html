@@ -1,5 +1,28 @@
 <header class="nav-header">
-  <a routerLink="" class="logo-link">
+  <a routerLink="" class="logo-link" (click)="closeMenu()">
     <img src="assets/logo.png" alt="Home" class="logo">
   </a>
+
+  <button class="hamburger" (click)="toggleMenu()" [class.open]="menuOpen" aria-label="Menu">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+
+  <div class="nav-overlay" [class.open]="menuOpen" (click)="closeMenu()"></div>
+
+  <nav class="nav-drawer" [class.open]="menuOpen">
+    <a routerLink="" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link" (click)="closeMenu()">
+      Start
+    </a>
+    <a routerLink="/events" routerLinkActive="active" class="nav-link" (click)="closeMenu()">
+      Events
+    </a>
+    <a routerLink="/km-challenge" routerLinkActive="active" class="nav-link" (click)="closeMenu()">
+      Eurotrip
+    </a>
+    <a routerLink="/challenge" routerLinkActive="active" class="nav-link" (click)="closeMenu()">
+      Gipfelstürmer
+    </a>
+  </nav>
 </header>

@@ -11,4 +11,8 @@ export const routes: Routes = [
     path: 'km-challenge',
     loadComponent: () => import('./pages/km-challenge/km-challenge').then(m => m.KmChallenge)
   },
+  {
+    path: 'events',
+    loadComponent: () => import('./pages/events-page/events-page').then(m => m.EventsPage)
+  },
 ];

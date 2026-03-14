@@ -135,6 +135,25 @@
   }
 }
 
+.all-events-link {
+  display: block;
+  text-align: center;
+  padding: 0.85rem 0 0.25rem;
+  color: #43c6ac;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-decoration: none;
+  letter-spacing: 0.3px;
+  transition: all 0.2s ease;
+  border-top: 1px solid rgba(67, 198, 172, 0.15);
+  margin-top: 0.75rem;
+
+  &:hover {
+    color: #179c7d;
+    letter-spacing: 0.8px;
+  }
+}
+
 @media (max-width: 768px) {
   :host {
     height: auto;
@@ -147,5 +166,12 @@
 
   .events-container {
     min-height: 0;
+  }
+
+  .all-events-link {
+    position: sticky;
+    bottom: 0;
+    background: white;
+    padding-bottom: 0.75rem;
   }
 }
