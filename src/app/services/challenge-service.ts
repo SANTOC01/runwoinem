@@ -39,7 +39,10 @@ export class ChallengeService extends BaseChallengeService {
   private readonly SHEET_URL = environment.gipfelstuermerSheetUrl;
   private readonly ENTRIES_CACHE_KEY = 'gipfelstuermer_entries';
   private readonly EVENTS_CACHE_KEY = 'events_data';
-  private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+  private readonly PAST_YEARS_CACHE_KEY = 'events_past_years';
+  private readonly PAST_EVENTS_CACHE_PREFIX = 'events_past_';
+  private readonly CACHE_DURATION = 5 * 60 * 1000;          // 5 min — entries
+  private readonly EVENTS_CACHE_DURATION = 24 * 60 * 60 * 1000; // 24h — events
 
   readonly config: ChallengeConfig = {
     id: 'gipfelstuermer-2025',
@@ -166,7 +169,7 @@ export class ChallengeService extends BaseChallengeService {
       const cached = localStorage.getItem(this.EVENTS_CACHE_KEY);
       if (cached) {
         const { events, timestamp } = JSON.parse(cached) as EventsCacheData;
-        if (Date.now() - timestamp < this.CACHE_DURATION) {
+        if (Date.now() - timestamp < this.EVENTS_CACHE_DURATION) {
           this.eventsSubject.next(events);
           this.eventsLoaded = true;
           return true;
@@ -256,11 +259,25 @@ export class ChallengeService extends BaseChallengeService {
   }
 
   async loadPastYears(): Promise<Record<string, number>> {
+    if (isPlatformBrowser(this.platformId)) {
+      try {
+        const cached = localStorage.getItem(this.PAST_YEARS_CACHE_KEY);
+        if (cached) {
+          const { years, timestamp } = JSON.parse(cached) as { years: Record<string, number>; timestamp: number };
+          if (Date.now() - timestamp < this.EVENTS_CACHE_DURATION) return years;
+          localStorage.removeItem(this.PAST_YEARS_CACHE_KEY);
+        }
+      } catch { /* ignore */ }
+    }
     try {
       const response = await firstValueFrom(
         this.http.get<{ years: Record<string, number> }>(`${this.SHEET_URL}?action=getPastEvents`)
       );
-      return response?.years ?? {};
+      const years = response?.years ?? {};
+      if (isPlatformBrowser(this.platformId)) {
+        localStorage.setItem(this.PAST_YEARS_CACHE_KEY, JSON.stringify({ years, timestamp: Date.now() }));
+      }
+      return years;
     } catch (error) {
       console.error('Error loading past years:', error);
       return {};
@@ -268,11 +285,26 @@ export class ChallengeService extends BaseChallengeService {
   }
 
   async loadPastEvents(year: number): Promise<AppEvent[]> {
+    const cacheKey = `${this.PAST_EVENTS_CACHE_PREFIX}${year}`;
+    if (isPlatformBrowser(this.platformId)) {
+      try {
+        const cached = localStorage.getItem(cacheKey);
+        if (cached) {
+          const { events, timestamp } = JSON.parse(cached) as { events: AppEvent[]; timestamp: number };
+          if (Date.now() - timestamp < this.EVENTS_CACHE_DURATION) return events;
+          localStorage.removeItem(cacheKey);
+        }
+      } catch { /* ignore */ }
+    }
     try {
       const response = await firstValueFrom(
         this.http.get<{ events: AppEvent[] }>(`${this.SHEET_URL}?action=getPastEvents&year=${year}`)
       );
-      return response?.events ?? [];
+      const events = response?.events ?? [];
+      if (isPlatformBrowser(this.platformId)) {
+        localStorage.setItem(cacheKey, JSON.stringify({ events, timestamp: Date.now() }));
+      }
+      return events;
     } catch (error) {
       console.error('Error loading past events:', error);
       this.toast.show('Fehler beim Laden vergangener Events!', 4000);

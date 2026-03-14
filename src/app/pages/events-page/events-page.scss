@@ -328,6 +328,14 @@
   line-height: 1;
 }
 
+.timeline-card:has(.bs-cup-badge) {
+  .participants,
+  .no-participants,
+  .card-footer {
+    padding-right: 4rem;
+  }
+}
+
 .bs-cup-badge {
   position: absolute;
   bottom: 5.25rem;
