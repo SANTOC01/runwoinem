@@ -229,7 +229,7 @@ export class ChallengeService extends BaseChallengeService {
     try {
       this.updateLocalState(newEntry, 'add');
       await firstValueFrom(
-        this.http.get(`${this.SHEET_URL}?action=add&name=${encodeURIComponent(name)}&hohenmeter=${value}&challenge=HM1`)
+        this.http.post(this.SHEET_URL, JSON.stringify({ action: 'add', name, hohenmeter: value, challenge: 'HM1' }), { headers: { 'Content-Type': 'text/plain' } })
       );
       this.toast.show('Eintrag erfolgreich hinzugefügt!');
     } catch (error) {
@@ -247,7 +247,7 @@ export class ChallengeService extends BaseChallengeService {
     try {
       this.updateLocalState(entry, 'delete');
       await firstValueFrom(
-        this.http.get(`${this.SHEET_URL}?action=delete&name=${encodeURIComponent(entry.name)}&hohenmeter=${entry.value}&challenge=HM1`)
+        this.http.post(this.SHEET_URL, JSON.stringify({ action: 'delete', name: entry.name, hohenmeter: entry.value, challenge: 'HM1' }), { headers: { 'Content-Type': 'text/plain' } })
       );
       this.toast.show('Eintrag gelöscht.');
     } catch (error) {
@@ -315,8 +315,10 @@ export class ChallengeService extends BaseChallengeService {
   async addParticipant(eventName: string, participantName: string): Promise<boolean> {
     try {
       const response = await firstValueFrom(
-        this.http.get<ParticipantResponse>(
-          `${this.SHEET_URL}?action=addParticipant&eventName=${encodeURIComponent(eventName)}&participantName=${encodeURIComponent(participantName)}`
+        this.http.post<ParticipantResponse>(
+          this.SHEET_URL,
+          JSON.stringify({ action: 'addParticipant', eventName, participantName }),
+          { headers: { 'Content-Type': 'text/plain' } }
         )
       );
 

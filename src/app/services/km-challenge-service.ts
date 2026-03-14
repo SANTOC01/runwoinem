@@ -129,7 +129,7 @@ export class KmChallengeService extends BaseChallengeService {
     try {
       this.updateLocalState(newEntry, 'add');
       await firstValueFrom(
-        this.http.get(`${this.SHEET_URL}?action=add&name=${encodeURIComponent(name)}&hohenmeter=${value}&challenge=${this.CHALLENGE_ID}`)
+        this.http.post(this.SHEET_URL, JSON.stringify({ action: 'add', name, hohenmeter: value, challenge: this.CHALLENGE_ID }), { headers: { 'Content-Type': 'text/plain' } })
       );
       this.toast.show('Eintrag erfolgreich hinzugefügt!');
     } catch (error) {
@@ -147,7 +147,7 @@ export class KmChallengeService extends BaseChallengeService {
     try {
       this.updateLocalState(entry, 'delete');
       await firstValueFrom(
-        this.http.get(`${this.SHEET_URL}?action=delete&name=${encodeURIComponent(entry.name)}&hohenmeter=${entry.value}&challenge=${this.CHALLENGE_ID}`)
+        this.http.post(this.SHEET_URL, JSON.stringify({ action: 'delete', name: entry.name, hohenmeter: entry.value, challenge: this.CHALLENGE_ID }), { headers: { 'Content-Type': 'text/plain' } })
       );
       this.toast.show('Eintrag gelöscht.');
     } catch (error) {
