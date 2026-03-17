@@ -198,7 +198,7 @@ export class EventsPage implements OnInit, AfterViewInit, OnDestroy {
       return { color: '#43c6ac', label };
     }
 
-    return { color: '#43c6ac', label: dist };
+    return { color: '#43c6ac', label: dist.replace('⛰️', '').trim() };
   }
 
   getFilterEmoji(filter: FilterType): string {

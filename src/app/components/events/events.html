@@ -20,7 +20,7 @@
             <div class="event-left">
               <div>
                 <strong>{{event.name}}</strong><br>
-                <small>{{event.dist}}</small><br>
+                <small>{{getDistText(event.dist)}}</small><br>
                 @if (getParticipantCount(event) > 0) {
                   <small>{{ getParticipantCount(event) }} Teilnehmer</small><br>
                 }

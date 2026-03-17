@@ -58,4 +58,8 @@ export class Events implements OnInit, OnDestroy {
   getParticipantCount(event: AppEvent): number {
     return event.participants?.length ?? 0;
   }
+
+  getDistText(dist: string): string {
+    return dist.replace('⛰️', '').trim();
+  }
 }
