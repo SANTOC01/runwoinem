@@ -41,8 +41,7 @@ export class ChallengeService extends BaseChallengeService {
   private readonly EVENTS_CACHE_KEY = 'events_data';
   private readonly PAST_YEARS_CACHE_KEY = 'events_past_years';
   private readonly PAST_EVENTS_CACHE_PREFIX = 'events_past_';
-  private readonly CACHE_DURATION = 5 * 60 * 1000;          // 5 min — entries
-  private readonly EVENTS_CACHE_DURATION = 24 * 60 * 60 * 1000; // 24h — events
+  private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 min — entries
 
   readonly config: ChallengeConfig = {
     id: 'gipfelstuermer-2025',
@@ -163,13 +162,19 @@ export class ChallengeService extends BaseChallengeService {
 
   // ─── Events (shared, not tied to a challenge) ────────────────────────────
 
+  private startOfToday(): number {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d.getTime();
+  }
+
   private loadEventsFromCache(): boolean {
     if (!isPlatformBrowser(this.platformId)) return false;
     try {
       const cached = localStorage.getItem(this.EVENTS_CACHE_KEY);
       if (cached) {
         const { events, timestamp } = JSON.parse(cached) as EventsCacheData;
-        if (Date.now() - timestamp < this.EVENTS_CACHE_DURATION) {
+        if (timestamp >= this.startOfToday()) {
           this.eventsSubject.next(events);
           this.eventsLoaded = true;
           return true;
@@ -264,7 +269,7 @@ export class ChallengeService extends BaseChallengeService {
         const cached = localStorage.getItem(this.PAST_YEARS_CACHE_KEY);
         if (cached) {
           const { years, timestamp } = JSON.parse(cached) as { years: Record<string, number>; timestamp: number };
-          if (Date.now() - timestamp < this.EVENTS_CACHE_DURATION) return years;
+          if (timestamp >= this.startOfToday()) return years;
           localStorage.removeItem(this.PAST_YEARS_CACHE_KEY);
         }
       } catch { /* ignore */ }
@@ -291,7 +296,7 @@ export class ChallengeService extends BaseChallengeService {
         const cached = localStorage.getItem(cacheKey);
         if (cached) {
           const { events, timestamp } = JSON.parse(cached) as { events: AppEvent[]; timestamp: number };
-          if (Date.now() - timestamp < this.EVENTS_CACHE_DURATION) return events;
+          if (timestamp >= this.startOfToday()) return events;
           localStorage.removeItem(cacheKey);
         }
       } catch { /* ignore */ }

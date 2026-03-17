@@ -61,7 +61,6 @@ export class EventsPage implements OnInit, AfterViewInit, OnDestroy {
   filterEvents(filter: FilterType) {
     this.selectedFilter = filter;
     this.applyFilter();
-    setTimeout(() => this.observeCards(), 100);
   }
 
   private applyFilter() {
@@ -88,6 +87,7 @@ export class EventsPage implements OnInit, AfterViewInit, OnDestroy {
     this.upcomingEvents = filtered
       .filter(e => e.daysLeft >= 0)
       .sort((a, b) => a.daysLeft - b.daysLeft);
+    setTimeout(() => this.observeCards(), 100);
   }
 
   async toggleYear(year: number) {
