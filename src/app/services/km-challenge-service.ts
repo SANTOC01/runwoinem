@@ -22,6 +22,13 @@ export class KmChallengeService extends BaseChallengeService {
   private readonly CACHE_KEY = 'km_challenge_data';
   private readonly CHALLENGE_ID = 'KM1';
   private readonly CACHE_DURATION = 5 * 60 * 1000;
+  /** Tuesday boost: entries count x2 for the shared total (personal km stay real). */
+  private readonly BOOST = {
+    weekday: 'Tue',
+    multiplier: 2,
+    startDate: '2026-11-10',
+    introUntil: '2026-12-01', // last of the first 4 boost Tuesdays
+  };
 
   readonly config: ChallengeConfig = {
     id: 'eurotrip-km-2025',
@@ -29,15 +36,12 @@ export class KmChallengeService extends BaseChallengeService {
     active: true,
     metricLabel: 'Kilometer',
     metricUnit: 'km',
-    goalValue: 15010,
+    goalValue: 12310,
     maxEntryValue: 200,
     goals: [
       /*{ target:  2630, emoji: '🏖️', reward: 'Wir erreichen Lissabon!' },
       { target:  7330, emoji: '🏺', reward: 'Wir erreichen Athen!' },
-      { target: 15010, emoji: '🔄', reward: 'Erste Runde abgeschlossen!' },
-      { target: 30020, emoji: '🔄', reward: 'Zweite Runde abgeschlossen!' },
-      { target: 45030, emoji: '🔄', reward: 'Dritte Runde abgeschlossen!' },
-      { target: 50000, emoji: '🏆', reward: '50.000km – Eurotrip Legende!' },*/
+      { target: 12310, emoji: '🏆', reward: 'Eurotrip abgeschlossen – zurück in Weinheim!' },*/
     ],
     chartProfile: [],
     chartMaxScale: 0
@@ -197,7 +201,42 @@ export class KmChallengeService extends BaseChallengeService {
   }
 
   private calculateTotal(entries: ChallengeEntry[]): number {
-    return entries.reduce((sum, e) => sum + e.value, 0);
+    return entries.reduce(
+      (sum, e) => sum + e.value * (this.isBoosted(e) ? this.BOOST.multiplier : 1),
+      0
+    );
+  }
+
+  /** Berlin calendar day (YYYY-MM-DD) and weekday for a date, or null if invalid. */
+  private berlinDay(date: Date): { day: string; weekday: string } | null {
+    if (isNaN(date.getTime())) return null;
+    const parts = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Europe/Berlin',
+      year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'short'
+    }).formatToParts(date);
+    const get = (type: string) => parts.find(p => p.type === type)?.value ?? '';
+    return { day: `${get('year')}-${get('month')}-${get('day')}`, weekday: get('weekday') };
+  }
+
+  private isBoostDate(date: Date): boolean {
+    const d = this.berlinDay(date);
+    return !!d && d.weekday === this.BOOST.weekday && d.day >= this.BOOST.startDate;
+  }
+
+  /** Entry counts double for the shared total (not for personal rankings). */
+  isBoosted(entry: ChallengeEntry): boolean {
+    return this.isBoostDate(new Date(entry.date));
+  }
+
+  /** Whether the given day (default: today) is a boost day. */
+  isBoostDay(date: Date = new Date()): boolean {
+    return this.isBoostDate(date);
+  }
+
+  /** Intro card is only shown on the first 4 boost Tuesdays. */
+  showBoostIntro(date: Date = new Date()): boolean {
+    const d = this.berlinDay(date);
+    return !!d && this.isBoostDate(date) && d.day <= this.BOOST.introUntil;
   }
 
   private calculateRankings(entries: ChallengeEntry[]): ChallengeRanking[] {

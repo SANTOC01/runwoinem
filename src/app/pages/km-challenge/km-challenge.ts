@@ -33,6 +33,11 @@ export class KmChallenge implements OnInit, OnDestroy {
   total = 0;
   progressPercentage = 0;
   cityBgPath = '';
+  showBoostIntro = false;
+  boostInfoOpen = false;
+  readonly boostFootnote =
+    '⚡ Dienstag-Boost: zählt doppelt für den Eurotrip, nicht für die persönlichen km.';
+  readonly isBoosted = (e: ChallengeEntry) => this.kmChallengeService.isBoosted(e);
   private readonly subscriptions: Subscription[] = [];
 
   constructor(
@@ -43,6 +48,11 @@ export class KmChallenge implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.kmChallengeService.loadData();
+    this.showBoostIntro = this.kmChallengeService.showBoostIntro();
+    if (this.showBoostIntro && !this.boostSeenToday()) {
+      this.boostInfoOpen = true; // auto-open once per boost day
+      this.markBoostSeen();
+    }
     this.subscriptions.push(
       this.kmChallengeService.entries$.subscribe(entries => {
         this.entries = [...entries].sort(
@@ -62,6 +72,21 @@ export class KmChallenge implements OnInit, OnDestroy {
     );
   }
 
+  private readonly BOOST_SEEN_KEY = 'km_boost_intro_seen';
+
+  private boostSeenToday(): boolean {
+    try {
+      return localStorage.getItem(this.BOOST_SEEN_KEY) === new Date().toDateString();
+    } catch { return false; }
+  }
+
+  private markBoostSeen() {
+    try { localStorage.setItem(this.BOOST_SEEN_KEY, new Date().toDateString()); } catch { /* ignore */ }
+  }
+
+  openBoostInfo() { this.boostInfoOpen = true; }
+  closeBoostInfo() { this.boostInfoOpen = false; }
+
   ngOnDestroy() {
     this.subscriptions.forEach(sub => sub.unsubscribe());
   }
@@ -80,6 +105,9 @@ export class KmChallenge implements OnInit, OnDestroy {
   async onSubmit(event: { name: string; value: number }) {
     try {
       await this.kmChallengeService.submitData(event.name, event.value);
+      if (this.kmChallengeService.isBoostDay()) {
+        this.toast.show('⚡ Dienstag-Boost: zählt doppelt für den Eurotrip!');
+      }
     } catch (error) {
       console.error('Error submitting data:', error);
     }
