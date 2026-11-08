@@ -12,7 +12,14 @@ import { ChallengeEntry } from '../../interfaces/challenge.interface';
 export class StatsTable {
   @Input() entries: ChallengeEntry[] = [];
   @Input() unit = '';
+  /** Optional: marks entries that count extra for the shared total. */
+  @Input() isBoosted?: (e: ChallengeEntry) => boolean;
+  @Input() boostFootnote = '';
   @Output() deleteRequested = new EventEmitter<ChallengeEntry>();
+
+  get hasBoosted(): boolean {
+    return !!this.isBoosted && this.entries.some(e => this.isBoosted!(e));
+  }
 
   formatDate(dateString: string): string {
     return new Date(dateString).toLocaleDateString('de-DE', {

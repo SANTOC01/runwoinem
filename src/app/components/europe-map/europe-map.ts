@@ -77,9 +77,6 @@ function appendSeg(d: string, s: BezierSegment): string {
   return d + ` C ${s.cp1.x.toFixed(1)},${s.cp1.y.toFixed(1)} ${s.cp2.x.toFixed(1)},${s.cp2.y.toFixed(1)} ${s.p1.x.toFixed(1)},${s.p1.y.toFixed(1)}`;
 }
 
-const GERMAN_ORDINALS = ['', 'zweite', 'dritte', 'vierte', 'fünfte', 'sechste'];
-const MILESTONE_RADIUS_KM = 300; // within this range we show the "X. Mal" message
-
 @Component({
   selector: 'app-europe-map',
   standalone: true,
@@ -99,8 +96,8 @@ export class EuropeMap implements OnChanges {
   readonly totalGoal = TOTAL_GOAL_KM;
   readonly svgWidth = SVG_W;
   readonly svgHeight = SVG_H;
-  // Cropped viewBox focused on the actual route area (lon≈-10..25, lat≈38..62)
-  readonly routeViewBox = '175 158 565 420';
+  // Cropped viewBox focused on the actual route area (lon≈-10..25, lat≈38..53)
+  readonly routeViewBox = '185 235 480 357';
 
   // Precomputed SVG points and bezier segments (constant)
   readonly svgPoints: SvgPoint[] = EUROPE_ROUTE_WAYPOINTS.map(w => ({
@@ -123,7 +120,6 @@ export class EuropeMap implements OnChanges {
   })();
 
   // Dynamic state updated on each input change
-  currentLap = 0;
   kmInLap = 0;
   dotX = this.svgPoints[0].x;
   dotY = this.svgPoints[0].y;
@@ -131,8 +127,6 @@ export class EuropeMap implements OnChanges {
   currentSegmentIndex = 0;
   nearestCityName = EUROPE_ROUTE_WAYPOINTS[0].name;
   kmToNextCity = 0;
-  lapMessage = '';
-  nearMilestoneCity: RouteWaypoint | null = null;
   weatherTemp: number | null = null;
   weatherIcon = '';
   weatherCity = '';
@@ -144,8 +138,7 @@ export class EuropeMap implements OnChanges {
 
   private updatePosition(): void {
     const total = Math.max(0, this.total);
-    this.currentLap = Math.floor(total / LAP_DISTANCE_KM);
-    this.kmInLap = total % LAP_DISTANCE_KM;
+    this.kmInLap = Math.min(total, LAP_DISTANCE_KM);
 
     const wps = EUROPE_ROUTE_WAYPOINTS;
     const lapKm = this.kmInLap;
@@ -207,37 +200,6 @@ export class EuropeMap implements OnChanges {
       this.lastWeatherCity = lastWp.name;
       this.fetchWeather(lastWp.lat, lastWp.lon, lastWp.name);
     }
-
-    // Check for "X. Mal in Y" message – within MILESTONE_RADIUS_KM of a milestone city
-    this.nearMilestoneCity = null;
-    if (this.currentLap > 0) {
-      for (const wp of wps) {
-        if (!wp.isMilestone) continue;
-        const dist = Math.abs(lapKm - wp.cumulativeKm);
-        if (dist <= MILESTONE_RADIUS_KM) {
-          this.nearMilestoneCity = wp;
-          break;
-        }
-      }
-    }
-
-    this.lapMessage = this.buildLapMessage();
-  }
-
-  private buildLapMessage(): string {
-    if (this.currentLap === 0 && !this.nearMilestoneCity) return '';
-
-    if (this.nearMilestoneCity && this.currentLap > 0) {
-      const lapNum = this.currentLap + 1;
-      const ord = GERMAN_ORDINALS[this.currentLap] ?? `${lapNum}.`;
-      return `Das ist schon das ${ord} Mal in ${this.nearMilestoneCity.name}! 🎉`;
-    }
-
-    if (this.currentLap > 0) {
-      return `Runde ${this.currentLap + 1} läuft – weiter so! 💪`;
-    }
-
-    return '';
   }
 
   /** For the template: get SVG x for a waypoint */
