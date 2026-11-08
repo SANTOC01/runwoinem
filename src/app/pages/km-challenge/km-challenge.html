@@ -10,29 +10,6 @@
       </app-goal-banner>
     </div>
 
-    @if (showBoostIntro) {
-      <button type="button" class="boost-banner" (click)="openBoostInfo()">
-        ⚡ Dienstag-Boost: heute zählt alles doppelt für den Eurotrip! <span class="more">Mehr ›</span>
-      </button>
-    }
-
-    @if (boostInfoOpen) {
-      <div class="boost-overlay" (click)="closeBoostInfo()">
-        <div class="boost-modal" role="dialog" aria-modal="true" aria-labelledby="boost-title"
-             (click)="$event.stopPropagation()">
-          <button type="button" class="boost-close" aria-label="Schließen" (click)="closeBoostInfo()">✕</button>
-          <h2 id="boost-title">⚡ Der Dienstag-Boost</h2>
-          <p>
-            Durch unsere Lauf-ABCs sind wir schneller geworden – deshalb zählt ab jetzt
-            <strong>jeder Dienstag doppelt</strong> für den Eurotrip! 🏃‍♀️💨
-          </p>
-          <p class="boost-today">🔥 Heute ist Boost-Tag!</p>
-          <small>⚡ Der Boost gilt nur für den gemeinsamen Eurotrip-Zähler. Deine persönlichen km in der Rangliste bleiben deine echten km.</small>
-          <button type="button" class="boost-ok" (click)="closeBoostInfo()">Los geht's!</button>
-        </div>
-      </div>
-    }
-
     <app-challenge-form
       [config]="kmChallengeService.config"
       (submitted)="onSubmit($event)"
@@ -43,8 +20,6 @@
       <app-stats-table
         [entries]="entries"
         [unit]="kmChallengeService.config.metricUnit"
-        [isBoosted]="isBoosted"
-        [boostFootnote]="boostFootnote"
         (deleteRequested)="onDelete($event)">
       </app-stats-table>
       <app-ranking-table
@@ -55,7 +30,8 @@
 
     <div class="progress-section">
       <div class="progress-header">
-        <h2>🗺️ Fortschritt Gesamt: {{total}} {{kmChallengeService.config.metricUnit}}</h2>        <div class="progress-bar">
+        <h2>🗺️ Fortschritt Gesamt: {{total}} {{kmChallengeService.config.metricUnit}}</h2>
+        <div class="progress-bar">
           <div class="progress" [style.width.%]="progressPercentage"></div>
           <span class="progress-label">{{progressPercentage}}%</span>
         </div>

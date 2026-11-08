@@ -132,6 +132,14 @@
       fill="#e74c3c"
       stroke="#fff"
       stroke-width="2.5"/>
+
+    <!-- ── Lap badge (inside visible viewBox area) ── -->
+    @if (currentLap > 0) {
+      <rect x="185" y="168" width="145" height="32" rx="8" fill="rgba(0,0,0,0.55)"/>
+      <text x="197" y="189" font-size="16" font-family="sans-serif" fill="#fff" font-weight="600">
+        🔄 Runde {{ currentLap + 1 }}
+      </text>
+    }
   </svg>
 
   <!-- ── Info strip below the map ── -->
@@ -145,6 +153,9 @@
       <span class="location-icon">🏁</span>
       <span class="location-text">Noch {{ kmToNextCity.toLocaleString('de-DE') }} km bis {{ nearestCityName }}</span>
     </div>
+    @if (lapMessage) {
+      <div class="lap-message">{{ lapMessage }}</div>
+    }
     <div class="km-total">{{ totalKmFormatted }} km von {{ totalGoal.toLocaleString('de-DE') }} km</div>
   </div>
 </div>

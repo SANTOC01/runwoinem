@@ -15,11 +15,11 @@ export interface RouteWaypoint {
   image?: string;
 }
 
-export const LAP_DISTANCE_KM = 12310;
+export const LAP_DISTANCE_KM = 15010;
 export const TOTAL_GOAL_KM = LAP_DISTANCE_KM;
 
 // Grand European Tour starting from Weinheim, BW
-// One full lap ≈ 12,310 km (… Athen → Budapest → Warschau → Amsterdam → London → Weinheim)
+// One full lap ≈ 15,010 km
 // The route closes back to Weinheim, enabling endless laps
 export const EUROPE_ROUTE_WAYPOINTS: RouteWaypoint[] = [
   { name: 'Weinheim',   country: 'DE', lat: 49.545, lon:   8.665, cumulativeKm:     0, isMilestone: true,  emoji: '🏁', image: 'weinheim.png' },
@@ -29,9 +29,11 @@ export const EUROPE_ROUTE_WAYPOINTS: RouteWaypoint[] = [
   { name: 'Lissabon',   country: 'PT', lat: 38.716, lon:  -9.139, cumulativeKm:  2630, isMilestone: true,  emoji: '🎯', image: 'lissabon.png' },
   { name: 'Marseille',  country: 'FR', lat: 43.297, lon:   5.381, cumulativeKm:  4530, isMilestone: false, labelDy: 18, image: 'marseille.png' },
   { name: 'Rom',        country: 'IT', lat: 41.890, lon:  12.492, cumulativeKm:  5230, isMilestone: true,  emoji: '🏛️', image: 'rome.png' },
-  { name: 'Athen',      country: 'GR', lat: 37.984, lon:  23.728, cumulativeKm:  7330, isMilestone: true,  emoji: '🏺', labelDx: 0, labelDy: 26, labelAnchor: 'middle', image: 'athen.png' },
+  { name: 'Athen',      country: 'GR', lat: 37.984, lon:  23.728, cumulativeKm:  7330, isMilestone: true,  emoji: '🏺', image: 'athen.png' },
   { name: 'Budapest',   country: 'HU', lat: 47.498, lon:  19.040, cumulativeKm:  9030, isMilestone: false, labelDy: 16, image: 'budapest.png' },
   { name: 'Warschau',   country: 'PL', lat: 52.230, lon:  21.010, cumulativeKm:  9810, isMilestone: false, image: 'warschau.png' },
-  { name: 'Amsterdam',  country: 'NL', lat: 52.370, lon:   4.895, cumulativeKm: 11010, isMilestone: false, labelDy: -12, image: 'amsterdam.png' },
-  { name: 'London',     country: 'GB', lat: 51.507, lon:  -0.128, cumulativeKm: 11510, isMilestone: true,  emoji: '🎡', labelDx: -12, labelDy: 4, labelAnchor: 'end', image: 'london.png' },
+  { name: 'Helsinki',   country: 'FI', lat: 60.170, lon:  24.935, cumulativeKm: 11410, isMilestone: true,  emoji: '🌲', image: 'helsinki.png' },
+  { name: 'Oslo',       country: 'NO', lat: 59.911, lon:  10.752, cumulativeKm: 12310, isMilestone: true,  emoji: '⛵', image: 'oslo.png' },
+  { name: 'London',     country: 'GB', lat: 51.507, lon:  -0.128, cumulativeKm: 13910, isMilestone: true,  emoji: '🎡', labelDx: -12, labelDy: 4, labelAnchor: 'end', image: 'london.png' },
+  { name: 'Amsterdam',  country: 'NL', lat: 52.370, lon:   4.895, cumulativeKm: 14410, isMilestone: false, image: 'amsterdam.png' },
 ];

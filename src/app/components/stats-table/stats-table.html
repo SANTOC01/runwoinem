@@ -11,12 +11,7 @@
     @for (entry of entries; track entry.date + entry.name; let i = $index) {
       <tr>
         <td>{{entry.name}}</td>
-        <td>
-          {{entry.value}} {{unit}}
-          @if (isBoosted?.(entry)) {
-            <span class="boost-badge" title="Zählt doppelt für den Eurotrip">⚡</span>
-          }
-        </td>
+        <td>{{entry.value}} {{unit}}</td>
         <td>{{formatDate(entry.date)}}</td>
         <td>
           @if (i === 0) {
@@ -26,7 +21,4 @@
       </tr>
     }
   </table>
-  @if (hasBoosted && boostFootnote) {
-    <p class="boost-footnote">{{ boostFootnote }}</p>
-  }
 </div>
