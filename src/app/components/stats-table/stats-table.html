@@ -8,24 +8,27 @@
       <th>Datum</th>
       <th>Löschen</th>
     </tr>
-    @for (entry of entries; track entry.date + entry.name; let i = $index) {
+    @for (row of rows; track row.entry.date + row.entry.name; let i = $index) {
       <tr>
-        <td>{{entry.name}}</td>
+        <td>{{row.entry.name}}</td>
         <td>
-          {{entry.value}} {{unit}}
-          @if (isBoosted?.(entry)) {
+          {{row.entry.value}} {{unit}}
+          @if (row.boosted) {
             <span class="boost-badge" title="Zählt doppelt für den Eurotrip">⚡</span>
           }
         </td>
-        <td>{{formatDate(entry.date)}}</td>
+        <td>{{row.dateLabel}}</td>
         <td>
           @if (i === 0) {
-            <button (click)="deleteEntry(entry)" class="delete-btn">❌</button>
+            <button (click)="deleteEntry(row.entry)" class="delete-btn">❌</button>
           }
         </td>
       </tr>
     }
   </table>
+  @if (hasMore) {
+    <button type="button" class="more-btn" (click)="showMore()">Mehr anzeigen ({{ remaining }})</button>
+  }
   @if (hasBoosted && boostFootnote) {
     <p class="boost-footnote">{{ boostFootnote }}</p>
   }

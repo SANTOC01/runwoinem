@@ -1,15 +1,29 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnChanges, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ChallengeEntry } from '../../interfaces/challenge.interface';
+
+interface Row {
+  entry: ChallengeEntry;
+  boosted: boolean;
+  dateLabel: string;
+}
+
+const PAGE_SIZE = 30;
+const DATE_FORMAT = new Intl.DateTimeFormat('de-DE', {
+  day: '2-digit',
+  month: '2-digit',
+  year: '2-digit'
+});
 
 @Component({
   selector: 'app-stats-table',
   standalone: true,
   imports: [CommonModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './stats-table.html',
   styleUrls: ['./stats-table.scss']
 })
-export class StatsTable {
+export class StatsTable implements OnChanges {
   @Input() entries: ChallengeEntry[] = [];
   @Input() unit = '';
   /** Optional: marks entries that count extra for the shared total. */
@@ -17,16 +31,35 @@ export class StatsTable {
   @Input() boostFootnote = '';
   @Output() deleteRequested = new EventEmitter<ChallengeEntry>();
 
-  get hasBoosted(): boolean {
-    return !!this.isBoosted && this.entries.some(e => this.isBoosted!(e));
+  visibleCount = PAGE_SIZE;
+  rows: Row[] = [];
+  hasBoosted = false;
+
+  get hasMore(): boolean {
+    return this.entries.length > this.visibleCount;
   }
 
-  formatDate(dateString: string): string {
-    return new Date(dateString).toLocaleDateString('de-DE', {
-      day: '2-digit',
-      month: '2-digit',
-      year: '2-digit'
-    });
+  get remaining(): number {
+    return this.entries.length - this.visibleCount;
+  }
+
+  ngOnChanges(): void {
+    this.rebuild();
+  }
+
+  showMore(): void {
+    this.visibleCount += PAGE_SIZE;
+    this.rebuild();
+  }
+
+  private rebuild(): void {
+    const fn = this.isBoosted;
+    this.rows = this.entries.slice(0, this.visibleCount).map(entry => ({
+      entry,
+      boosted: !!fn && fn(entry),
+      dateLabel: DATE_FORMAT.format(new Date(entry.date)),
+    }));
+    this.hasBoosted = !!fn && this.entries.some(e => fn(e));
   }
 
   deleteEntry(entry: ChallengeEntry) {

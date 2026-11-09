@@ -208,12 +208,16 @@ export class KmChallengeService extends BaseChallengeService {
   }
 
   /** Berlin calendar day (YYYY-MM-DD) and weekday for a date, or null if invalid. */
+  // Creating an Intl.DateTimeFormat is expensive: build it once and memoize results.
+  private readonly berlinFormatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Berlin',
+    year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'short'
+  });
+  private readonly boostCache = new Map<string, boolean>();
+
   private berlinDay(date: Date): { day: string; weekday: string } | null {
     if (isNaN(date.getTime())) return null;
-    const parts = new Intl.DateTimeFormat('en-CA', {
-      timeZone: 'Europe/Berlin',
-      year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'short'
-    }).formatToParts(date);
+    const parts = this.berlinFormatter.formatToParts(date);
     const get = (type: string) => parts.find(p => p.type === type)?.value ?? '';
     return { day: `${get('year')}-${get('month')}-${get('day')}`, weekday: get('weekday') };
   }
@@ -225,7 +229,12 @@ export class KmChallengeService extends BaseChallengeService {
 
   /** Entry counts double for the shared total (not for personal rankings). */
   isBoosted(entry: ChallengeEntry): boolean {
-    return this.isBoostDate(new Date(entry.date));
+    let v = this.boostCache.get(entry.date);
+    if (v === undefined) {
+      v = this.isBoostDate(new Date(entry.date));
+      this.boostCache.set(entry.date, v);
+    }
+    return v;
   }
 
   /** Whether the given day (default: today) is a boost day. */

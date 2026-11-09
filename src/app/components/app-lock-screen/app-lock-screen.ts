@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, Output, ViewChild, AfterViewInit, OnDestroy } from '@angular/core';
+import { Component, NgZone, ElementRef, EventEmitter, Output, ViewChild, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ToastService } from '../../services/toast-service';
 
@@ -32,7 +32,7 @@ import { ToastService } from '../../services/toast-service';
   styleUrls: ['./app-lock-screen.scss']
 })
 export class LockScreen implements AfterViewInit, OnDestroy {
-  constructor(private toastService: ToastService) {}
+  constructor(private toastService: ToastService, private ngZone: NgZone) {}
 
   @Output() success = new EventEmitter<void>();
   @Output() cancel = new EventEmitter<void>();
@@ -80,10 +80,14 @@ export class LockScreen implements AfterViewInit, OnDestroy {
     this.boundTouchMove = this.handleTouchMove.bind(this);
     this.boundTouchEnd = this.handleTouchEnd.bind(this);
 
-    document.addEventListener('mousemove', this.boundMouseMove);
-    document.addEventListener('mouseup', this.boundMouseUp);
-    document.addEventListener('touchmove', this.boundTouchMove, { passive: false });
-    document.addEventListener('touchend', this.boundTouchEnd);
+    // Outside Angular's zone: move events fire constantly and must not trigger change detection.
+    // Success/cancel are EventEmitters, which are only emitted on pattern completion.
+    this.ngZone.runOutsideAngular(() => {
+      document.addEventListener('mousemove', this.boundMouseMove);
+      document.addEventListener('mouseup', this.boundMouseUp);
+      document.addEventListener('touchmove', this.boundTouchMove, { passive: false });
+      document.addEventListener('touchend', this.boundTouchEnd);
+    });
   }
 
   private disableScrolling() {
@@ -184,11 +188,14 @@ export class LockScreen implements AfterViewInit, OnDestroy {
 
   private checkPattern() {
     const enteredPattern = this.inputPattern.join('-');
-    if (enteredPattern === this.CORRECT_PATTERN) {
-      this.success.emit();
-    } else if (this.inputPattern.length > 0) {
-      this.toastService.show('Muster falsch, versuche es erneut.');
-    }
+    // Handlers run outside the zone; re-enter it so the result updates the UI.
+    this.ngZone.run(() => {
+      if (enteredPattern === this.CORRECT_PATTERN) {
+        this.success.emit();
+      } else if (this.inputPattern.length > 0) {
+        this.toastService.show('Muster falsch, versuche es erneut.');
+      }
+    });
   }
 
   onCancel() {

@@ -58,6 +58,18 @@
     text-align: center;
   }
 
+  .more-btn {
+    display: block;
+    margin: 10px auto 0;
+    padding: 6px 14px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: #f8f9fa;
+    color: #2c3e50;
+    font-size: 0.8rem;
+    cursor: pointer;
+  }
+
   .delete-btn {
     background: none;
     border: none;
