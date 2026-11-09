@@ -49,7 +49,9 @@
       </app-stats-table>
       <app-ranking-table
         [rankings]="rankings"
-        [unit]="kmChallengeService.config.metricUnit">
+        [unit]="kmChallengeService.config.metricUnit"
+        [clickable]="true"
+        (nameSelected)="selectedName = $event">
       </app-ranking-table>
     </div>
 
@@ -63,6 +65,15 @@
       <app-europe-map [total]="total" (bgImagePath)="cityBgPath = $event"></app-europe-map>
     </div>
   </div>
+
+  @if (selectedName) {
+    <app-personal-stats
+      [name]="selectedName"
+      [entries]="entries"
+      [unit]="kmChallengeService.config.metricUnit"
+      (closed)="selectedName = ''">
+    </app-personal-stats>
+  }
 
   @if (lockService.showLockScreen$ | async) {
     <app-lock-screen

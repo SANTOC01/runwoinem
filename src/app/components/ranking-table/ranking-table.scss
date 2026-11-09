@@ -42,6 +42,18 @@
     tr:hover {
       background-color: #f1f1f1;
     }
+
+    .name-link {
+      padding: 0;
+      background: none;
+      border: none;
+      font: inherit;
+      color: #1a73e8;
+      text-decoration: underline;
+      cursor: pointer;
+
+      &:hover { color: #0b4fb3; }
+    }
   }
 }
 

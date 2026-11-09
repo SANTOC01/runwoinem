@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ChallengeRanking } from '../../interfaces/challenge.interface';
 
@@ -12,6 +12,9 @@ import { ChallengeRanking } from '../../interfaces/challenge.interface';
 export class RankingTable {
   @Input() rankings: ChallengeRanking[] = [];
   @Input() unit = '';
+  /** When true, names are rendered as links that emit `nameSelected`. */
+  @Input() clickable = false;
+  @Output() nameSelected = new EventEmitter<string>();
 
   getRankEmoji(index: number): string {
     switch (index) {

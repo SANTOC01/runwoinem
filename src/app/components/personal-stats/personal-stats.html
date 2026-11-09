@@ -1,0 +1,27 @@
+<div class="overlay" (click)="closed.emit()">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="ps-title"
+       (click)="$event.stopPropagation()">
+    <button type="button" class="close" aria-label="Schließen" (click)="closed.emit()">✕</button>
+    <h2 id="ps-title">🏃 {{ name }}</h2>
+
+    @if (stats; as s) {
+      <p class="rank">Platz {{ s.rank }} von {{ s.runners }}</p>
+      <div class="grid">
+        <div class="tile"><span class="val">{{ s.total }} {{ unit }}</span><span class="lbl">Gesamt</span></div>
+        <div class="tile"><span class="val">{{ s.runs }}</span><span class="lbl">Läufe</span></div>
+        <div class="tile"><span class="val">{{ s.longest }} {{ unit }}</span><span class="lbl">Längster Lauf</span></div>
+        <div class="tile"><span class="val">{{ s.average }} {{ unit }}</span><span class="lbl">Ø pro Lauf</span></div>
+        <div class="tile">
+          <span class="val">{{ s.bestWeekKm }} {{ unit }}</span>
+          <span class="lbl">Beste Woche ({{ s.bestWeekLabel }})</span>
+        </div>
+        <div class="tile">
+          <span class="val">{{ s.streak }} {{ s.streak === 1 ? 'Woche' : 'Wochen' }}</span>
+          <span class="lbl">Aktuelle Serie 🔥</span>
+        </div>
+      </div>
+    } @else {
+      <p>Keine Einträge gefunden.</p>
+    }
+  </div>
+</div>

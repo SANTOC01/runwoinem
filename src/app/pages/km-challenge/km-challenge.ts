@@ -10,6 +10,7 @@ import { LockScreen } from '../../components/app-lock-screen/app-lock-screen';
 import { LockService } from '../../services/lock-service';
 import { ToastService } from '../../services/toast-service';
 import { ChallengeForm } from '../../components/challenge-form/challenge-form';
+import { PersonalStats } from '../../components/personal-stats/personal-stats';
 import { ChallengeEntry, ChallengeRanking } from '../../interfaces/challenge.interface';
 
 @Component({
@@ -22,7 +23,8 @@ import { ChallengeEntry, ChallengeRanking } from '../../interfaces/challenge.int
     EuropeMap,
     GoalBanner,
     LockScreen,
-    ChallengeForm
+    ChallengeForm,
+    PersonalStats
   ],
   templateUrl: './km-challenge.html',
   styleUrls: ['./km-challenge.scss']
@@ -35,6 +37,7 @@ export class KmChallenge implements OnInit, OnDestroy {
   cityBgPath = '';
   showBoostIntro = false;
   boostInfoOpen = false;
+  selectedName = '';
   readonly boostFootnote =
     '⚡ Dienstag-Boost: zählt doppelt für den Eurotrip, nicht für die persönlichen km.';
   readonly isBoosted = (e: ChallengeEntry) => this.kmChallengeService.isBoosted(e);
