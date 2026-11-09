@@ -3,7 +3,7 @@
     <div class="header">
       <h1>{{ challengeService.config.title }}</h1>
       <app-goal-banner
-        [total]="total"
+        [total]="total()"
         [goals]="challengeService.config.goals"
         [unit]="challengeService.config.metricUnit">
       </app-goal-banner>
@@ -17,33 +17,33 @@
 
     <div class="data-section">
       <app-stats-table
-        [entries]="entries"
+        [entries]="entries()"
         [unit]="challengeService.config.metricUnit"
         (deleteRequested)="onDelete($event)">
       </app-stats-table>
       <app-ranking-table
-        [rankings]="rankings"
+        [rankings]="rankings()"
         [unit]="challengeService.config.metricUnit">
       </app-ranking-table>
     </div>
 
     <div class="progress-section">
       <div class="progress-header">
-        <h2>📈 Fortschritt Gesamt: {{total}} {{challengeService.config.metricUnit}}</h2>
+        <h2>📈 Fortschritt Gesamt: {{ total() }} {{challengeService.config.metricUnit}}</h2>
         <div class="progress-bar">
-          <div class="progress" [style.width.%]="progressPercentage">
-            {{progressPercentage}}%
+          <div class="progress" [style.width.%]="progressPercentage()">
+            {{ progressPercentage() }}%
           </div>
         </div>
       </div>
       <app-progress-chart
-        [total]="total"
+        [total]="total()"
         [config]="challengeService.config">
       </app-progress-chart>
     </div>
   </div>
 
-  @if (lockService.showLockScreen$ | async) {
+  @if (lockService.visible()) {
     <app-lock-screen
       (success)="lockService.handleUnlockSuccess()"
       (cancel)="lockService.handleUnlockCancel()">

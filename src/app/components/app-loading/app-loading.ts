@@ -1,14 +1,12 @@
-import { Component, Input } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, input } from '@angular/core';
 
 @Component({
   selector: 'app-loading',
-  standalone: true,
-  imports: [CommonModule],
   templateUrl: './app-loading.html',
   styleUrls: ['./app-loading.scss']
 })
 export class Loading {
-  @Input() isLoading = false;
-  @Input() useOverlay = true; // default: overlay
+  readonly isLoading = input(false);
+  /** Dim the whole screen behind the spinner (default) or render inline. */
+  readonly useOverlay = input(true);
 }

@@ -1,28 +1,22 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, input, output } from '@angular/core';
 import { ChallengeRanking } from '../../interfaces/challenge.interface';
+
+const RANK_EMOJIS = ['🏆', '🥈', '🥉'];
 
 @Component({
   selector: 'app-ranking-table',
-  standalone: true,
-  imports: [CommonModule],
   templateUrl: './ranking-table.html',
   styleUrls: ['./ranking-table.scss']
 })
 export class RankingTable {
-  @Input() rankings: ChallengeRanking[] = [];
-  @Input() unit = '';
+  readonly rankings = input<ChallengeRanking[]>([]);
+  readonly unit = input('');
   /** When true, names are rendered as links that emit `nameSelected`. */
-  @Input() clickable = false;
-  @Output() nameSelected = new EventEmitter<string>();
+  readonly clickable = input(false);
+  readonly nameSelected = output<string>();
 
   getRankEmoji(index: number): string {
-    switch (index) {
-      case 0: return '🏆';
-      case 1: return '🥈';
-      case 2: return '🥉';
-      default: return '🏅';
-    }
+    return RANK_EMOJIS[index] ?? '🏅';
   }
 
   getRankText(index: number, name: string): string {

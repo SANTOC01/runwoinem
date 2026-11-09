@@ -3,21 +3,21 @@
     type="text"
     [(ngModel)]="name"
     placeholder="Dein Name"
-    [disabled]="!config.active"/>
+    [disabled]="!config().active"/>
   <input
     type="number"
     [(ngModel)]="value"
-    [placeholder]="config.metricLabel"
-    [max]="config.maxEntryValue"
-    [disabled]="!config.active"
+    [placeholder]="config().metricLabel"
+    [max]="config().maxEntryValue"
+    [disabled]="!config().active"
     (input)="onValueChange()"/>
   <button
     (click)="onSubmit()"
-    [disabled]="!config.active"
-    [class.disabled]="!config.active">
+    [disabled]="!config().active"
+    [class.disabled]="!config().active">
     Absenden
   </button>
-  @if (!config.active) {
+  @if (!config().active) {
     <p class="challenge-status">🔒 Challenge beendet – danke für eure Teilnahme!</p>
   }
 </div>

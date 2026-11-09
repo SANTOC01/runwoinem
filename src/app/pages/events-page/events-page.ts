@@ -1,189 +1,120 @@
-import { Component, OnInit, OnDestroy, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, computed, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterModule } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { map } from 'rxjs';
 import { EventsService } from '../../services/events-service';
 import { AppEvent } from '../../models/app-event';
 import { EventsModalComponent } from '../../components/events-modal/events-modal';
+import { RevealOnScroll } from '../../directives/reveal-on-scroll';
+import { FilterType, distText, formatEventDate, matchesFilter } from '../../utils/event-utils';
 
-type FilterType = 'Alle' | 'Marathon' | 'Halbmarathon' | '10KM' | '5KM' | 'Trail';
+const FILTER_EMOJI: Record<FilterType, string> = {
+  'Alle': '🗓️', 'Marathon': '⚫', 'Halbmarathon': '🔴', '10KM': '🟡', '5KM': '🟢', 'Trail': '🌄'
+};
+
+const FILTER_COLOR: Record<FilterType, string> = {
+  'Alle': '#43c6ac', 'Marathon': '#2c3e50', 'Halbmarathon': '#e74c3c',
+  '10KM': '#f39c12', '5KM': '#27ae60', 'Trail': '#a15b00'
+};
 
 @Component({
   selector: 'app-events-page',
-  standalone: true,
-  imports: [CommonModule, RouterModule, EventsModalComponent],
+  imports: [RouterModule, EventsModalComponent, RevealOnScroll],
   templateUrl: './events-page.html',
   styleUrls: ['./events-page.scss']
 })
-export class EventsPage implements OnInit, AfterViewInit, OnDestroy {
-  events: AppEvent[] = [];
-  upcomingEvents: AppEvent[] = [];
-  pastEventsByYear = new Map<number, AppEvent[]>();
-  pastYears: number[] = [];
-  pastYearCounts: Record<string, number> = {};
-  expandedYears = new Set<number>();
-  loadingYears = new Set<number>();
-  selectedFilter: FilterType = 'Alle';
-  selectedEvent: AppEvent | null = null;
+export class EventsPage {
+  private readonly eventsService = inject(EventsService);
 
   readonly filters: FilterType[] = ['Alle', 'Marathon', 'Halbmarathon', '10KM', '5KM', 'Trail'];
+  readonly formatDate = formatEventDate;
+  readonly getDistText = distText;
 
-  private subscription: Subscription | null = null;
-  private observer: IntersectionObserver | null = null;
+  readonly selectedFilter = signal<FilterType>('Alle');
+  readonly selectedEvent = signal<AppEvent | null>(null);
 
-  constructor(private readonly eventsService: EventsService) {}
+  readonly events = toSignal(
+    this.eventsService.events$.pipe(map(events => [...events].sort((a, b) => a.daysLeft - b.daysLeft))),
+    { initialValue: [] as AppEvent[] }
+  );
 
-  ngOnInit() {
+  readonly upcomingEvents = computed(() =>
+    this.events().filter(e => e.daysLeft >= 0 && matchesFilter(e, this.selectedFilter()))
+  );
+
+  readonly totalParticipants = computed(() =>
+    this.events().reduce((sum, e) => sum + (e.participants?.length ?? 0), 0)
+  );
+
+  // Past events are loaded lazily per year when a year is expanded.
+  readonly pastYearCounts = signal<Record<string, number>>({});
+  readonly pastYearsAscending = computed(() =>
+    Object.keys(this.pastYearCounts()).map(Number).sort((a, b) => a - b)
+  );
+  private readonly pastEventsByYear = signal<ReadonlyMap<number, AppEvent[]>>(new Map());
+  private readonly expandedYears = signal<ReadonlySet<number>>(new Set());
+  private readonly loadingYears = signal<ReadonlySet<number>>(new Set());
+
+  constructor() {
     this.eventsService.loadEvents();
-    this.subscription = this.eventsService.events$.subscribe(events => {
-      this.events = [...events].sort((a, b) => a.daysLeft - b.daysLeft);
-      this.applyFilter();
-    });
-    this.loadPastYears();
-  }
-
-  private async loadPastYears() {
-    this.pastYearCounts = await this.eventsService.loadPastYears();
-    this.pastYears = Object.keys(this.pastYearCounts)
-      .map(Number)
-      .sort((a, b) => b - a);
-  }
-
-  ngAfterViewInit() {
-    this.setupIntersectionObserver();
-  }
-
-  ngOnDestroy() {
-    this.subscription?.unsubscribe();
-    this.observer?.disconnect();
+    this.eventsService.loadPastYears().then(years => this.pastYearCounts.set(years));
   }
 
   filterEvents(filter: FilterType) {
-    this.selectedFilter = filter;
-    this.applyFilter();
-  }
-
-  private applyFilter() {
-    let filtered = this.events;
-
-    if (this.selectedFilter !== 'Alle') {
-      const emojiMap: Record<FilterType, string> = {
-        'Alle': '', 'Marathon': '⚫', 'Halbmarathon': '🔴',
-        '10KM': '🟡', '5KM': '🟢', 'Trail': '🌄'
-      };
-      const textMap: Record<FilterType, string[]> = {
-        'Alle': [], 'Marathon': ['42', 'marathon'], 'Halbmarathon': ['21', 'halb', 'half'],
-        '10KM': ['10km', '10 km'], '5KM': ['5km', '5 km'], 'Trail': ['trail']
-      };
-      const emoji = emojiMap[this.selectedFilter];
-      const keywords = textMap[this.selectedFilter];
-      filtered = this.events.filter(e => {
-        if (e.dist.includes(emoji)) return true;
-        const d = e.dist.toLowerCase();
-        return keywords.some(k => d.includes(k));
-      });
-    }
-
-    this.upcomingEvents = filtered
-      .filter(e => e.daysLeft >= 0)
-      .sort((a, b) => a.daysLeft - b.daysLeft);
-    setTimeout(() => this.observeCards(), 100);
+    this.selectedFilter.set(filter);
   }
 
   async toggleYear(year: number) {
-    if (this.expandedYears.has(year)) {
-      this.expandedYears.delete(year);
+    if (this.expandedYears().has(year)) {
+      this.expandedYears.update(years => without(years, year));
       return;
     }
 
-    // Fetch from API if not already loaded
-    if (!this.pastEventsByYear.has(year)) {
-      this.loadingYears.add(year);
+    if (!this.pastEventsByYear().has(year)) {
+      this.loadingYears.update(years => new Set(years).add(year));
       const events = await this.eventsService.loadPastEvents(year);
-      this.pastEventsByYear.set(year, events);
-      this.loadingYears.delete(year);
+      this.pastEventsByYear.update(map => new Map(map).set(year, events));
+      this.loadingYears.update(years => without(years, year));
     }
 
-    this.expandedYears.add(year);
-    setTimeout(() => this.observeCards(), 100);
+    this.expandedYears.update(years => new Set(years).add(year));
   }
 
   isYearLoading(year: number): boolean {
-    return this.loadingYears.has(year);
+    return this.loadingYears().has(year);
   }
 
   isYearExpanded(year: number): boolean {
-    return this.expandedYears.has(year);
-  }
-
-  get pastYearsAscending(): number[] {
-    return [...this.pastYears].sort((a, b) => a - b);
+    return this.expandedYears().has(year);
   }
 
   isYearDividerVisible(year: number): boolean {
-    const sorted = this.pastYearsAscending;
+    const sorted = this.pastYearsAscending();
     const idx = sorted.indexOf(year);
     if (idx === -1) return false;
     // Most recent year is always visible
     if (idx === sorted.length - 1) return true;
     // Older years appear only when the next more recent year is expanded
-    return this.expandedYears.has(sorted[idx + 1]);
+    return this.expandedYears().has(sorted[idx + 1]);
   }
 
   getPastEventsForYear(year: number): AppEvent[] {
-    const events = this.pastEventsByYear.get(year) ?? [];
-    if (this.selectedFilter === 'Alle') return events;
-
-    const emojiMap: Record<FilterType, string> = {
-      'Alle': '', 'Marathon': '⚫', 'Halbmarathon': '🔴',
-      '10KM': '🟡', '5KM': '🟢', 'Trail': '🌄'
-    };
-    const textMap: Record<FilterType, string[]> = {
-      'Alle': [], 'Marathon': ['42', 'marathon'], 'Halbmarathon': ['21', 'halb', 'half'],
-      '10KM': ['10km', '10 km'], '5KM': ['5km', '5 km'], 'Trail': ['trail']
-    };
-    const emoji = emojiMap[this.selectedFilter];
-    const keywords = textMap[this.selectedFilter];
-    return events.filter(e => {
-      if (e.dist.includes(emoji)) return true;
-      const d = e.dist.toLowerCase();
-      return keywords.some(k => d.includes(k));
-    });
-  }
-
-  private setupIntersectionObserver() {
-    this.observer = new IntersectionObserver(
-      entries => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
-            this.observer?.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
-    );
-    this.observeCards();
-  }
-
-  private observeCards() {
-    document.querySelectorAll('.timeline-card').forEach(card => {
-      this.observer?.observe(card);
-    });
+    const filter = this.selectedFilter();
+    return (this.pastEventsByYear().get(year) ?? []).filter(e => matchesFilter(e, filter));
   }
 
   // Ordered highest → lowest priority
   private readonly distanceTiers = [
-    { match: (s: string) => s.includes('🌄') || s.toLowerCase().includes('trail'),                                         color: '#a15b00', label: 'Trail' },
-    { match: (s: string) => s.includes('⚫') || /\b42\b/.test(s) || /\bmarathon\b/i.test(s),                              color: '#2c3e50', label: 'Marathon' },
-    { match: (s: string) => s.includes('🔴') || /\b21\b/.test(s) || /halb|half/i.test(s),                                 color: '#e74c3c', label: 'Halbmarathon' },
-    { match: (s: string) => s.includes('🟡') || /\b10\b/.test(s),                                                          color: '#f39c12', label: '10KM' },
-    { match: (s: string) => s.includes('🟢') || /\b5\b/.test(s),                                                           color: '#27ae60', label: '5KM' },
+    { match: (s: string) => s.includes('🌄') || s.toLowerCase().includes('trail'),                          color: '#a15b00' },
+    { match: (s: string) => s.includes('⚫') || /\b42\b/.test(s) || /\bmarathon\b/i.test(s),               color: '#2c3e50', label: 'Marathon' },
+    { match: (s: string) => s.includes('🔴') || /\b21\b/.test(s) || /halb|half/i.test(s),                  color: '#e74c3c', label: 'Halbmarathon' },
+    { match: (s: string) => s.includes('🟡') || /\b10\b/.test(s),                                           color: '#f39c12', label: '10KM' },
+    { match: (s: string) => s.includes('🟢') || /\b5\b/.test(s),                                            color: '#27ae60', label: '5KM' },
   ];
 
   getDistanceBadge(dist: string): { color: string; label: string } {
     for (const tier of this.distanceTiers) {
-      if (tier.match(dist)) return { color: tier.color, label: tier.label };
+      if (tier.match(dist)) return { color: tier.color, label: tier.label ?? 'Trail' };
     }
 
     // Custom distance: parse "(3,7)" or "(3.7)" → 3.7 km
@@ -198,39 +129,19 @@ export class EventsPage implements OnInit, AfterViewInit, OnDestroy {
       return { color: '#43c6ac', label };
     }
 
-    return { color: '#43c6ac', label: dist.replace('⛰️', '').trim() };
+    return { color: '#43c6ac', label: distText(dist) };
   }
 
   getFilterEmoji(filter: FilterType): string {
-    const map: Record<FilterType, string> = {
-      'Alle': '🗓️',
-      'Marathon': '⚫',
-      'Halbmarathon': '🔴',
-      '10KM': '🟡',
-      '5KM': '🟢',
-      'Trail': '🌄'
-    };
-    return map[filter];
+    return FILTER_EMOJI[filter];
   }
 
   getFilterColor(filter: FilterType): string {
-    const map: Record<FilterType, string> = {
-      'Alle': '#43c6ac',
-      'Marathon': '#2c3e50',
-      'Halbmarathon': '#e74c3c',
-      '10KM': '#f39c12',
-      '5KM': '#27ae60',
-      'Trail': '#a15b00'
-    };
-    return map[filter];
+    return FILTER_COLOR[filter];
   }
 
   isNextUp(event: AppEvent): boolean {
-    return this.upcomingEvents.length > 0 && this.upcomingEvents[0] === event;
-  }
-
-  isPast(event: AppEvent): boolean {
-    return event.daysLeft < 0;
+    return this.upcomingEvents()[0] === event;
   }
 
   getDaysLabel(daysLeft: number): string {
@@ -248,35 +159,21 @@ export class EventsPage implements OnInit, AfterViewInit, OnDestroy {
     return Math.max(0, (event.participants?.length ?? 0) - 3);
   }
 
-  get totalParticipants(): number {
-    return this.events.reduce((sum, e) => sum + (e.participants?.length ?? 0), 0);
-  }
-
   openEventModal(event: AppEvent) {
-    this.selectedEvent = event;
+    this.selectedEvent.set(event);
   }
 
   closeEventModal() {
-    this.selectedEvent = null;
+    this.selectedEvent.set(null);
   }
 
   isBergstrassenCup(dist: string): boolean {
     return dist.includes('⛰️');
   }
+}
 
-  getDistText(dist: string): string {
-    return dist.replace('⛰️', '').trim();
-  }
-
-  formatDate(dateString: string): string {
-    let year: number, month: number, day: number;
-    if (/^\d{2}\.\d{2}\.\d{4}$/.test(dateString.trim())) {
-      [day, month, year] = dateString.trim().split('.').map(Number);
-    } else {
-      [year, month, day] = dateString.substring(0, 10).split('-').map(Number);
-    }
-    const date = new Date(year, month - 1, day, 12, 0, 0);
-    if (isNaN(date.getTime())) return dateString;
-    return date.toLocaleDateString('de-DE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-  }
+function without<T>(set: ReadonlySet<T>, value: T): Set<T> {
+  const next = new Set(set);
+  next.delete(value);
+  return next;
 }

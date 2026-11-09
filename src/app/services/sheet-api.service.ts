@@ -12,13 +12,20 @@ export class SheetApi {
   get<T>(action: string, params: Record<string, string | number> = {}): Promise<T> {
     const query = new URLSearchParams({ action });
     for (const [key, value] of Object.entries(params)) query.set(key, String(value));
-    return firstValueFrom(this.http.get<T>(`${this.url}?${query}`));
+    return firstValueFrom(this.http.get<T>(`${this.url}?${query}`)).then(unwrap);
   }
 
   // Apps Script rejects CORS preflights, so the body is sent as text/plain.
   post<T = unknown>(body: Record<string, unknown>): Promise<T> {
     return firstValueFrom(
       this.http.post<T>(this.url, JSON.stringify(body), { headers: { 'Content-Type': 'text/plain' } })
-    );
+    ).then(unwrap);
   }
+}
+
+/** Apps Script always answers HTTP 200, so backend failures arrive as `{ error }`. */
+function unwrap<T>(response: T): T {
+  const error = (response as { error?: unknown } | null)?.error;
+  if (error) throw new Error(String(error));
+  return response;
 }

@@ -1,11 +1,8 @@
-import { Component, NgZone, ElementRef, EventEmitter, Output, ViewChild, AfterViewInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, NgZone, ElementRef, AfterViewInit, OnDestroy, inject, output, viewChild } from '@angular/core';
 import { ToastService } from '../../services/toast-service';
 
 @Component({
   selector: 'app-lock-screen',
-  standalone: true,
-  imports: [CommonModule],
   template: `
     <div class="unlock-popup">
       <div class="unlock-content">
@@ -14,15 +11,18 @@ import { ToastService } from '../../services/toast-service';
 
         <div class="grid-container" #gridContainer>
           <canvas #patternCanvas></canvas>
-          <div class="grid-row" *ngFor="let row of [0,1,2]">
-            <button
-              *ngFor="let col of [1,2,3]"
-              class="grid-button"
-              [attr.data-value]="row * 3 + col"
-              (mousedown)="handleMouseDown($event)"
-              (touchstart)="handleTouchStart($event)">
-            </button>
-          </div>
+          @for (row of [0, 1, 2]; track row) {
+            <div class="grid-row">
+              @for (col of [1, 2, 3]; track col) {
+                <button
+                  class="grid-button"
+                  [attr.data-value]="row * 3 + col"
+                  (mousedown)="handleMouseDown($event)"
+                  (touchstart)="handleTouchStart($event)">
+                </button>
+              }
+            </div>
+          }
         </div>
 
         <button class="unlock-cancel" (click)="onCancel()">Abbrechen</button>
@@ -32,12 +32,13 @@ import { ToastService } from '../../services/toast-service';
   styleUrls: ['./app-lock-screen.scss']
 })
 export class LockScreen implements AfterViewInit, OnDestroy {
-  constructor(private toastService: ToastService, private ngZone: NgZone) {}
+  private readonly toastService = inject(ToastService);
+  private readonly ngZone = inject(NgZone);
 
-  @Output() success = new EventEmitter<void>();
-  @Output() cancel = new EventEmitter<void>();
-  @ViewChild('gridContainer') gridContainer!: ElementRef;
-  @ViewChild('patternCanvas') canvasRef!: ElementRef;
+  readonly success = output<void>();
+  readonly cancel = output<void>();
+  private readonly gridContainer = viewChild.required<ElementRef<HTMLElement>>('gridContainer');
+  private readonly canvasRef = viewChild.required<ElementRef<HTMLCanvasElement>>('patternCanvas');
 
   private readonly CORRECT_PATTERN = '1-4-7-8-9';
   private inputPattern: string[] = [];
@@ -57,7 +58,7 @@ export class LockScreen implements AfterViewInit, OnDestroy {
   }
 
   private setupCanvas() {
-    const canvas = this.canvasRef.nativeElement as HTMLCanvasElement;
+    const canvas = this.canvasRef().nativeElement as HTMLCanvasElement;
     canvas.style.position = 'absolute';
     canvas.style.top = '0';
     canvas.style.left = '0';
@@ -97,7 +98,7 @@ export class LockScreen implements AfterViewInit, OnDestroy {
   private handleMouseMove(event: MouseEvent) {
     if (!this.isMouseDown) return;
 
-    const container = this.gridContainer.nativeElement;
+    const container = this.gridContainer().nativeElement;
     const rect = container.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
@@ -129,7 +130,7 @@ export class LockScreen implements AfterViewInit, OnDestroy {
     if (!this.isTouchActive) return;
 
     const touch = event.touches[0];
-    const container = this.gridContainer.nativeElement;
+    const container = this.gridContainer().nativeElement;
     const rect = container.getBoundingClientRect();
     const x = touch.clientX - rect.left;
     const y = touch.clientY - rect.top;
@@ -155,12 +156,12 @@ export class LockScreen implements AfterViewInit, OnDestroy {
   }
 
   private resetActiveButtons() {
-    const buttons = this.gridContainer.nativeElement.querySelectorAll('.grid-button');
-    buttons.forEach((button: HTMLElement) => button.classList.remove('active'));
+    const buttons = this.gridContainer().nativeElement.querySelectorAll<HTMLElement>('.grid-button');
+    buttons.forEach(button => button.classList.remove('active'));
   }
 
   private clearCanvas() {
-    const canvas = this.canvasRef.nativeElement as HTMLCanvasElement;
+    const canvas = this.canvasRef().nativeElement as HTMLCanvasElement;
     const ctx = canvas.getContext('2d');
     if (ctx) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -208,8 +209,8 @@ export class LockScreen implements AfterViewInit, OnDestroy {
 
 
   private updateCanvasSize() {
-    const canvas = this.canvasRef.nativeElement as HTMLCanvasElement;
-    const container = this.gridContainer.nativeElement as HTMLElement;
+    const canvas = this.canvasRef().nativeElement as HTMLCanvasElement;
+    const container = this.gridContainer().nativeElement as HTMLElement;
     canvas.width = container.offsetWidth;
     canvas.height = container.offsetHeight;
   }
@@ -217,10 +218,10 @@ export class LockScreen implements AfterViewInit, OnDestroy {
 
 
   private storeButtonPositions() {
-    const buttons = this.gridContainer.nativeElement.querySelectorAll('.grid-button');
-    buttons.forEach((button: HTMLElement) => {
+    const buttons = this.gridContainer().nativeElement.querySelectorAll<HTMLElement>('.grid-button');
+    buttons.forEach(button => {
       const rect = button.getBoundingClientRect();
-      const containerRect = this.gridContainer.nativeElement.getBoundingClientRect();
+      const containerRect = this.gridContainer().nativeElement.getBoundingClientRect();
       const value = button.getAttribute('data-value');
       if (value) {
         this.buttonPositions[value] = {
@@ -236,7 +237,7 @@ export class LockScreen implements AfterViewInit, OnDestroy {
     Object.entries(this.buttonPositions).forEach(([value, pos]) => {
       const distance = Math.sqrt(Math.pow(x - pos.x, 2) + Math.pow(y - pos.y, 2));
       if (distance < 20 && !this.inputPattern.includes(value)) {
-        const button = this.gridContainer.nativeElement.querySelector(`[data-value="${value}"]`);
+        const button = this.gridContainer().nativeElement.querySelector(`[data-value="${value}"]`);
         if (button) {
           this.inputPattern.push(value);
           button.classList.add('active');
@@ -248,7 +249,7 @@ export class LockScreen implements AfterViewInit, OnDestroy {
   }
 
   private drawLines(currentX?: number, currentY?: number) {
-    const canvas = this.canvasRef.nativeElement as HTMLCanvasElement;
+    const canvas = this.canvasRef().nativeElement as HTMLCanvasElement;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 

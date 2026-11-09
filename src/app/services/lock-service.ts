@@ -1,36 +1,28 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { Injectable, signal } from '@angular/core';
 
-@Injectable({
-  providedIn: 'root'
-})
+/** Coordinates the pattern lock screen: callers await `requestUnlock()`. */
+@Injectable({ providedIn: 'root' })
 export class LockService {
-  private showLockScreen = new BehaviorSubject<boolean>(false);
-  private resolveUnlock?: (value: boolean) => void;
+  private readonly _visible = signal(false);
+  readonly visible = this._visible.asReadonly();
+  private resolveUnlock?: (unlocked: boolean) => void;
 
-  showLockScreen$ = this.showLockScreen.asObservable();
-
-  async requestUnlock(): Promise<boolean> {
-    this.showLockScreen.next(true);
-    
-    return new Promise((resolve) => {
-      this.resolveUnlock = resolve;
-    });
+  requestUnlock(): Promise<boolean> {
+    this._visible.set(true);
+    return new Promise(resolve => (this.resolveUnlock = resolve));
   }
 
   handleUnlockSuccess() {
-    this.showLockScreen.next(false);
-    if (this.resolveUnlock) {
-      this.resolveUnlock(true);
-      this.resolveUnlock = undefined;
-    }
+    this.finish(true);
   }
 
   handleUnlockCancel() {
-    this.showLockScreen.next(false);
-    if (this.resolveUnlock) {
-      this.resolveUnlock(false);
-      this.resolveUnlock = undefined;
-    }
+    this.finish(false);
+  }
+
+  private finish(unlocked: boolean) {
+    this._visible.set(false);
+    this.resolveUnlock?.(unlocked);
+    this.resolveUnlock = undefined;
   }
 }

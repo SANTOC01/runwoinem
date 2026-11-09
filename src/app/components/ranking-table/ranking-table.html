@@ -4,19 +4,19 @@
     <tr>
       <th>Platz</th>
       <th>Name</th>
-      <th>{{unit}}</th>
+      <th>{{ unit() }}</th>
     </tr>
-    @for (rank of rankings; track rank.name; let i = $index) {
+    @for (rank of rankings(); track rank.name; let i = $index) {
       <tr>
         <td>{{ getRankText(i, rank.name) }} {{ getRankEmoji(i) }}</td>
         <td>
-          @if (clickable) {
+          @if (clickable()) {
             <button type="button" class="name-link" (click)="nameSelected.emit(rank.name)">{{ rank.name }}</button>
           } @else {
             {{ rank.name }}
           }
         </td>
-        <td>{{ rank.value }} {{unit}}</td>
+        <td>{{ rank.value }} {{ unit() }}</td>
       </tr>
     }
   </table>

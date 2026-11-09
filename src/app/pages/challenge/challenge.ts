@@ -1,6 +1,6 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { Subscription } from 'rxjs';
+import { Component, computed, inject } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { map } from 'rxjs';
 import { ChallengeService } from '../../services/challenge-service';
 import { StatsTable } from '../../components/stats-table/stats-table';
 import { RankingTable } from '../../components/ranking-table/ranking-table';
@@ -10,63 +10,32 @@ import { LockScreen } from '../../components/app-lock-screen/app-lock-screen';
 import { LockService } from '../../services/lock-service';
 import { ToastService } from '../../services/toast-service';
 import { ChallengeForm } from '../../components/challenge-form/challenge-form';
-import { ChallengeEntry, ChallengeRanking } from '../../interfaces/challenge.interface';
+import { ChallengeEntry } from '../../interfaces/challenge.interface';
+import { newestFirst, progressPercent } from '../../utils/challenge-utils';
 
 @Component({
   selector: 'app-challenge',
-  standalone: true,
-  imports: [
-    CommonModule,
-    StatsTable,
-    RankingTable,
-    ProgressChart,
-    GoalBanner,
-    LockScreen,
-    ChallengeForm
-  ],
+  imports: [StatsTable, RankingTable, ProgressChart, GoalBanner, LockScreen, ChallengeForm],
   templateUrl: './challenge.html',
   styleUrls: ['./challenge.scss']
 })
-export class Challenge implements OnInit, OnDestroy {
-  entries: ChallengeEntry[] = [];
-  rankings: ChallengeRanking[] = [];
-  total = 0;
-  progressPercentage = 0;
-  private readonly subscriptions: Subscription[] = [];
+export class Challenge {
+  readonly challengeService = inject(ChallengeService);
+  readonly lockService = inject(LockService);
+  private readonly toast = inject(ToastService);
 
-  constructor(
-    public readonly challengeService: ChallengeService,
-    public readonly lockService: LockService,
-    private readonly toast: ToastService
-  ) {}
+  readonly entries = toSignal(this.challengeService.entries$.pipe(map(newestFirst)), { initialValue: [] });
+  readonly rankings = toSignal(this.challengeService.rankings$, { initialValue: [] });
+  readonly total = toSignal(this.challengeService.total$, { initialValue: 0 });
+  readonly progressPercentage = computed(() =>
+    progressPercent(this.total(), this.challengeService.config.goalValue)
+  );
 
-  ngOnInit() {
+  constructor() {
     this.challengeService.loadData();
-    this.subscriptions.push(
-      this.challengeService.entries$.subscribe(entries => {
-        this.entries = [...entries].sort(
-          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-        );
-      }),
-      this.challengeService.rankings$.subscribe(rankings => {
-        this.rankings = rankings;
-      }),
-      this.challengeService.total$.subscribe(total => {
-        this.total = total;
-        this.progressPercentage = Math.min(
-          Math.round((total / this.challengeService.config.goalValue) * 100),
-          100
-        );
-      })
-    );
   }
 
-  ngOnDestroy() {
-    this.subscriptions.forEach(sub => sub.unsubscribe());
-  }
-
-  onValueChange(event: { name: string; value: number }) {
-    const { name, value } = event;
+  onValueChange({ name, value }: { name: string; value: number }) {
     if (value > this.challengeService.config.maxEntryValue) {
       this.toast.show('Sei ehrlich 🤥😏😳');
     } else if (value > 350) {
@@ -76,9 +45,9 @@ export class Challenge implements OnInit, OnDestroy {
     }
   }
 
-  async onSubmit(event: { name: string; value: number }) {
+  async onSubmit({ name, value }: { name: string; value: number }) {
     try {
-      await this.challengeService.submitData(event.name, event.value);
+      await this.challengeService.submitData(name, value);
     } catch (error) {
       console.error('Error submitting data:', error);
     }

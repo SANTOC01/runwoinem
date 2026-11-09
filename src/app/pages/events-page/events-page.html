@@ -10,11 +10,11 @@
       </div>
       <div class="hero-stats">
         <div class="stat-card">
-          <span class="stat-number">{{ events.length }}</span>
+          <span class="stat-number">{{ events().length }}</span>
           <span class="stat-label">Events total</span>
         </div>
         <div class="stat-card highlight">
-          <span class="stat-number">{{ totalParticipants }}</span>
+          <span class="stat-number">{{ totalParticipants() }}</span>
           <span class="stat-label">Anmeldungen</span>
         </div>
       </div>
@@ -27,8 +27,8 @@
       @for (filter of filters; track filter) {
         <button
           class="filter-btn"
-          [class.active]="selectedFilter === filter"
-          [style.background]="selectedFilter === filter ? getFilterColor(filter) : ''"
+          [class.active]="selectedFilter() === filter"
+          [style.background]="selectedFilter() === filter ? getFilterColor(filter) : ''"
           (click)="filterEvents(filter)"
         >
           {{ getFilterEmoji(filter) }} {{ filter }}
@@ -41,7 +41,7 @@
   <div class="timeline-wrapper">
     <div class="timeline">
 
-      @if (upcomingEvents.length === 0 && pastYears.length === 0) {
+      @if (upcomingEvents().length === 0 && pastYearsAscending().length === 0) {
         <div class="empty-state">
           <span>🏜️</span>
           <p>Keine Events für diesen Filter</p>
@@ -49,7 +49,7 @@
       }
 
       <!-- Past years — oldest first (top), most recent last (just above upcoming) -->
-      @for (year of pastYearsAscending; track year) {
+      @for (year of pastYearsAscending(); track year) {
         @if (isYearDividerVisible(year)) {
 
           <!-- Past events for this year (shown above the divider when expanded) -->
@@ -63,7 +63,7 @@
                   </span>
                 </div>
 
-                <div class="timeline-card past-card" (click)="openEventModal(event)">
+                <div appReveal class="timeline-card past-card" (click)="openEventModal(event)">
                   <div class="past-badge-label">Gelaufen</div>
                   <div class="card-header">
                     <span class="event-dist">{{ getDistText(event.dist) }}</span>
@@ -108,7 +108,7 @@
               <span class="year-divider-label">
                 {{ isYearExpanded(year) ? year : 'VERGANGENE EVENTS' }}
                 @if (!isYearExpanded(year)) {
-                  <span class="year-divider-count">&nbsp;· {{ pastYearCounts[year] }}</span>
+                  <span class="year-divider-count">&nbsp;· {{ pastYearCounts()[year] }}</span>
                 }
               </span>
             }
@@ -119,7 +119,7 @@
       }
 
       <!-- Upcoming Events -->
-      @for (event of upcomingEvents; track event.name; let i = $index) {
+      @for (event of upcomingEvents(); track event.name; let i = $index) {
         <div class="timeline-item" [class.left]="i % 2 === 0" [class.right]="i % 2 !== 0">
 
           <div class="timeline-dot" [class.next-up-dot]="isNextUp(event)">
@@ -128,7 +128,7 @@
             </span>
           </div>
 
-          <div class="timeline-card" [class.next-up]="isNextUp(event)" (click)="openEventModal(event)">
+          <div appReveal class="timeline-card" [class.next-up]="isNextUp(event)" (click)="openEventModal(event)">
             @if (isNextUp(event)) {
               <div class="next-up-badge">⚡ Nächstes Event</div>
             }
@@ -176,7 +176,7 @@
 </div>
 
 <app-events-modal
-  [event]="selectedEvent"
-  [show]="!!selectedEvent"
+  [event]="selectedEvent()"
+  [show]="!!selectedEvent()"
   (close)="closeEventModal()"
 />

@@ -1,5 +1,5 @@
 <header class="hero">
-  <img src="/assets/banner/banner.jpg" alt="Die Laufgruppe von Runwoinem jubelt auf einer Wiese bei Weinheim" class="hero-img"/>
+  <img src="/assets/banner/banner.webp" alt="Die Laufgruppe von Runwoinem jubelt auf einer Wiese bei Weinheim" class="hero-img"/>
   <div class="hero-text">
     <p class="hero-club">Runwoinem, der Lauftreff in Weinheim</p>
     <h1 class="hero-title">Jeden Dienstag um 18&nbsp;Uhr am&nbsp;Waidsee.</h1>
@@ -40,25 +40,25 @@
       </div>
 
       <button type="button" class="map-card" (click)="toggleMap()" aria-label="Karte zum Treffpunkt vergrößern">
-        <img src="/assets/map.png" alt="Karte: Treffpunkt am Fahrradständer am Waidsee"/>
+        <img src="/assets/map.webp" alt="Karte: Treffpunkt am Fahrradständer am Waidsee"/>
         <span class="map-caption">📍 Treffpunkt am Waidsee <span class="map-hint">Vergrößern</span></span>
       </button>
     </section>
 
     <h2 class="section-title">Termine und Challenges</h2>
 
-    @if (!showWidget) {
+    @if (!showWidget()) {
       <div class="dashboard-loading-container">
         <app-loading [isLoading]="true" [useOverlay]="false"></app-loading>
       </div>
     }
 
-    @if (showWidget) {
+    @if (showWidget()) {
       <div class="widgets-container">
 
         <div class="events-widget-container">
           <app-events
-            (openEventModal)="openEventModal($event)">
+            (openEventModal)="selectedEvent.set($event)">
           </app-events>
           <div class="events-scroll-guard"></div>
         </div>
@@ -66,21 +66,21 @@
         <div class="challenge-column">
 
           <div class="eurotrip-widget"
-               [style.backgroundImage]="eurotripBgImage ? 'url(' + eurotripBgImage + ')' : 'none'"
-               [class.has-bg]="!!eurotripBgImage"
+               [style.backgroundImage]="eurotripBgImage() ? 'url(' + eurotripBgImage() + ')' : 'none'"
+               [class.has-bg]="!!eurotripBgImage()"
                role="region" aria-label="Eurotrip Challenge">
 
             <!-- Hidden: still instantiated to emit the background image path -->
             <div class="widget-map-hidden" aria-hidden="true">
               <app-europe-map
-                [total]="(kmChallengeService.total$ | async) || 0"
-                (bgImagePath)="eurotripBgImage = $event">
+                [total]="kmTotal()"
+                (bgImagePath)="eurotripBgImage.set($event)">
               </app-europe-map>
             </div>
             <div class="widget-content">
               <h3 class="widget-title">🗺️ Eurotrip Challenge</h3>
               <div class="widget-km-display">
-                <span class="widget-km-number">{{ (kmChallengeService.total$ | async) || 0 | number:'1.0-0':'de' }}</span>
+                <span class="widget-km-number">{{ kmTotal() | number:'1.0-0':'de' }}</span>
                 <span class="widget-km-unit">km zusammen gelaufen</span>
               </div>
               <a routerLink="/km-challenge" class="challenge-btn">Zur Eurotrip Challenge</a>
@@ -102,15 +102,15 @@
   </div>
 </div>
 
-@if (mapOpen) {
+@if (mapOpen()) {
   <div class="map-lightbox" (click)="toggleMap()" role="dialog" aria-modal="true" aria-label="Karte zum Treffpunkt">
-    <img src="/assets/map.png" alt="Karte: Treffpunkt am Fahrradständer am Waidsee"/>
+    <img src="/assets/map.webp" alt="Karte: Treffpunkt am Fahrradständer am Waidsee"/>
     <button type="button" class="map-close" (click)="toggleMap()">Karte schließen</button>
   </div>
 }
 
 <app-events-modal
-  [event]="selectedEvent"
-  [show]="!!selectedEvent"
-  (close)="closeEventModal()">
+  [event]="selectedEvent()"
+  [show]="!!selectedEvent()"
+  (close)="selectedEvent.set(null)">
 </app-events-modal>

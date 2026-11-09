@@ -1,22 +1,20 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-nav-header',
-  standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [RouterModule],
   templateUrl: './nav-header.html',
   styleUrls: ['./nav-header.scss']
 })
 export class NavHeader {
-  menuOpen = false;
+  readonly menuOpen = signal(false);
 
   toggleMenu() {
-    this.menuOpen = !this.menuOpen;
+    this.menuOpen.update(open => !open);
   }
 
   closeMenu() {
-    this.menuOpen = false;
+    this.menuOpen.set(false);
   }
 }

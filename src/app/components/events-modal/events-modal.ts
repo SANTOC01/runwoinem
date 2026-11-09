@@ -1,62 +1,34 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, inject, input, output, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { AppEvent } from '../../models/app-event';
 import { EventsService } from '../../services/events-service';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { formatEventDate } from '../../utils/event-utils';
 
 @Component({
   selector: 'app-events-modal',
   templateUrl: './events-modal.html',
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
   styleUrls: ['./events-modal.scss'],
 })
 export class EventsModalComponent {
-  @Input() event: AppEvent | null = null; // <-- Use AppEvent
-  @Input() show = false;
-  @Output() close = new EventEmitter<void>();
-  events: AppEvent[] = [];
-  selectedEvent: AppEvent | null = null;
-  showAddParticipantForm = false;
+  private readonly eventsService = inject(EventsService);
+
+  readonly event = input<AppEvent | null>(null);
+  readonly show = input(false);
+  readonly close = output<void>();
+
+  readonly showAddParticipantForm = signal(false);
   newParticipantName = '';
 
-  constructor(private readonly eventsService: EventsService) {}
-
-
-  closeModal() {
-    this.close.emit();
-  }
+  readonly formatDate = formatEventDate;
 
   async addParticipant() {
-    if (!this.event || !this.newParticipantName) return;
+    const event = this.event();
+    if (!event || !this.newParticipantName) return;
 
-    this.closeModal();
-
-    try {
-      await this.eventsService.addParticipant(
-        this.event.name,
-        this.newParticipantName
-      );
-      this.showAddParticipantForm = false;
-      this.newParticipantName = '';
-    } catch (error) {
-      console.error('Error adding participant:', error);
-    }
+    this.close.emit();
+    await this.eventsService.addParticipant(event.name, this.newParticipantName);
+    this.showAddParticipantForm.set(false);
+    this.newParticipantName = '';
   }
-  formatDate(dateString: string): string {
-    let year: number, month: number, day: number;
-    if (/^\d{2}\.\d{2}\.\d{4}$/.test(dateString.trim())) {
-      [day, month, year] = dateString.trim().split('.').map(Number);
-    } else {
-      [year, month, day] = dateString.substring(0, 10).split('-').map(Number);
-    }
-    const date = new Date(year, month - 1, day, 12, 0, 0);
-    if (isNaN(date.getTime())) return dateString;
-    return date.toLocaleDateString('de-DE', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  }
-
 }

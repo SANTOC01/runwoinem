@@ -1,5 +1,4 @@
-import { Component, Input, OnChanges, Output, EventEmitter, inject, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, computed, effect, inject, input, output, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import {
   EUROPE_ROUTE_WAYPOINTS,
@@ -77,19 +76,18 @@ function appendSeg(d: string, s: BezierSegment): string {
   return d + ` C ${s.cp1.x.toFixed(1)},${s.cp1.y.toFixed(1)} ${s.cp2.x.toFixed(1)},${s.cp2.y.toFixed(1)} ${s.p1.x.toFixed(1)},${s.p1.y.toFixed(1)}`;
 }
 
+interface WeatherInfo { temp: number; icon: string; city: string; }
+
 @Component({
   selector: 'app-europe-map',
-  standalone: true,
-  imports: [CommonModule],
   templateUrl: './europe-map.html',
   styleUrl: './europe-map.scss',
 })
-export class EuropeMap implements OnChanges {
+export class EuropeMap {
   private readonly http = inject(HttpClient);
-  private readonly cdr = inject(ChangeDetectorRef);
 
-  @Input() total = 0;
-  @Output() bgImagePath = new EventEmitter<string>();
+  readonly total = input(0);
+  readonly bgImagePath = output<string>();
 
   readonly waypoints: RouteWaypoint[] = EUROPE_ROUTE_WAYPOINTS;
   readonly lapDistance = LAP_DISTANCE_KM;
@@ -103,103 +101,85 @@ export class EuropeMap implements OnChanges {
   readonly svgPoints: SvgPoint[] = EUROPE_ROUTE_WAYPOINTS.map(w => ({
     x: svgX(w.lon), y: svgY(w.lat),
   }));
-  // Append start point again to close the loop
-  private readonly loopPoints: SvgPoint[] = [...this.svgPoints, this.svgPoints[0]];
   private readonly segments: BezierSegment[] = buildSegments(this.svgPoints);
 
   // Full route path (all segments, loop closed) – drawn once as dashed grey
   readonly fullRoutePath: string = (() => {
-    const allSegs = this.segments;
-    let d = `M ${allSegs[0].p0.x.toFixed(1)},${allSegs[0].p0.y.toFixed(1)}`;
-    for (const s of allSegs) {
-      d += ` C ${s.cp1.x.toFixed(1)},${s.cp1.y.toFixed(1)} ${s.cp2.x.toFixed(1)},${s.cp2.y.toFixed(1)} ${s.p1.x.toFixed(1)},${s.p1.y.toFixed(1)}`;
-    }
-    // Close back to start
-    d += ' Z';
-    return d;
+    let d = `M ${this.segments[0].p0.x.toFixed(1)},${this.segments[0].p0.y.toFixed(1)}`;
+    for (const s of this.segments) d = appendSeg(d, s);
+    return d + ' Z';
   })();
 
-  // Dynamic state updated on each input change
-  kmInLap = 0;
-  dotX = this.svgPoints[0].x;
-  dotY = this.svgPoints[0].y;
-  progressPath = '';
-  currentSegmentIndex = 0;
-  nearestCityName = EUROPE_ROUTE_WAYPOINTS[0].name;
-  kmToNextCity = 0;
-  weatherTemp: number | null = null;
-  weatherIcon = '';
-  weatherCity = '';
+  /** Everything that depends on the current total. */
+  private readonly position = computed(() => this.computePosition(Math.max(0, this.total())));
+  readonly kmInLap = computed(() => this.position().kmInLap);
+  readonly dotX = computed(() => this.position().dot.x);
+  readonly dotY = computed(() => this.position().dot.y);
+  readonly progressPath = computed(() => this.position().progressPath);
+  readonly nearestCityName = computed(() => this.position().nextCityName);
+  readonly kmToNextCity = computed(() => this.position().kmToNextCity);
+  readonly totalKmFormatted = computed(() => this.total().toLocaleString('de-DE'));
+
+  readonly weather = signal<WeatherInfo | null>(null);
   private lastWeatherCity = '';
 
-  ngOnChanges(): void {
-    this.updatePosition();
+  constructor() {
+    // Side effects of the position: announce the city background and refresh the weather.
+    effect(() => {
+      const { lastWaypoint } = this.position();
+      this.bgImagePath.emit(lastWaypoint.image ? `assets/images/locations/${lastWaypoint.image}` : '');
+      if (lastWaypoint.name !== this.lastWeatherCity) {
+        this.lastWeatherCity = lastWaypoint.name;
+        this.fetchWeather(lastWaypoint);
+      }
+    });
   }
 
-  private updatePosition(): void {
-    const total = Math.max(0, this.total);
-    this.kmInLap = Math.min(total, LAP_DISTANCE_KM);
-
+  private computePosition(total: number) {
+    const kmInLap = Math.min(total, LAP_DISTANCE_KM);
     const wps = EUROPE_ROUTE_WAYPOINTS;
-    const lapKm = this.kmInLap;
 
     // Find which segment we are in
     let segIdx = wps.length - 1; // default: last segment (back to start)
     for (let i = 0; i < wps.length - 1; i++) {
-      if (lapKm >= wps[i].cumulativeKm && lapKm < wps[i + 1].cumulativeKm) {
+      if (kmInLap >= wps[i].cumulativeKm && kmInLap < wps[i + 1].cumulativeKm) {
         segIdx = i;
         break;
       }
     }
     // Handle the closing segment (Amsterdam → Weinheim)
     const closingSegStart = wps[wps.length - 1].cumulativeKm;
-    const closingSegEnd = LAP_DISTANCE_KM;
+    const inClosingSegment = kmInLap >= closingSegStart;
     let t: number;
-    if (lapKm >= closingSegStart) {
+    if (inClosingSegment) {
       segIdx = wps.length - 1;
-      t = (lapKm - closingSegStart) / (closingSegEnd - closingSegStart);
+      t = (kmInLap - closingSegStart) / (LAP_DISTANCE_KM - closingSegStart);
     } else {
       const segStart = wps[segIdx].cumulativeKm;
-      const segEnd = wps[segIdx + 1].cumulativeKm;
-      t = (lapKm - segStart) / (segEnd - segStart);
+      t = (kmInLap - segStart) / (wps[segIdx + 1].cumulativeKm - segStart);
     }
     t = Math.max(0, Math.min(1, t));
 
-    this.currentSegmentIndex = segIdx;
-
-    // Dot position along bezier
-    const dot = bezierAt(this.segments[segIdx], t);
-    this.dotX = dot.x;
-    this.dotY = dot.y;
-
-    // Build progress path: all completed segments + de Casteljau split of partial segment
-    if (segIdx === 0 && t === 0) {
-      this.progressPath = '';
-    } else {
-      let d = `M ${this.segments[0].p0.x.toFixed(1)},${this.segments[0].p0.y.toFixed(1)}`;
-      for (let i = 0; i < segIdx; i++) {
-        d = appendSeg(d, this.segments[i]);
-      }
-      if (t > 0) {
-        d = appendSeg(d, splitBezierFirst(this.segments[segIdx], t));
-      }
-      this.progressPath = d;
+    // Progress path: all completed segments + de Casteljau split of the partial segment
+    let progressPath = '';
+    if (segIdx !== 0 || t !== 0) {
+      progressPath = `M ${this.segments[0].p0.x.toFixed(1)},${this.segments[0].p0.y.toFixed(1)}`;
+      for (let i = 0; i < segIdx; i++) progressPath = appendSeg(progressPath, this.segments[i]);
+      if (t > 0) progressPath = appendSeg(progressPath, splitBezierFirst(this.segments[segIdx], t));
     }
 
     // Next city (the waypoint we are heading towards)
-    const nextIdx = lapKm >= closingSegStart ? 0 : segIdx + 1;
-    this.nearestCityName = wps[nextIdx].name;
-    const nextCityKm = lapKm >= closingSegStart ? LAP_DISTANCE_KM : wps[nextIdx].cumulativeKm;
-    this.kmToNextCity = Math.round(nextCityKm - lapKm);
-    const img = wps[segIdx].image;
-    this.bgImagePath.emit(img ? `assets/images/locations/${img}` : '');
+    const nextIdx = inClosingSegment ? 0 : segIdx + 1;
+    const nextCityKm = inClosingSegment ? LAP_DISTANCE_KM : wps[nextIdx].cumulativeKm;
 
-    // Fetch weather for the last reached city only when it changes
-    const lastWp = wps[segIdx];
-    if (lastWp.name !== this.lastWeatherCity) {
-      this.lastWeatherCity = lastWp.name;
-      this.fetchWeather(lastWp.lat, lastWp.lon, lastWp.name);
-    }
+    return {
+      kmInLap,
+      dot: bezierAt(this.segments[segIdx], t),
+      progressPath,
+      nextCityName: wps[nextIdx].name,
+      kmToNextCity: Math.round(nextCityKm - kmInLap),
+      lastWaypoint: wps[segIdx],
+    };
   }
 
   /** For the template: get SVG x for a waypoint */
@@ -209,24 +189,19 @@ export class EuropeMap implements OnChanges {
 
   /** Whether a waypoint has already been passed in the current lap */
   isPassed(wp: RouteWaypoint): boolean {
-    return this.kmInLap > wp.cumulativeKm;
+    return this.kmInLap() > wp.cumulativeKm;
   }
 
-  get totalKmFormatted(): string {
-    return this.total.toLocaleString('de-DE');
-  }
-
-  private fetchWeather(lat: number, lon: number, city: string): void {
+  private fetchWeather(wp: RouteWaypoint): void {
     this.http.get<{ current: { temperature_2m: number; weather_code: number } }>(
-      `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code`
+      `https://api.open-meteo.com/v1/forecast?latitude=${wp.lat}&longitude=${wp.lon}&current=temperature_2m,weather_code`
     ).subscribe({
-      next: (data) => {
-        this.weatherTemp = Math.round(data.current.temperature_2m);
-        this.weatherIcon = this.getWeatherIcon(data.current.weather_code);
-        this.weatherCity = city;
-        this.cdr.markForCheck();
-      },
-      error: () => { this.weatherTemp = null; }
+      next: data => this.weather.set({
+        temp: Math.round(data.current.temperature_2m),
+        icon: this.getWeatherIcon(data.current.weather_code),
+        city: wp.name,
+      }),
+      error: () => this.weather.set(null)
     });
   }
 

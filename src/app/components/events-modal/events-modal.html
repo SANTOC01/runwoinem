@@ -1,9 +1,9 @@
-<div class="modal" [class.show-modal]="show" (click)="closeModal()">
+<div class="modal" [class.show-modal]="show()" (click)="close.emit()">
   <div class="modal-content" (click)="$event.stopPropagation()">
     <div class="modal-header">
-      <button class="close-button" (click)="closeModal()">✖</button>
+      <button class="close-button" (click)="close.emit()">✖</button>
     </div>
-    @if (event) {
+    @if (event(); as event) {
       <div class="event-details">
         <h3>{{ event.name }}</h3>
         <p>
@@ -22,14 +22,14 @@
             <li>🦗 Noch keine Teilnehmer</li>
           }
         </ul>
-        @if (!showAddParticipantForm) {
+        @if (!showAddParticipantForm()) {
           <button
             class="add-participant-btn"
-            (click)="showAddParticipantForm = true">
+            (click)="showAddParticipantForm.set(true)">
             + Teilnehmer hinzufügen
           </button>
         }
-        @if (showAddParticipantForm) {
+        @if (showAddParticipantForm()) {
           <div class="add-participant-form">
             <input type="text" [(ngModel)]="newParticipantName" placeholder="Teilnehmer eintragen" (keyup.enter)="addParticipant()" />
             <button (click)="addParticipant()">Hinzufügen</button>

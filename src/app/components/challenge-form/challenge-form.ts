@@ -1,18 +1,17 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ChallengeConfig } from '../../interfaces/challenge.interface';
 
 @Component({
   selector: 'app-challenge-form',
-  standalone: true,
   imports: [FormsModule],
   templateUrl: './challenge-form.html',
   styleUrls: ['./challenge-form.scss']
 })
 export class ChallengeForm {
-  @Input() config!: ChallengeConfig;
-  @Output() submitted = new EventEmitter<{ name: string; value: number }>();
-  @Output() valueChanged = new EventEmitter<{ name: string; value: number }>();
+  readonly config = input.required<ChallengeConfig>();
+  readonly submitted = output<{ name: string; value: number }>();
+  readonly valueChanged = output<{ name: string; value: number }>();
 
   name = '';
   value: number | null = null;

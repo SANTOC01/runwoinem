@@ -1,26 +1,26 @@
 <div class="challenge-container"
-     [style.backgroundImage]="cityBgPath ? 'url(' + cityBgPath + ')' : 'url(assets/mountain.jpg)'">
+     [style.backgroundImage]="cityBgPath() ? 'url(' + cityBgPath() + ')' : 'url(assets/mountain.webp)'">
   <div class="content-wrapper">
     <div class="header">
       <h1>{{ kmChallengeService.config.title }}</h1>
       <app-goal-banner
-        [total]="total"
+        [total]="total()"
         [goals]="kmChallengeService.config.goals"
         [unit]="kmChallengeService.config.metricUnit">
       </app-goal-banner>
     </div>
 
     @if (showBoostIntro) {
-      <button type="button" class="boost-banner" (click)="openBoostInfo()">
+      <button type="button" class="boost-banner" (click)="boostInfoOpen.set(true)">
         ⚡ Dienstag-Boost: heute zählt alles doppelt für den Eurotrip! <span class="more">Mehr ›</span>
       </button>
     }
 
-    @if (boostInfoOpen) {
-      <div class="boost-overlay" (click)="closeBoostInfo()">
+    @if (boostInfoOpen()) {
+      <div class="boost-overlay" (click)="boostInfoOpen.set(false)">
         <div class="boost-modal" role="dialog" aria-modal="true" aria-labelledby="boost-title"
              (click)="$event.stopPropagation()">
-          <button type="button" class="boost-close" aria-label="Schließen" (click)="closeBoostInfo()">✕</button>
+          <button type="button" class="boost-close" aria-label="Schließen" (click)="boostInfoOpen.set(false)">✕</button>
           <h2 id="boost-title">⚡ Der Dienstag-Boost</h2>
           <p>
             Durch unsere Lauf-ABCs sind wir schneller geworden – deshalb zählt ab jetzt
@@ -28,7 +28,7 @@
           </p>
           <p class="boost-today">🔥 Heute ist Boost-Tag!</p>
           <small>⚡ Der Boost gilt nur für den gemeinsamen Eurotrip-Zähler. Deine persönlichen km in der Rangliste bleiben deine echten km.</small>
-          <button type="button" class="boost-ok" (click)="closeBoostInfo()">Los geht's!</button>
+          <button type="button" class="boost-ok" (click)="boostInfoOpen.set(false)">Los geht's!</button>
         </div>
       </div>
     }
@@ -41,41 +41,41 @@
 
     <div class="data-section">
       <app-stats-table
-        [entries]="entries"
+        [entries]="entries()"
         [unit]="kmChallengeService.config.metricUnit"
         [isBoosted]="isBoosted"
         [boostFootnote]="boostFootnote"
         (deleteRequested)="onDelete($event)">
       </app-stats-table>
       <app-ranking-table
-        [rankings]="rankings"
+        [rankings]="rankings()"
         [unit]="kmChallengeService.config.metricUnit"
         [clickable]="true"
-        (nameSelected)="selectedName = $event">
+        (nameSelected)="selectedName.set($event)">
       </app-ranking-table>
     </div>
 
     <div class="progress-section">
       <div class="progress-header">
-        <h2>🗺️ Fortschritt Gesamt: {{total}} {{kmChallengeService.config.metricUnit}}</h2>        <div class="progress-bar">
-          <div class="progress" [style.width.%]="progressPercentage"></div>
-          <span class="progress-label">{{progressPercentage}}%</span>
+        <h2>🗺️ Fortschritt Gesamt: {{ total() }} {{kmChallengeService.config.metricUnit}}</h2>        <div class="progress-bar">
+          <div class="progress" [style.width.%]="progressPercentage()"></div>
+          <span class="progress-label">{{ progressPercentage() }}%</span>
         </div>
       </div>
-      <app-europe-map [total]="total" (bgImagePath)="cityBgPath = $event"></app-europe-map>
+      <app-europe-map [total]="total()" (bgImagePath)="cityBgPath.set($event)"></app-europe-map>
     </div>
   </div>
 
-  @if (selectedName) {
+  @if (selectedName()) {
     <app-personal-stats
-      [name]="selectedName"
-      [entries]="entries"
+      [name]="selectedName()"
+      [entries]="entries()"
       [unit]="kmChallengeService.config.metricUnit"
-      (closed)="selectedName = ''">
+      (closed)="selectedName.set('')">
     </app-personal-stats>
   }
 
-  @if (lockService.showLockScreen$ | async) {
+  @if (lockService.visible()) {
     <app-lock-screen
       (success)="lockService.handleUnlockSuccess()"
       (cancel)="lockService.handleUnlockCancel()">

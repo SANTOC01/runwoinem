@@ -1,41 +1,25 @@
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 import { ChallengeGoal } from '../../interfaces/challenge.interface';
 
 @Component({
   selector: 'app-goal-banner',
-  standalone: true,
-  imports: [],
   templateUrl: './goal-banner.html',
   styleUrls: ['./goal-banner.scss']
 })
-export class GoalBanner implements OnChanges {
-  @Input() total = 0;
-  @Input() goals: ChallengeGoal[] = [];
-  @Input() unit = '';
+export class GoalBanner {
+  readonly total = input(0);
+  readonly goals = input<ChallengeGoal[]>([]);
+  readonly unit = input('');
 
-  message = '';
-  isVisible = false;
+  /** Banner text, or null while there are no goals to show. */
+  readonly message = computed(() => {
+    const goals = this.goals();
+    if (!goals.length) return null;
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes['total'] || changes['goals']) {
-      this.updateBanner(this.total);
-    }
-  }
-
-  private updateBanner(total: number) {
-    if (!this.goals.length) return;
-
-    let lastReachedGoal: ChallengeGoal | undefined;
-    for (const goal of this.goals) {
-      if (total >= goal.target) {
-        lastReachedGoal = goal;
-      }
-    }
-
-    this.message = lastReachedGoal
-      ? `🎉 Ziel erreicht: ${lastReachedGoal.emoji} ${lastReachedGoal.reward}!`
+    const total = this.total();
+    const reached = goals.filter(g => total >= g.target).at(-1);
+    return reached
+      ? `🎉 Ziel erreicht: ${reached.emoji} ${reached.reward}!`
       : 'Noch kein Ziel erreicht 😮';
-
-    this.isVisible = true;
-  }
+  });
 }

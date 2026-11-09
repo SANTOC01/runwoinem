@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnChanges, Output } from '@angular/core';
+import { Component, computed, input, output } from '@angular/core';
 import { ChallengeEntry } from '../../interfaces/challenge.interface';
 
 interface PersonalStatsData {
@@ -24,24 +24,21 @@ function weekStart(date: Date): number {
 
 @Component({
   selector: 'app-personal-stats',
-  standalone: true,
   templateUrl: './personal-stats.html',
   styleUrl: './personal-stats.scss'
 })
-export class PersonalStats implements OnChanges {
-  @Input() name = '';
-  @Input() entries: ChallengeEntry[] = [];
-  @Input() unit = '';
-  @Output() closed = new EventEmitter<void>();
+export class PersonalStats {
+  readonly name = input('');
+  readonly entries = input<ChallengeEntry[]>([]);
+  readonly unit = input('');
+  readonly closed = output<void>();
 
-  stats: PersonalStatsData | null = null;
-
-  ngOnChanges(): void {
-    this.stats = this.compute();
-  }
+  readonly stats = computed(() => this.compute());
 
   private compute(): PersonalStatsData | null {
-    const mine = this.entries.filter(e => e.name === this.name);
+    const name = this.name();
+    const entries = this.entries();
+    const mine = entries.filter(e => e.name === name);
     if (!mine.length) return null;
 
     const total = mine.reduce((s, e) => s + e.value, 0);
@@ -69,7 +66,7 @@ export class PersonalStats implements OnChanges {
     while (perWeek.has(cursor)) { streak++; cursor -= 7; }
 
     const totals = new Map<string, number>();
-    for (const e of this.entries) totals.set(e.name, (totals.get(e.name) ?? 0) + e.value);
+    for (const e of entries) totals.set(e.name, (totals.get(e.name) ?? 0) + e.value);
     const rank = [...totals.values()].filter(v => v > total).length + 1;
 
     return {

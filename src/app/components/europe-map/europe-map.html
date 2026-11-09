@@ -63,9 +63,9 @@
       opacity="0.5"/>
 
     <!-- ── Progress path (teal, solid) ── -->
-    @if (progressPath) {
+    @if (progressPath()) {
       <path
-        [attr.d]="progressPath"
+        [attr.d]="progressPath()"
         fill="none"
         stroke="#43c6ac"
         stroke-width="5"
@@ -117,8 +117,8 @@
     <!-- ── Progress dot (runner position) ── -->
     <circle
       class="pulse-ring"
-      [attr.cx]="dotX"
-      [attr.cy]="dotY"
+      [attr.cx]="dotX()"
+      [attr.cy]="dotY()"
       r="14"
       fill="none"
       stroke="#e74c3c"
@@ -126,8 +126,8 @@
       opacity="0.5"/>
     <circle
       class="progress-dot"
-      [attr.cx]="dotX"
-      [attr.cy]="dotY"
+      [attr.cx]="dotX()"
+      [attr.cy]="dotY()"
       r="9"
       fill="#e74c3c"
       stroke="#fff"
@@ -136,15 +136,15 @@
 
   <!-- ── Info strip below the map ── -->
   <div class="map-info">
-    @if (weatherTemp !== null) {
+    @if (weather(); as w) {
       <div class="weather-badge">
-        <span>{{ weatherIcon }} Wetter in {{ weatherCity }}: {{ weatherTemp }}°C</span>
+        <span>{{ w.icon }} Wetter in {{ w.city }}: {{ w.temp }}°C</span>
       </div>
     }
     <div class="location-badge">
       <span class="location-icon">🏁</span>
-      <span class="location-text">Noch {{ kmToNextCity.toLocaleString('de-DE') }} km bis {{ nearestCityName }}</span>
+      <span class="location-text">Noch {{ kmToNextCity().toLocaleString('de-DE') }} km bis {{ nearestCityName() }}</span>
     </div>
-    <div class="km-total">{{ totalKmFormatted }} km von {{ totalGoal.toLocaleString('de-DE') }} km</div>
+    <div class="km-total">{{ totalKmFormatted() }} km von {{ totalGoal.toLocaleString('de-DE') }} km</div>
   </div>
 </div>

@@ -4,32 +4,32 @@
   <table>
     <tr>
       <th>Name</th>
-      <th>{{unit}}</th>
+      <th>{{ unit() }}</th>
       <th>Datum</th>
       <th>Löschen</th>
     </tr>
-    @for (row of rows; track row.entry.date + row.entry.name; let i = $index) {
+    @for (row of rows(); track row.entry.date + row.entry.name; let i = $index) {
       <tr>
-        <td>{{row.entry.name}}</td>
+        <td>{{ row.entry.name }}</td>
         <td>
-          {{row.entry.value}} {{unit}}
+          {{ row.entry.value }} {{ unit() }}
           @if (row.boosted) {
             <span class="boost-badge" title="Zählt doppelt für den Eurotrip">⚡</span>
           }
         </td>
-        <td>{{row.dateLabel}}</td>
+        <td>{{ row.dateLabel }}</td>
         <td>
           @if (i === 0) {
-            <button (click)="deleteEntry(row.entry)" class="delete-btn">❌</button>
+            <button (click)="deleteRequested.emit(row.entry)" class="delete-btn">❌</button>
           }
         </td>
       </tr>
     }
   </table>
-  @if (hasMore) {
-    <button type="button" class="more-btn" (click)="showMore()">Mehr anzeigen ({{ remaining }})</button>
+  @if (hasMore()) {
+    <button type="button" class="more-btn" (click)="showMore()">Mehr anzeigen ({{ remaining() }})</button>
   }
-  @if (hasBoosted && boostFootnote) {
-    <p class="boost-footnote">{{ boostFootnote }}</p>
+  @if (hasBoosted() && boostFootnote()) {
+    <p class="boost-footnote">{{ boostFootnote() }}</p>
   }
 </div>

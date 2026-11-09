@@ -15,8 +15,8 @@
       </h2>
 
       <ul class="events-list">
-        @for (event of events; track event.name) {
-          <li class="event-row" (click)="openEventModalHandler(event)">
+        @for (event of events(); track event.name) {
+          <li class="event-row" (click)="openEventModal.emit(event)">
             <div class="event-left">
               <div>
                 <strong>{{event.name}}</strong><br>

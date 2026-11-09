@@ -1,7 +1,6 @@
 import {
-  Component, Input, OnChanges, SimpleChanges,
-  ViewChild, ElementRef, AfterViewInit, OnDestroy,
-  Inject, PLATFORM_ID
+  AfterViewInit, Component, ElementRef, OnDestroy, PLATFORM_ID,
+  effect, inject, input, signal, viewChild
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Chart, ChartConfiguration } from 'chart.js/auto';
@@ -10,12 +9,11 @@ import { ChallengeConfig } from '../../interfaces/challenge.interface';
 
 @Component({
   selector: 'app-progress-chart',
-  standalone: true,
   imports: [Loading],
   template: `
     <div class="chart-container">
-      <app-loading [isLoading]="isLoading"></app-loading>
-      <canvas #myChart [style.display]="isLoading ? 'none' : 'block'"></canvas>
+      <app-loading [isLoading]="isLoading()"></app-loading>
+      <canvas #myChart [style.display]="isLoading() ? 'none' : 'block'"></canvas>
     </div>
   `,
   styles: [`
@@ -26,41 +24,37 @@ import { ChallengeConfig } from '../../interfaces/challenge.interface';
     }
   `]
 })
-export class ProgressChart implements OnChanges, AfterViewInit, OnDestroy {
-  @Input() total = 0;
-  @Input() config!: ChallengeConfig;
+export class ProgressChart implements AfterViewInit, OnDestroy {
+  readonly total = input(0);
+  readonly config = input.required<ChallengeConfig>();
 
-  @ViewChild('myChart') chartCanvas!: ElementRef;
+  private readonly chartCanvas = viewChild<ElementRef<HTMLCanvasElement>>('myChart');
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private chart: Chart | null = null;
-  isLoading = true;
+  readonly isLoading = signal(true);
 
-  constructor(@Inject(PLATFORM_ID) private platformId: object) {}
-
-  ngAfterViewInit() {
-    if (isPlatformBrowser(this.platformId) && this.config) {
-      this.initializeChart(this.total);
-      this.isLoading = false;
-    }
+  constructor() {
+    // Keep the chart in sync with the total (no-op until the chart exists).
+    effect(() => {
+      const total = this.total();
+      if (this.chart) this.updateChart(total);
+    });
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    // Chart not initialized yet — ngAfterViewInit will init with the latest value
-    if (!this.chart) return;
-    if (changes['total']) {
-      this.updateChart(this.total);
-    }
+  ngAfterViewInit() {
+    if (!this.isBrowser) return;
+    this.initializeChart(this.total());
+    this.isLoading.set(false);
   }
 
   ngOnDestroy() {
-    if (this.chart) {
-      this.chart.destroy();
-    }
+    this.chart?.destroy();
   }
 
   private initializeChart(total: number) {
-    if (!isPlatformBrowser(this.platformId) || !this.chartCanvas || !this.config) return;
-
-    const ctx = this.chartCanvas.nativeElement.getContext('2d');
+    const ctx = this.chartCanvas()?.nativeElement.getContext('2d');
+    if (!ctx) return;
+    const profile = this.config();
 
     const config: ChartConfiguration = {
       type: 'line',
@@ -79,7 +73,7 @@ export class ProgressChart implements OnChanges, AfterViewInit, OnDestroy {
           },
           {
             label: 'Ziele',
-            data: this.config.chartProfile,
+            data: profile.chartProfile,
             borderColor: 'saddlebrown',
             backgroundColor: 'rgba(139, 69, 19, 0.6)',
             fill: true,
@@ -100,11 +94,11 @@ export class ProgressChart implements OnChanges, AfterViewInit, OnDestroy {
           x: {
             type: 'linear',
             min: 0,
-            max: this.config.chartMaxScale
+            max: profile.chartMaxScale
           },
           y: {
             min: 0,
-            max: this.config.chartMaxScale * 1.1,
+            max: profile.chartMaxScale * 1.1,
             display: false
           }
         }
@@ -115,7 +109,7 @@ export class ProgressChart implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   private calculateProgressData(total: number) {
-    const profile = this.config.chartProfile;
+    const profile = this.config().chartProfile;
     const progressData: { x: number; y: number }[] = [{ x: 0, y: 0 }];
 
     for (let i = 0; i < profile.length - 1; i++) {
@@ -137,9 +131,8 @@ export class ProgressChart implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   private updateChart(total: number) {
-    if (this.chart) {
-      this.chart.data.datasets[0].data = this.calculateProgressData(total);
-      this.chart.update();
-    }
+    if (!this.chart) return;
+    this.chart.data.datasets[0].data = this.calculateProgressData(total);
+    this.chart.update();
   }
 }
