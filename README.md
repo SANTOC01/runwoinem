@@ -46,4 +46,4 @@ The site is live at https://runwoinem.de
 - `services/events-service.ts` – events and participants.
 - `services/local-cache.ts` – timestamped localStorage cache used by the services.
 - Components use signals (`input()`, `output()`, `computed()`) and `inject()`.
-- CI (`.github/workflows/ci.yml`) runs lint, format check, tests and build on every push.
+- Pushing to `main` runs lint + tests and then publishes to GitHub Pages (`.github/workflows/deploy.yml`); pull requests run `ci.yml`.

@@ -1,8 +1,10 @@
-# Optional: deploys the production build to GitHub Pages.
-# To use it, set Settings > Pages > Source to "GitHub Actions" (the committed docs/ folder is then no longer needed).
-name: Deploy to GitHub Pages
+# On every push to main: lint + test, then build and publish to GitHub Pages.
+# Requires: repo Settings > Pages > Build and deployment > Source = "GitHub Actions".
+name: Test and deploy
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -15,7 +17,21 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm test -- --watch=false --browsers=ChromeHeadlessNoSandbox
+
   deploy:
+    needs: verify
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -27,7 +43,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm run build # writes to docs/
+      - run: npm run build # writes to docs/ inside the runner
       - uses: actions/upload-pages-artifact@v3
         with:
           path: docs
