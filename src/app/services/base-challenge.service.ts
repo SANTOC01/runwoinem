@@ -1,6 +1,7 @@
 import { inject } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { ChallengeConfig, ChallengeEntry, ChallengeRanking } from '../interfaces/challenge.interface';
+import { ChallengeConfig, ChallengeEntry, ChallengeRanking, SubmitResult } from '../interfaces/challenge.interface';
+import { detectRankUp, detectRecords, nextTarget } from '../utils/challenge-utils';
 import { ChartData } from '../models/chart-data';
 import { LockService } from './lock-service';
 import { ToastService } from './toast-service';
@@ -61,20 +62,29 @@ export abstract class BaseChallengeService {
     return this.fetchedAt !== null && Date.now() - this.fetchedAt < withinMs;
   }
 
-  async submitData(name: string, value: number): Promise<void> {
+  /** Adds an entry. Resolves to what changed for the person (null if nothing was submitted). */
+  async submitData(name: string, value: number): Promise<SubmitResult | null> {
     if (!this.config.active) {
       this.toast.show('Die Challenge ist beendet. Keine Einträge mehr möglich. 🔒');
-      return;
+      return null;
     }
     name = name.trim();
-    if (!(await this.lockService.requestUnlock())) return;
+    if (!(await this.lockService.requestUnlock())) return null;
 
+    const entriesBefore = this.entriesSubject.value;
+    const rankingsBefore = this.rankingsSubject.value;
     await this.mutate(
       { name, value, date: new Date().toISOString() },
       'add',
       'Eintrag erfolgreich hinzugefügt!',
       'Fehler beim Hinzufügen des Eintrags!',
     );
+    const rankingsAfter = this.rankingsSubject.value;
+    return {
+      rankUp: detectRankUp(rankingsBefore, rankingsAfter, name),
+      records: detectRecords(entriesBefore, this.entriesSubject.value, name, this.config.milestones),
+      nextTarget: nextTarget(rankingsAfter, name),
+    };
   }
 
   async deleteData(entry: ChallengeEntry): Promise<void> {

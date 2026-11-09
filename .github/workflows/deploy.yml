@@ -43,9 +43,9 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm run build # writes to docs/ inside the runner
+      - run: npm run build # writes to dist/site
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: docs
+          path: dist/site
       - id: deployment
         uses: actions/deploy-pages@v4

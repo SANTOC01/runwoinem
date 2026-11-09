@@ -23,7 +23,9 @@
       </app-stats-table>
       <app-ranking-table
         [rankings]="rankings()"
-        [unit]="challengeService.config.metricUnit">
+        [unit]="challengeService.config.metricUnit"
+        [rankUp]="feedback.highlighted()"
+        [streaks]="streaks()">
       </app-ranking-table>
     </div>
 
@@ -42,6 +44,16 @@
       </app-progress-chart>
     </div>
   </div>
+
+  @if (feedback.celebrating(); as c) {
+    <app-rank-up-celebration
+      [rankUp]="c.rankUp"
+      [records]="c.records"
+      [target]="c.nextTarget"
+      [unit]="challengeService.config.metricUnit"
+      (closed)="feedback.dismiss()">
+    </app-rank-up-celebration>
+  }
 
   @if (lockService.visible()) {
     <app-lock-screen

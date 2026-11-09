@@ -44,3 +44,6 @@ Thumbs.db
 
 # Apps Script backend source (kept locally, not versioned)
 /backend/
+
+# Build output is produced and published by CI (never commit it)
+/docs/

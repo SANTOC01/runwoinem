@@ -89,6 +89,42 @@ describe('Challenge services', () => {
       expect(await firstValueFrom(service.entries$)).toEqual([]);
     });
 
+    it('returns a rank-up when an entry climbs the ranking', async () => {
+      api.get.and.resolveTo({
+        main: [
+          ['Anna', '30', '2025-01-01T10:00:00Z'],
+          ['Ben', '20', '2025-01-01T10:00:00Z'],
+          ['Cleo', '10', '2025-01-01T10:00:00Z'],
+        ],
+      });
+      const service = TestBed.inject(KmChallengeService);
+      await service.loadData();
+
+      const first = await service.submitData('Cleo', 15);
+      expect(first?.rankUp).toEqual({ name: 'Cleo', from: 3, to: 2, overtaken: ['Ben'] });
+      expect(first?.nextTarget).toEqual({ name: 'Anna', place: 1, needed: 6 });
+      // 15 beats her longest run (10) and, in a new week, her best week (10).
+      expect(first?.records).toEqual([
+        { kind: 'longest', value: 15 },
+        { kind: 'bestWeek', value: 15 },
+      ]);
+
+      const second = await service.submitData('Cleo', 1);
+      expect(second?.rankUp).toBeNull();
+    });
+
+    it('reports the extra km added by the Tuesday boost today', () => {
+      const service = TestBed.inject(KmChallengeService);
+      const tuesday = new Date('2026-11-10T12:00:00Z');
+      const entries = [
+        { name: 'Anna', value: 10, date: '2026-11-10T08:00:00Z' },
+        { name: 'Ben', value: 5, date: '2026-11-10T09:00:00Z' },
+        { name: 'Anna', value: 7, date: '2026-11-03T09:00:00Z' }, // earlier Tuesday
+      ];
+      expect(service.boostBonusToday(entries, tuesday)).toBe(15);
+      expect(service.boostBonusToday(entries, new Date('2026-11-11T12:00:00Z'))).toBe(0);
+    });
+
     it('does nothing when unlock is cancelled', async () => {
       lock.requestUnlock.and.resolveTo(false);
       const service = TestBed.inject(KmChallengeService);

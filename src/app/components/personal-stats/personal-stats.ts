@@ -1,5 +1,6 @@
 import { Component, computed, input, output } from '@angular/core';
 import { ChallengeEntry } from '../../interfaces/challenge.interface';
+import { streakFromWeeks, weeklyTotals } from '../../utils/challenge-utils';
 
 interface PersonalStatsData {
   total: number;
@@ -14,13 +15,6 @@ interface PersonalStatsData {
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-
-/** Monday 00:00 (local) of the week containing the date, as a day number. */
-function weekStart(date: Date): number {
-  const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  const offset = (d.getDay() + 6) % 7; // Mon = 0
-  return Math.round((d.getTime() - offset * DAY_MS) / DAY_MS);
-}
 
 @Component({
   selector: 'app-personal-stats',
@@ -44,13 +38,7 @@ export class PersonalStats {
     const total = mine.reduce((s, e) => s + e.value, 0);
     const longest = Math.max(...mine.map((e) => e.value));
 
-    const perWeek = new Map<number, number>();
-    for (const e of mine) {
-      const d = new Date(e.date);
-      if (isNaN(d.getTime())) continue;
-      const wk = weekStart(d);
-      perWeek.set(wk, (perWeek.get(wk) ?? 0) + e.value);
-    }
+    const perWeek = weeklyTotals(mine);
 
     let bestWeek = 0;
     let bestKm = 0;
@@ -61,15 +49,7 @@ export class PersonalStats {
       }
     });
 
-    // Streak: consecutive weeks with at least one run. The current week
-    // may still be empty without breaking the streak.
-    const thisWeek = weekStart(new Date());
-    let cursor = perWeek.has(thisWeek) ? thisWeek : thisWeek - 7;
-    let streak = 0;
-    while (perWeek.has(cursor)) {
-      streak++;
-      cursor -= 7;
-    }
+    const streak = streakFromWeeks(perWeek);
 
     const totals = new Map<string, number>();
     for (const e of entries) totals.set(e.name, (totals.get(e.name) ?? 0) + e.value);

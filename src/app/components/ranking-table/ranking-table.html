@@ -7,13 +7,17 @@
       <th>{{ unit() }}</th>
     </tr>
     @for (rank of rankings(); track rank.name; let i = $index) {
-      <tr>
+      <tr [class.rank-up]="rankUp()?.name === rank.name"
+          [style.--climb]="rankUp()?.name === rank.name ? climbRows(i) : null">
         <td>{{ getRankText(i, rank.name) }} {{ getRankEmoji(i) }}</td>
         <td>
           @if (clickable()) {
             <button type="button" class="name-link" (click)="nameSelected.emit(rank.name)">{{ rank.name }}</button>
           } @else {
             {{ rank.name }}
+          }
+          @if (streakOf(rank.name); as weeks) {
+            <span class="streak" [title]="weeks + ' Wochen in Folge gelaufen'">🔥{{ weeks }}</span>
           }
         </td>
         <td>{{ rank.value }} {{ unit() }}</td>

@@ -35,7 +35,7 @@ npm start          # dev server on http://localhost:4200
 npm test           # unit tests (Karma + Chrome)
 npm run lint       # ESLint
 npm run format     # Prettier
-npm run build      # production build into docs/ (served by GitHub Pages)
+npm run build      # production build into dist/site (git-ignored; CI publishes it)
 ```
 The site is live at https://runwoinem.de
 

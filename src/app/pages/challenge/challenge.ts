@@ -10,12 +10,14 @@ import { LockScreen } from '../../components/app-lock-screen/app-lock-screen';
 import { LockService } from '../../services/lock-service';
 import { ToastService } from '../../services/toast-service';
 import { ChallengeForm } from '../../components/challenge-form/challenge-form';
+import { RankUpCelebration } from '../../components/rank-up-celebration/rank-up-celebration';
+import { SubmitFeedback } from '../../components/rank-up-celebration/submit-feedback';
 import { ChallengeEntry } from '../../interfaces/challenge.interface';
-import { newestFirst, progressPercent } from '../../utils/challenge-utils';
+import { newestFirst, progressPercent, streaksByName } from '../../utils/challenge-utils';
 
 @Component({
   selector: 'app-challenge',
-  imports: [StatsTable, RankingTable, ProgressChart, GoalBanner, LockScreen, ChallengeForm],
+  imports: [StatsTable, RankingTable, ProgressChart, GoalBanner, LockScreen, ChallengeForm, RankUpCelebration],
   templateUrl: './challenge.html',
   styleUrls: ['./challenge.scss'],
 })
@@ -28,6 +30,8 @@ export class Challenge {
   readonly rankings = toSignal(this.challengeService.rankings$, { initialValue: [] });
   readonly total = toSignal(this.challengeService.total$, { initialValue: 0 });
   readonly progressPercentage = computed(() => progressPercent(this.total(), this.challengeService.config.goalValue));
+  readonly feedback = new SubmitFeedback();
+  readonly streaks = computed(() => streaksByName(this.entries()));
 
   constructor() {
     this.challengeService.loadData();
@@ -45,7 +49,9 @@ export class Challenge {
 
   async onSubmit({ name, value }: { name: string; value: number }) {
     try {
-      await this.challengeService.submitData(name, value);
+      this.feedback.reset();
+      const result = await this.challengeService.submitData(name, value);
+      this.feedback.show(result, this.challengeService.config.metricUnit);
     } catch (error) {
       console.error('Error submitting data:', error);
     }
