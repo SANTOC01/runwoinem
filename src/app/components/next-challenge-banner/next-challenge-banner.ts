@@ -3,7 +3,7 @@ import { Component, input } from '@angular/core';
 @Component({
   selector: 'app-next-challenge-banner',
   templateUrl: './next-challenge-banner.html',
-  styleUrls: ['./next-challenge-banner.scss']
+  styleUrls: ['./next-challenge-banner.scss'],
 })
 export class NextChallengeBanner {
   readonly title = input('Nächste Challenge');

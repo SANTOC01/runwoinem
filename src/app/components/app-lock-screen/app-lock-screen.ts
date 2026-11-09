@@ -18,8 +18,8 @@ import { ToastService } from '../../services/toast-service';
                   class="grid-button"
                   [attr.data-value]="row * 3 + col"
                   (mousedown)="handleMouseDown($event)"
-                  (touchstart)="handleTouchStart($event)">
-                </button>
+                  (touchstart)="handleTouchStart($event)"
+                ></button>
               }
             </div>
           }
@@ -29,14 +29,14 @@ import { ToastService } from '../../services/toast-service';
       </div>
     </div>
   `,
-  styleUrls: ['./app-lock-screen.scss']
+  styleUrls: ['./app-lock-screen.scss'],
 })
 export class LockScreen implements AfterViewInit, OnDestroy {
   private readonly toastService = inject(ToastService);
   private readonly ngZone = inject(NgZone);
 
   readonly success = output<void>();
-  readonly cancel = output<void>();
+  readonly cancelled = output<void>();
   private readonly gridContainer = viewChild.required<ElementRef<HTMLElement>>('gridContainer');
   private readonly canvasRef = viewChild.required<ElementRef<HTMLCanvasElement>>('patternCanvas');
 
@@ -71,7 +71,6 @@ export class LockScreen implements AfterViewInit, OnDestroy {
   }
 
   private setupEventListeners() {
-
     // Outside Angular's zone: move events fire constantly and must not trigger change detection.
     // Success/cancel are EventEmitters, which are only emitted on pattern completion.
     this.ngZone.runOutsideAngular(() => {
@@ -157,7 +156,7 @@ export class LockScreen implements AfterViewInit, OnDestroy {
 
   private resetActiveButtons() {
     const buttons = this.gridContainer().nativeElement.querySelectorAll<HTMLElement>('.grid-button');
-    buttons.forEach(button => button.classList.remove('active'));
+    buttons.forEach((button) => button.classList.remove('active'));
   }
 
   private clearCanvas() {
@@ -191,7 +190,7 @@ export class LockScreen implements AfterViewInit, OnDestroy {
   }
 
   onCancel() {
-    this.cancel.emit();
+    this.cancelled.emit();
   }
 
   ngOnDestroy() {
@@ -207,7 +206,6 @@ export class LockScreen implements AfterViewInit, OnDestroy {
     document.body.style.width = '';
   }
 
-
   private updateCanvasSize() {
     const canvas = this.canvasRef().nativeElement as HTMLCanvasElement;
     const container = this.gridContainer().nativeElement as HTMLElement;
@@ -215,23 +213,20 @@ export class LockScreen implements AfterViewInit, OnDestroy {
     canvas.height = container.offsetHeight;
   }
 
-
-
   private storeButtonPositions() {
     const buttons = this.gridContainer().nativeElement.querySelectorAll<HTMLElement>('.grid-button');
-    buttons.forEach(button => {
+    buttons.forEach((button) => {
       const rect = button.getBoundingClientRect();
       const containerRect = this.gridContainer().nativeElement.getBoundingClientRect();
       const value = button.getAttribute('data-value');
       if (value) {
         this.buttonPositions[value] = {
           x: rect.left + rect.width / 2 - containerRect.left,
-          y: rect.top + rect.height / 2 - containerRect.top
+          y: rect.top + rect.height / 2 - containerRect.top,
         };
       }
     });
   }
-
 
   private checkIntersection(x: number, y: number) {
     Object.entries(this.buttonPositions).forEach(([value, pos]) => {
@@ -269,11 +264,10 @@ export class LockScreen implements AfterViewInit, OnDestroy {
       lastPoint = point;
     }
 
-    if (lastPoint && (currentX !== undefined && currentY !== undefined)) {
+    if (lastPoint && currentX !== undefined && currentY !== undefined) {
       ctx.lineTo(currentX, currentY);
     }
 
     ctx.stroke();
   }
-
 }

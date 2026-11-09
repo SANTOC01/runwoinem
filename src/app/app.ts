@@ -11,17 +11,19 @@ import { NavHeader } from './components/nav-header/nav-header';
       <router-outlet />
     </main>
   `,
-  styles: [`
-    :host {
-      display: block;
-      min-height: 100vh;
-      position: relative;
-    }
+  styles: [
+    `
+      :host {
+        display: block;
+        min-height: 100vh;
+        position: relative;
+      }
 
-    .main-content {
-      min-height: 100vh;
-      width: 100%;
-    }
-  `]
+      .main-content {
+        min-height: 100vh;
+        width: 100%;
+      }
+    `,
+  ],
 })
 export class App {}

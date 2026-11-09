@@ -5,14 +5,14 @@ const PAGE_SIZE = 30;
 const DATE_FORMAT = new Intl.DateTimeFormat('de-DE', {
   day: '2-digit',
   month: '2-digit',
-  year: '2-digit'
+  year: '2-digit',
 });
 
 @Component({
   selector: 'app-stats-table',
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './stats-table.html',
-  styleUrls: ['./stats-table.scss']
+  styleUrls: ['./stats-table.scss'],
 })
 export class StatsTable {
   readonly entries = input<ChallengeEntry[]>([]);
@@ -26,11 +26,13 @@ export class StatsTable {
 
   readonly rows = computed(() => {
     const boosted = this.isBoosted();
-    return this.entries().slice(0, this.visibleCount()).map(entry => ({
-      entry,
-      boosted: !!boosted && boosted(entry),
-      dateLabel: DATE_FORMAT.format(new Date(entry.date)),
-    }));
+    return this.entries()
+      .slice(0, this.visibleCount())
+      .map((entry) => ({
+        entry,
+        boosted: !!boosted && boosted(entry),
+        dateLabel: DATE_FORMAT.format(new Date(entry.date)),
+      }));
   });
   readonly hasBoosted = computed(() => {
     const boosted = this.isBoosted();
@@ -40,6 +42,6 @@ export class StatsTable {
   readonly hasMore = computed(() => this.remaining() > 0);
 
   showMore(): void {
-    this.visibleCount.update(count => count + PAGE_SIZE);
+    this.visibleCount.update((count) => count + PAGE_SIZE);
   }
 }

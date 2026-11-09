@@ -29,11 +29,21 @@ This project was created as a self-learning initiative to enhance my frontend sk
 - Integration with running APIs (Strava)
 
 ## Running the Application
-The application can be run locally using:
 ```bash
-ng serve
+npm install
+npm start          # dev server on http://localhost:4200
+npm test           # unit tests (Karma + Chrome)
+npm run lint       # ESLint
+npm run format     # Prettier
+npm run build      # production build into docs/ (served by GitHub Pages)
 ```
-and it is live at:
-```
-runwoinem.de
-```
+The site is live at https://runwoinem.de
+
+## Architecture
+- `services/sheet-api.service.ts` – the only place that talks to the Google Apps Script backend.
+- `services/base-challenge.service.ts` – shared load / cache / submit / delete / ranking logic.
+  A challenge (`challenge-service.ts`, `km-challenge-service.ts`) is just a config plus optional overrides (e.g. the Tuesday boost).
+- `services/events-service.ts` – events and participants.
+- `services/local-cache.ts` – timestamped localStorage cache used by the services.
+- Components use signals (`input()`, `output()`, `computed()`) and `inject()`.
+- CI (`.github/workflows/ci.yml`) runs lint, format check, tests and build on every push.

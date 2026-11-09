@@ -5,13 +5,13 @@ import { RouterModule } from '@angular/router';
   selector: 'app-nav-header',
   imports: [RouterModule],
   templateUrl: './nav-header.html',
-  styleUrls: ['./nav-header.scss']
+  styleUrls: ['./nav-header.scss'],
 })
 export class NavHeader {
   readonly menuOpen = signal(false);
 
   toggleMenu() {
-    this.menuOpen.update(open => !open);
+    this.menuOpen.update((open) => !open);
   }
 
   closeMenu() {

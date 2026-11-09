@@ -7,7 +7,6 @@
   overflow: auto;
   max-width: 340px;
 
-
   h2 {
     margin: 0 0 10px 0;
     text-align: center;
@@ -20,7 +19,8 @@
     font-size: 12px;
     border-collapse: collapse;
 
-    th, td {
+    th,
+    td {
       border: 1px solid #ddd;
       padding: 8px;
       text-align: center;
@@ -52,7 +52,9 @@
       text-decoration: underline;
       cursor: pointer;
 
-      &:hover { color: #0b4fb3; }
+      &:hover {
+        color: #0b4fb3;
+      }
     }
   }
 }

@@ -6,7 +6,7 @@ import { ChallengeConfig } from '../../interfaces/challenge.interface';
   selector: 'app-challenge-form',
   imports: [FormsModule],
   templateUrl: './challenge-form.html',
-  styleUrls: ['./challenge-form.scss']
+  styleUrls: ['./challenge-form.scss'],
 })
 export class ChallengeForm {
   readonly config = input.required<ChallengeConfig>();

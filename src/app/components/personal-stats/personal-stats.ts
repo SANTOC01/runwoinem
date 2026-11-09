@@ -25,7 +25,7 @@ function weekStart(date: Date): number {
 @Component({
   selector: 'app-personal-stats',
   templateUrl: './personal-stats.html',
-  styleUrl: './personal-stats.scss'
+  styleUrl: './personal-stats.scss',
 })
 export class PersonalStats {
   readonly name = input('');
@@ -38,11 +38,11 @@ export class PersonalStats {
   private compute(): PersonalStatsData | null {
     const name = this.name();
     const entries = this.entries();
-    const mine = entries.filter(e => e.name === name);
+    const mine = entries.filter((e) => e.name === name);
     if (!mine.length) return null;
 
     const total = mine.reduce((s, e) => s + e.value, 0);
-    const longest = Math.max(...mine.map(e => e.value));
+    const longest = Math.max(...mine.map((e) => e.value));
 
     const perWeek = new Map<number, number>();
     for (const e of mine) {
@@ -55,7 +55,10 @@ export class PersonalStats {
     let bestWeek = 0;
     let bestKm = 0;
     perWeek.forEach((km, wk) => {
-      if (km > bestKm) { bestKm = km; bestWeek = wk; }
+      if (km > bestKm) {
+        bestKm = km;
+        bestWeek = wk;
+      }
     });
 
     // Streak: consecutive weeks with at least one run. The current week
@@ -63,11 +66,14 @@ export class PersonalStats {
     const thisWeek = weekStart(new Date());
     let cursor = perWeek.has(thisWeek) ? thisWeek : thisWeek - 7;
     let streak = 0;
-    while (perWeek.has(cursor)) { streak++; cursor -= 7; }
+    while (perWeek.has(cursor)) {
+      streak++;
+      cursor -= 7;
+    }
 
     const totals = new Map<string, number>();
     for (const e of entries) totals.set(e.name, (totals.get(e.name) ?? 0) + e.value);
-    const rank = [...totals.values()].filter(v => v > total).length + 1;
+    const rank = [...totals.values()].filter((v) => v > total).length + 1;
 
     return {
       total,

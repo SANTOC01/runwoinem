@@ -17,7 +17,7 @@ import { Loading } from '../../components/app-loading/app-loading';
   imports: [DecimalPipe, RouterModule, Events, EventsModalComponent, Loading, EuropeMap],
   host: { '(document:keydown.escape)': 'mapOpen.set(false)' },
   templateUrl: './dashboard.html',
-  styleUrls: ['./dashboard.scss']
+  styleUrls: ['./dashboard.scss'],
 })
 export class Dashboard {
   private readonly challengeService = inject(ChallengeService);
@@ -40,7 +40,7 @@ export class Dashboard {
     Promise.all([
       this.eventsService.loadEvents(),
       this.challengeService.loadData(),
-      this.kmChallengeService.loadData()
+      this.kmChallengeService.loadData(),
     ]);
 
     // Background refresh after 5 seconds — skip if data was just freshly loaded
@@ -52,7 +52,9 @@ export class Dashboard {
 
   /** Next Tuesday run (18:00–19:00), relative to `now`. */
   static computeNextRun(now: Date): { relative: string; dateLabel: string; soon: boolean } {
-    const RUN_DAY = 2, START = 18, END = 19;
+    const RUN_DAY = 2,
+      START = 18,
+      END = 19;
     const run = new Date(now.getFullYear(), now.getMonth(), now.getDate(), START);
     let days = (RUN_DAY - now.getDay() + 7) % 7;
     if (days === 0 && now.getHours() >= END) days = 7;
@@ -71,12 +73,8 @@ export class Dashboard {
     await Promise.all([
       this.eventsService.refreshEvents(),
       this.challengeService.refreshAllData(),
-      this.kmChallengeService.refreshAllData()
+      this.kmChallengeService.refreshAllData(),
     ]);
     this.toast.show('🟢 Live');
-  }
-
-  toggleMap() {
-    this.mapOpen.update(open => !open);
   }
 }

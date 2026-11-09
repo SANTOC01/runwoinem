@@ -34,7 +34,7 @@ export abstract class BaseChallengeService {
 
   async loadData(): Promise<void> {
     if (this.dataLoaded) return;
-    const cached = readCache<ChallengeEntry[]>(this.cacheKey, ts => Date.now() - ts < CACHE_DURATION_MS);
+    const cached = readCache<ChallengeEntry[]>(this.cacheKey, (ts) => Date.now() - ts < CACHE_DURATION_MS);
     if (cached) {
       this.updateState(cached.data);
       this.fetchedAt = cached.timestamp;
@@ -73,7 +73,7 @@ export abstract class BaseChallengeService {
       { name, value, date: new Date().toISOString() },
       'add',
       'Eintrag erfolgreich hinzugefügt!',
-      'Fehler beim Hinzufügen des Eintrags!'
+      'Fehler beim Hinzufügen des Eintrags!',
     );
   }
 
@@ -83,7 +83,12 @@ export abstract class BaseChallengeService {
   }
 
   /** Optimistically updates local state, then syncs with the backend (reloads on error). */
-  private async mutate(entry: ChallengeEntry, action: 'add' | 'delete', okMessage: string, errorMessage: string): Promise<void> {
+  private async mutate(
+    entry: ChallengeEntry,
+    action: 'add' | 'delete',
+    okMessage: string,
+    errorMessage: string,
+  ): Promise<void> {
     try {
       this.updateLocalState(entry, action);
       await this.api.post({ action, name: entry.name, hohenmeter: entry.value, challenge: this.challengeId });
@@ -101,7 +106,7 @@ export abstract class BaseChallengeService {
     if (action === 'add') {
       entries.unshift(entry);
     } else {
-      const index = entries.findIndex(e => e.name === entry.name && e.value === entry.value);
+      const index = entries.findIndex((e) => e.name === entry.name && e.value === entry.value);
       if (index === -1) return;
       entries.splice(index, 1);
     }
@@ -118,7 +123,7 @@ export abstract class BaseChallengeService {
   }
 
   private processEntries(data: unknown[][]): ChallengeEntry[] {
-    return data.map(row => {
+    return data.map((row) => {
       const [name, value, date] = row as [string, string, string];
       return { name, value: parseInt(value, 10), date };
     });
@@ -136,12 +141,10 @@ export abstract class BaseChallengeService {
   }
 
   private calculateChartData(entries: ChallengeEntry[]): ChartData {
-    const sorted = [...entries]
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-      .slice(-100);
+    const sorted = [...entries].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()).slice(-100);
     return {
-      labels: sorted.map(e => new Date(e.date).toLocaleDateString()),
-      values: sorted.map(e => e.value)
+      labels: sorted.map((e) => new Date(e.date).toLocaleDateString()),
+      values: sorted.map((e) => e.value),
     };
   }
 }

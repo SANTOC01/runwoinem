@@ -20,7 +20,7 @@ const BOOST_SEEN_KEY = 'km_boost_intro_seen';
   selector: 'app-km-challenge',
   imports: [StatsTable, RankingTable, EuropeMap, GoalBanner, LockScreen, ChallengeForm, PersonalStats],
   templateUrl: './km-challenge.html',
-  styleUrls: ['./km-challenge.scss']
+  styleUrls: ['./km-challenge.scss'],
 })
 export class KmChallenge {
   readonly kmChallengeService = inject(KmChallengeService);
@@ -30,17 +30,14 @@ export class KmChallenge {
   readonly entries = toSignal(this.kmChallengeService.entries$.pipe(map(newestFirst)), { initialValue: [] });
   readonly rankings = toSignal(this.kmChallengeService.rankings$, { initialValue: [] });
   readonly total = toSignal(this.kmChallengeService.total$, { initialValue: 0 });
-  readonly progressPercentage = computed(() =>
-    progressPercent(this.total(), this.kmChallengeService.config.goalValue)
-  );
+  readonly progressPercentage = computed(() => progressPercent(this.total(), this.kmChallengeService.config.goalValue));
 
   readonly cityBgPath = signal('');
   readonly selectedName = signal('');
   readonly showBoostIntro = this.kmChallengeService.showBoostIntro();
   readonly boostInfoOpen = signal(false);
 
-  readonly boostFootnote =
-    '⚡ Dienstag-Boost: zählt doppelt für den Eurotrip, nicht für die persönlichen km.';
+  readonly boostFootnote = '⚡ Dienstag-Boost: zählt doppelt für den Eurotrip, nicht für die persönlichen km.';
   readonly isBoosted = (e: ChallengeEntry) => this.kmChallengeService.isBoosted(e);
 
   constructor() {
@@ -54,11 +51,17 @@ export class KmChallenge {
   private boostSeenToday(): boolean {
     try {
       return localStorage.getItem(BOOST_SEEN_KEY) === new Date().toDateString();
-    } catch { return false; }
+    } catch {
+      return false;
+    }
   }
 
   private markBoostSeen() {
-    try { localStorage.setItem(BOOST_SEEN_KEY, new Date().toDateString()); } catch { /* ignore */ }
+    try {
+      localStorage.setItem(BOOST_SEEN_KEY, new Date().toDateString());
+    } catch {
+      /* ignore */
+    }
   }
 
   onValueChange({ name, value }: { name: string; value: number }) {

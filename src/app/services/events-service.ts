@@ -21,7 +21,7 @@ export class EventsService {
 
   async loadEvents(): Promise<void> {
     if (this.eventsLoaded) return;
-    const cached = readCache<AppEvent[]>(EVENTS_CACHE_KEY, ts => ts >= startOfToday());
+    const cached = readCache<AppEvent[]>(EVENTS_CACHE_KEY, (ts) => ts >= startOfToday());
     if (cached) {
       this.eventsSubject.next(cached.data);
       this.eventsLoaded = true;
@@ -44,7 +44,7 @@ export class EventsService {
   }
 
   async loadPastYears(): Promise<Record<string, number>> {
-    const cached = readCache<Record<string, number>>(PAST_YEARS_CACHE_KEY, ts => ts >= startOfToday());
+    const cached = readCache<Record<string, number>>(PAST_YEARS_CACHE_KEY, (ts) => ts >= startOfToday());
     if (cached) return cached.data;
     try {
       const response = await this.api.get<{ years?: Record<string, number> }>('getPastEvents');
@@ -59,7 +59,7 @@ export class EventsService {
 
   async loadPastEvents(year: number): Promise<AppEvent[]> {
     const key = `${PAST_EVENTS_CACHE_PREFIX}${year}`;
-    const cached = readCache<AppEvent[]>(key, ts => ts >= startOfToday());
+    const cached = readCache<AppEvent[]>(key, (ts) => ts >= startOfToday());
     if (cached) return cached.data;
     try {
       const response = await this.api.get<{ events?: AppEvent[] }>('getPastEvents', { year });
@@ -75,10 +75,14 @@ export class EventsService {
 
   async addParticipant(eventName: string, participantName: string): Promise<boolean> {
     try {
-      const response = await this.api.post<{ status?: string }>({ action: 'addParticipant', eventName, participantName });
+      const response = await this.api.post<{ status?: string }>({
+        action: 'addParticipant',
+        eventName,
+        participantName,
+      });
       if (response?.status === 'participant_added') {
         const events = [...this.eventsSubject.value];
-        const event = events.find(e => e.name === eventName);
+        const event = events.find((e) => e.name === eventName);
         if (event) {
           (event.participants ??= []).push(participantName);
           this.eventsSubject.next(events);

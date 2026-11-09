@@ -1,6 +1,14 @@
 import {
-  AfterViewInit, Component, ElementRef, OnDestroy, PLATFORM_ID,
-  effect, inject, input, signal, viewChild
+  AfterViewInit,
+  Component,
+  ElementRef,
+  OnDestroy,
+  PLATFORM_ID,
+  effect,
+  inject,
+  input,
+  signal,
+  viewChild,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Chart, ChartConfiguration } from 'chart.js/auto';
@@ -16,13 +24,15 @@ import { ChallengeConfig } from '../../interfaces/challenge.interface';
       <canvas #myChart [style.display]="isLoading() ? 'none' : 'block'"></canvas>
     </div>
   `,
-  styles: [`
-    .chart-container {
-      width: 100%;
-      height: 200px;
-      position: relative;
-    }
-  `]
+  styles: [
+    `
+      .chart-container {
+        width: 100%;
+        height: 200px;
+        position: relative;
+      }
+    `,
+  ],
 })
 export class ProgressChart implements AfterViewInit, OnDestroy {
   readonly total = input(0);
@@ -81,28 +91,28 @@ export class ProgressChart implements AfterViewInit, OnDestroy {
             borderWidth: 2,
             pointRadius: 0,
             pointBackgroundColor: 'saddlebrown',
-          }
-        ]
+          },
+        ],
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { display: false }
+          legend: { display: false },
         },
         scales: {
           x: {
             type: 'linear',
             min: 0,
-            max: profile.chartMaxScale
+            max: profile.chartMaxScale,
           },
           y: {
             min: 0,
             max: profile.chartMaxScale * 1.1,
-            display: false
-          }
-        }
-      }
+            display: false,
+          },
+        },
+      },
     };
 
     this.chart = new Chart(ctx, config);

@@ -1,7 +1,7 @@
-<div class="modal" [class.show-modal]="show()" (click)="close.emit()">
+<div class="modal" [class.show-modal]="show()" (click)="closed.emit()">
   <div class="modal-content" (click)="$event.stopPropagation()">
     <div class="modal-header">
-      <button class="close-button" (click)="close.emit()">✖</button>
+      <button class="close-button" (click)="closed.emit()">✖</button>
     </div>
     @if (event(); as event) {
       <div class="event-details">

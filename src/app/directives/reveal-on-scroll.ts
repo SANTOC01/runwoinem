@@ -9,14 +9,14 @@ export class RevealOnScroll implements OnInit, OnDestroy {
   private static get shared(): IntersectionObserver | null {
     if (typeof IntersectionObserver === 'undefined') return null;
     return (RevealOnScroll.observer ??= new IntersectionObserver(
-      entries => {
+      (entries) => {
         for (const entry of entries) {
           if (!entry.isIntersecting) continue;
           entry.target.classList.add('visible');
           RevealOnScroll.observer?.unobserve(entry.target);
         }
       },
-      { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
+      { threshold: 0.1, rootMargin: '0px 0px -50px 0px' },
     ));
   }
 

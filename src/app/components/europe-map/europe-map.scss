@@ -19,13 +19,21 @@
 }
 
 @keyframes pulse {
-  0%   { r: 8;  opacity: 0.7; }
-  100% { r: 20; opacity: 0; }
+  0% {
+    r: 8;
+    opacity: 0.7;
+  }
+  100% {
+    r: 20;
+    opacity: 0;
+  }
 }
 
 // Runner dot – smooth transition when position changes
 .progress-dot {
-  transition: cx 0.6s ease, cy 0.6s ease;
+  transition:
+    cx 0.6s ease,
+    cy 0.6s ease;
 }
 
 // Info strip below the map
@@ -48,7 +56,9 @@
     font-size: 0.9rem;
     color: #1a6b5a;
 
-    .location-icon { font-size: 1rem; }
+    .location-icon {
+      font-size: 1rem;
+    }
   }
 
   .km-total {
@@ -75,6 +85,8 @@
 
 @media (max-width: 480px) {
   .map-info {
-    .km-total { margin-left: 0; }
+    .km-total {
+      margin-left: 0;
+    }
   }
 }

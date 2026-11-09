@@ -4,7 +4,7 @@ import { ChallengeGoal } from '../../interfaces/challenge.interface';
 @Component({
   selector: 'app-goal-banner',
   templateUrl: './goal-banner.html',
-  styleUrls: ['./goal-banner.scss']
+  styleUrls: ['./goal-banner.scss'],
 })
 export class GoalBanner {
   readonly total = input(0);
@@ -17,9 +17,7 @@ export class GoalBanner {
     if (!goals.length) return null;
 
     const total = this.total();
-    const reached = goals.filter(g => total >= g.target).at(-1);
-    return reached
-      ? `🎉 Ziel erreicht: ${reached.emoji} ${reached.reward}!`
-      : 'Noch kein Ziel erreicht 😮';
+    const reached = goals.filter((g) => total >= g.target).at(-1);
+    return reached ? `🎉 Ziel erreicht: ${reached.emoji} ${reached.reward}!` : 'Noch kein Ziel erreicht 😮';
   });
 }

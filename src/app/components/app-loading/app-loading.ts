@@ -3,7 +3,7 @@ import { Component, input } from '@angular/core';
 @Component({
   selector: 'app-loading',
   templateUrl: './app-loading.html',
-  styleUrls: ['./app-loading.scss']
+  styleUrls: ['./app-loading.scss'],
 })
 export class Loading {
   readonly isLoading = input(false);

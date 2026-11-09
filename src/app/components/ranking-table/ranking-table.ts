@@ -6,7 +6,7 @@ const RANK_EMOJIS = ['🏆', '🥈', '🥉'];
 @Component({
   selector: 'app-ranking-table',
   templateUrl: './ranking-table.html',
-  styleUrls: ['./ranking-table.scss']
+  styleUrls: ['./ranking-table.scss'],
 })
 export class RankingTable {
   readonly rankings = input<ChallengeRanking[]>([]);

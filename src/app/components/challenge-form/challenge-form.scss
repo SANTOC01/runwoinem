@@ -9,7 +9,8 @@
   margin-left: auto;
   margin-right: auto;
 
-  input, button {
+  input,
+  button {
     width: 100%;
     padding: 0.8rem;
     border: none;
@@ -23,7 +24,7 @@
     cursor: not-allowed;
   }
 
-  input[type="number"] {
+  input[type='number'] {
     appearance: textfield;
     -moz-appearance: textfield;
     &::-webkit-outer-spin-button,
@@ -66,7 +67,8 @@
 
 @media (max-width: 768px) {
   .input-section {
-    input, button {
+    input,
+    button {
       max-width: 300px;
     }
   }

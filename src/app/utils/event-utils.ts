@@ -21,17 +21,26 @@ export function distText(dist: string): string {
 }
 
 const FILTER_EMOJI: Record<FilterType, string> = {
-  'Alle': '', 'Marathon': '⚫', 'Halbmarathon': '🔴', '10KM': '🟡', '5KM': '🟢', 'Trail': '🌄'
+  Alle: '',
+  Marathon: '⚫',
+  Halbmarathon: '🔴',
+  '10KM': '🟡',
+  '5KM': '🟢',
+  Trail: '🌄',
 };
 
 const FILTER_KEYWORDS: Record<FilterType, string[]> = {
-  'Alle': [], 'Marathon': ['42', 'marathon'], 'Halbmarathon': ['21', 'halb', 'half'],
-  '10KM': ['10km', '10 km'], '5KM': ['5km', '5 km'], 'Trail': ['trail']
+  Alle: [],
+  Marathon: ['42', 'marathon'],
+  Halbmarathon: ['21', 'halb', 'half'],
+  '10KM': ['10km', '10 km'],
+  '5KM': ['5km', '5 km'],
+  Trail: ['trail'],
 };
 
 export function matchesFilter(event: AppEvent, filter: FilterType): boolean {
   if (filter === 'Alle') return true;
   if (event.dist.includes(FILTER_EMOJI[filter])) return true;
   const dist = event.dist.toLowerCase();
-  return FILTER_KEYWORDS[filter].some(keyword => dist.includes(keyword));
+  return FILTER_KEYWORDS[filter].some((keyword) => dist.includes(keyword));
 }

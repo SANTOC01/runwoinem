@@ -9,19 +9,28 @@ import { RevealOnScroll } from '../../directives/reveal-on-scroll';
 import { FilterType, distText, formatEventDate, matchesFilter } from '../../utils/event-utils';
 
 const FILTER_EMOJI: Record<FilterType, string> = {
-  'Alle': '🗓️', 'Marathon': '⚫', 'Halbmarathon': '🔴', '10KM': '🟡', '5KM': '🟢', 'Trail': '🌄'
+  Alle: '🗓️',
+  Marathon: '⚫',
+  Halbmarathon: '🔴',
+  '10KM': '🟡',
+  '5KM': '🟢',
+  Trail: '🌄',
 };
 
 const FILTER_COLOR: Record<FilterType, string> = {
-  'Alle': '#43c6ac', 'Marathon': '#2c3e50', 'Halbmarathon': '#e74c3c',
-  '10KM': '#f39c12', '5KM': '#27ae60', 'Trail': '#a15b00'
+  Alle: '#43c6ac',
+  Marathon: '#2c3e50',
+  Halbmarathon: '#e74c3c',
+  '10KM': '#f39c12',
+  '5KM': '#27ae60',
+  Trail: '#a15b00',
 };
 
 @Component({
   selector: 'app-events-page',
   imports: [RouterModule, EventsModalComponent, RevealOnScroll],
   templateUrl: './events-page.html',
-  styleUrls: ['./events-page.scss']
+  styleUrls: ['./events-page.scss'],
 })
 export class EventsPage {
   private readonly eventsService = inject(EventsService);
@@ -34,22 +43,22 @@ export class EventsPage {
   readonly selectedEvent = signal<AppEvent | null>(null);
 
   readonly events = toSignal(
-    this.eventsService.events$.pipe(map(events => [...events].sort((a, b) => a.daysLeft - b.daysLeft))),
-    { initialValue: [] as AppEvent[] }
+    this.eventsService.events$.pipe(map((events) => [...events].sort((a, b) => a.daysLeft - b.daysLeft))),
+    { initialValue: [] as AppEvent[] },
   );
 
   readonly upcomingEvents = computed(() =>
-    this.events().filter(e => e.daysLeft >= 0 && matchesFilter(e, this.selectedFilter()))
+    this.events().filter((e) => e.daysLeft >= 0 && matchesFilter(e, this.selectedFilter())),
   );
 
-  readonly totalParticipants = computed(() =>
-    this.events().reduce((sum, e) => sum + (e.participants?.length ?? 0), 0)
-  );
+  readonly totalParticipants = computed(() => this.events().reduce((sum, e) => sum + (e.participants?.length ?? 0), 0));
 
   // Past events are loaded lazily per year when a year is expanded.
   readonly pastYearCounts = signal<Record<string, number>>({});
   readonly pastYearsAscending = computed(() =>
-    Object.keys(this.pastYearCounts()).map(Number).sort((a, b) => a - b)
+    Object.keys(this.pastYearCounts())
+      .map(Number)
+      .sort((a, b) => a - b),
   );
   private readonly pastEventsByYear = signal<ReadonlyMap<number, AppEvent[]>>(new Map());
   private readonly expandedYears = signal<ReadonlySet<number>>(new Set());
@@ -57,7 +66,7 @@ export class EventsPage {
 
   constructor() {
     this.eventsService.loadEvents();
-    this.eventsService.loadPastYears().then(years => this.pastYearCounts.set(years));
+    this.eventsService.loadPastYears().then((years) => this.pastYearCounts.set(years));
   }
 
   filterEvents(filter: FilterType) {
@@ -66,18 +75,18 @@ export class EventsPage {
 
   async toggleYear(year: number) {
     if (this.expandedYears().has(year)) {
-      this.expandedYears.update(years => without(years, year));
+      this.expandedYears.update((years) => without(years, year));
       return;
     }
 
     if (!this.pastEventsByYear().has(year)) {
-      this.loadingYears.update(years => new Set(years).add(year));
+      this.loadingYears.update((years) => new Set(years).add(year));
       const events = await this.eventsService.loadPastEvents(year);
-      this.pastEventsByYear.update(map => new Map(map).set(year, events));
-      this.loadingYears.update(years => without(years, year));
+      this.pastEventsByYear.update((map) => new Map(map).set(year, events));
+      this.loadingYears.update((years) => without(years, year));
     }
 
-    this.expandedYears.update(years => new Set(years).add(year));
+    this.expandedYears.update((years) => new Set(years).add(year));
   }
 
   isYearLoading(year: number): boolean {
@@ -100,16 +109,24 @@ export class EventsPage {
 
   getPastEventsForYear(year: number): AppEvent[] {
     const filter = this.selectedFilter();
-    return (this.pastEventsByYear().get(year) ?? []).filter(e => matchesFilter(e, filter));
+    return (this.pastEventsByYear().get(year) ?? []).filter((e) => matchesFilter(e, filter));
   }
 
   // Ordered highest → lowest priority
   private readonly distanceTiers = [
-    { match: (s: string) => s.includes('🌄') || s.toLowerCase().includes('trail'),                          color: '#a15b00' },
-    { match: (s: string) => s.includes('⚫') || /\b42\b/.test(s) || /\bmarathon\b/i.test(s),               color: '#2c3e50', label: 'Marathon' },
-    { match: (s: string) => s.includes('🔴') || /\b21\b/.test(s) || /halb|half/i.test(s),                  color: '#e74c3c', label: 'Halbmarathon' },
-    { match: (s: string) => s.includes('🟡') || /\b10\b/.test(s),                                           color: '#f39c12', label: '10KM' },
-    { match: (s: string) => s.includes('🟢') || /\b5\b/.test(s),                                            color: '#27ae60', label: '5KM' },
+    { match: (s: string) => s.includes('🌄') || s.toLowerCase().includes('trail'), color: '#a15b00' },
+    {
+      match: (s: string) => s.includes('⚫') || /\b42\b/.test(s) || /\bmarathon\b/i.test(s),
+      color: '#2c3e50',
+      label: 'Marathon',
+    },
+    {
+      match: (s: string) => s.includes('🔴') || /\b21\b/.test(s) || /halb|half/i.test(s),
+      color: '#e74c3c',
+      label: 'Halbmarathon',
+    },
+    { match: (s: string) => s.includes('🟡') || /\b10\b/.test(s), color: '#f39c12', label: '10KM' },
+    { match: (s: string) => s.includes('🟢') || /\b5\b/.test(s), color: '#27ae60', label: '5KM' },
   ];
 
   getDistanceBadge(dist: string): { color: string; label: string } {
@@ -125,7 +142,7 @@ export class EventsPage {
       if (km >= 42) return { color: '#2c3e50', label };
       if (km >= 21) return { color: '#e74c3c', label };
       if (km >= 10) return { color: '#f39c12', label };
-      if (km >= 5)  return { color: '#27ae60', label };
+      if (km >= 5) return { color: '#27ae60', label };
       return { color: '#43c6ac', label };
     }
 

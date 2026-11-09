@@ -2,16 +2,16 @@
 // Taken from the club's world: the Waidsee, the meadow in the group photo,
 // the evening sun on Tuesday runs.
 :host {
-  --forest:   #133b2e;  // headings, text
-  --moss:     #3b5a4e;  // body text
-  --lake:     #43c6ac;  // brand teal
-  --lake-ink: #12795f;  // teal dark enough for text and filled buttons
-  --meadow:   #eef4ea;  // page background
-  --reed:     #c9dccf;  // borders
-  --sun:      #ffd35c;  // "today" accent
+  --forest: #133b2e; // headings, text
+  --moss: #3b5a4e; // body text
+  --lake: #43c6ac; // brand teal
+  --lake-ink: #12795f; // teal dark enough for text and filled buttons
+  --meadow: #eef4ea; // page background
+  --reed: #c9dccf; // borders
+  --sun: #ffd35c; // "today" accent
 
   --display: 'Bricolage Grotesque', system-ui, sans-serif;
-  --text:    system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --text: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 
   display: block;
   background: var(--meadow);
@@ -100,7 +100,9 @@
   transform: rotate(-2.5deg);
   transform-origin: left center;
 
-  &.is-soon { border-bottom-color: var(--sun); }
+  &.is-soon {
+    border-bottom-color: var(--sun);
+  }
 }
 
 .bib-label {
@@ -132,7 +134,9 @@
     column-gap: 2rem;
   }
 
-  .hero-club { grid-column: 1 / -1; }
+  .hero-club {
+    grid-column: 1 / -1;
+  }
 
   .bib {
     align-self: center;
@@ -165,7 +169,10 @@
   gap: 3rem;
   align-items: center;
 
-  h2 { font-size: 2rem; margin-bottom: 0.9rem; }
+  h2 {
+    font-size: 2rem;
+    margin-bottom: 0.9rem;
+  }
 
   p {
     margin: 0;
@@ -196,7 +203,9 @@
   text-decoration-thickness: 2px;
   text-underline-offset: 4px;
 
-  &:hover { text-decoration-color: var(--lake-ink); }
+  &:hover {
+    text-decoration-color: var(--lake-ink);
+  }
 
   .social-icon {
     width: 1.3rem;
@@ -204,7 +213,9 @@
     filter: none;
   }
 
-  &:hover .social-icon { transform: none; }
+  &:hover .social-icon {
+    transform: none;
+  }
 }
 
 .social-primary {
@@ -214,7 +225,9 @@
   color: #fff;
   text-decoration: none;
 
-  &:hover { background: #0e634d; }
+  &:hover {
+    background: #0e634d;
+  }
 }
 
 // Overrides the global button margin/padding
@@ -240,7 +253,9 @@
     transition: transform 0.4s ease;
   }
 
-  &:hover img { transform: scale(1.03); }
+  &:hover img {
+    transform: scale(1.03);
+  }
 }
 
 .map-caption {
@@ -334,7 +349,9 @@
   gap: 1rem;
 }
 
-.widget-map-hidden { display: none; }
+.widget-map-hidden {
+  display: none;
+}
 
 .eurotrip-widget {
   flex: 1;
@@ -354,7 +371,13 @@
     justify-content: space-between;
     gap: 1.1rem;
     padding: 1.5rem 1.75rem 1.75rem;
-    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.25) 0%, transparent 30%, rgba(8, 35, 24, 0.55) 60%, rgba(4, 22, 14, 0.93) 100%);
+    background: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.25) 0%,
+      transparent 30%,
+      rgba(8, 35, 24, 0.55) 60%,
+      rgba(4, 22, 14, 0.93) 100%
+    );
   }
 
   .widget-title {
@@ -401,7 +424,9 @@
     text-decoration: none;
     transition: background 0.15s;
 
-    &:hover { background: #5fd6be; }
+    &:hover {
+      background: #5fd6be;
+    }
   }
 }
 
@@ -452,8 +477,12 @@ button:focus-visible {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .map-card img { transition: none; }
-  .map-card:hover img { transform: none; }
+  .map-card img {
+    transition: none;
+  }
+  .map-card:hover img {
+    transform: none;
+  }
 }
 
 // ── Mobile ──────────────────────────────────────────────────────────────────
@@ -463,22 +492,39 @@ button:focus-visible {
     min-height: 0;
   }
 
-  .hero-text { padding: 100px 1rem 0; }
-  .hero-club { font-size: 0.95rem; }
-  .bib { min-width: 0; padding: 0.65rem 1.3rem 0.7rem; }
-  .bib-when { font-size: 2.1rem; }
+  .hero-text {
+    padding: 100px 1rem 0;
+  }
+  .hero-club {
+    font-size: 0.95rem;
+  }
+  .bib {
+    min-width: 0;
+    padding: 0.65rem 1.3rem 0.7rem;
+  }
+  .bib-when {
+    font-size: 2.1rem;
+  }
 
-  .dashboard .content-wrapper { padding: 2.25rem 1rem 3rem; }
+  .dashboard .content-wrapper {
+    padding: 2.25rem 1rem 3rem;
+  }
 
   .about {
     grid-template-columns: 1fr;
     gap: 2rem;
 
-    h2 { font-size: 1.7rem; }
-    p { font-size: 1.02rem; }
+    h2 {
+      font-size: 1.7rem;
+    }
+    p {
+      font-size: 1.02rem;
+    }
   }
 
-  .section-title { margin-top: 3rem; }
+  .section-title {
+    margin-top: 3rem;
+  }
 
   .widgets-container {
     flex-direction: column;
@@ -499,5 +545,7 @@ button:focus-visible {
     height: 740px;
   }
 
-  .eurotrip-widget { min-height: 560px; }
+  .eurotrip-widget {
+    min-height: 560px;
+  }
 }

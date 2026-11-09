@@ -30,28 +30,28 @@ export class KmChallengeService extends BaseChallengeService {
       { target: 12310, emoji: '🏆', reward: 'Eurotrip abgeschlossen – zurück in Weinheim!' },*/
     ],
     chartProfile: [],
-    chartMaxScale: 0
+    chartMaxScale: 0,
   };
 
   // Creating an Intl.DateTimeFormat is expensive: build it once and memoize results.
   private readonly berlinFormatter = new Intl.DateTimeFormat('en-CA', {
     timeZone: 'Europe/Berlin',
-    year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'short'
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    weekday: 'short',
   });
   private readonly boostCache = new Map<string, boolean>();
 
   protected override calculateTotal(entries: ChallengeEntry[]): number {
-    return entries.reduce(
-      (sum, e) => sum + e.value * (this.isBoosted(e) ? this.BOOST.multiplier : 1),
-      0
-    );
+    return entries.reduce((sum, e) => sum + e.value * (this.isBoosted(e) ? this.BOOST.multiplier : 1), 0);
   }
 
   /** Berlin calendar day (YYYY-MM-DD) and weekday for a date, or null if invalid. */
   private berlinDay(date: Date): { day: string; weekday: string } | null {
     if (isNaN(date.getTime())) return null;
     const parts = this.berlinFormatter.formatToParts(date);
-    const get = (type: string) => parts.find(p => p.type === type)?.value ?? '';
+    const get = (type: string) => parts.find((p) => p.type === type)?.value ?? '';
     return { day: `${get('year')}-${get('month')}-${get('day')}`, weekday: get('weekday') };
   }
 

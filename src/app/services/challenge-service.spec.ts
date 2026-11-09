@@ -13,8 +13,8 @@ describe('Challenge services', () => {
     TestBed.configureTestingModule({
       providers: [
         { provide: SheetApi, useValue: api },
-        { provide: LockService, useValue: lock }
-      ]
+        { provide: LockService, useValue: lock },
+      ],
     });
 
   beforeEach(() => {
@@ -33,8 +33,8 @@ describe('Challenge services', () => {
         main: [
           ['Anna', '300', '2025-01-02T10:00:00Z'],
           ['Ben', '500', '2025-01-01T10:00:00Z'],
-          ['Anna', '400', '2025-01-03T10:00:00Z']
-        ]
+          ['Anna', '400', '2025-01-03T10:00:00Z'],
+        ],
       });
       const service = TestBed.inject(ChallengeService);
       await service.loadData();
@@ -43,7 +43,7 @@ describe('Challenge services', () => {
       expect(await firstValueFrom(service.total$)).toBe(1200);
       expect(await firstValueFrom(service.rankings$)).toEqual([
         { name: 'Anna', value: 700 },
-        { name: 'Ben', value: 500 }
+        { name: 'Ben', value: 500 },
       ]);
       expect((await firstValueFrom(service.chartData$)).values).toEqual([500, 300, 400]);
     });
@@ -80,7 +80,7 @@ describe('Challenge services', () => {
 
       await service.submitData('  Anna ', 12);
       expect(api.post).toHaveBeenCalledWith(
-        jasmine.objectContaining({ action: 'add', name: 'Anna', hohenmeter: 12, challenge: 'KM1' })
+        jasmine.objectContaining({ action: 'add', name: 'Anna', hohenmeter: 12, challenge: 'KM1' }),
       );
       const [entry] = await firstValueFrom(service.entries$);
       expect(entry.name).toBe('Anna');
@@ -112,8 +112,8 @@ describe('Challenge services', () => {
         main: [
           ['Anna', '10', '2026-11-10T17:00:00Z'], // Tuesday on/after start -> x2
           ['Anna', '10', '2026-11-11T17:00:00Z'], // Wednesday
-          ['Ben', '10', '2026-11-03T17:00:00Z']   // Tuesday before start
-        ]
+          ['Ben', '10', '2026-11-03T17:00:00Z'], // Tuesday before start
+        ],
       });
       const service = TestBed.inject(KmChallengeService);
       await service.loadData();

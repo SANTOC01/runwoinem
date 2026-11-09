@@ -17,7 +17,7 @@ import { newestFirst, progressPercent } from '../../utils/challenge-utils';
   selector: 'app-challenge',
   imports: [StatsTable, RankingTable, ProgressChart, GoalBanner, LockScreen, ChallengeForm],
   templateUrl: './challenge.html',
-  styleUrls: ['./challenge.scss']
+  styleUrls: ['./challenge.scss'],
 })
 export class Challenge {
   readonly challengeService = inject(ChallengeService);
@@ -27,9 +27,7 @@ export class Challenge {
   readonly entries = toSignal(this.challengeService.entries$.pipe(map(newestFirst)), { initialValue: [] });
   readonly rankings = toSignal(this.challengeService.rankings$, { initialValue: [] });
   readonly total = toSignal(this.challengeService.total$, { initialValue: 0 });
-  readonly progressPercentage = computed(() =>
-    progressPercent(this.total(), this.challengeService.config.goalValue)
-  );
+  readonly progressPercentage = computed(() => progressPercent(this.total(), this.challengeService.config.goalValue));
 
   constructor() {
     this.challengeService.loadData();

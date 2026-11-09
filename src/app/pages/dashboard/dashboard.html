@@ -39,7 +39,7 @@
         </div>
       </div>
 
-      <button type="button" class="map-card" (click)="toggleMap()" aria-label="Karte zum Treffpunkt vergrößern">
+      <button type="button" class="map-card" (click)="mapOpen.set(true)" aria-label="Karte zum Treffpunkt vergrößern">
         <img src="/assets/map.webp" alt="Karte: Treffpunkt am Fahrradständer am Waidsee"/>
         <span class="map-caption">📍 Treffpunkt am Waidsee <span class="map-hint">Vergrößern</span></span>
       </button>
@@ -103,14 +103,14 @@
 </div>
 
 @if (mapOpen()) {
-  <div class="map-lightbox" (click)="toggleMap()" role="dialog" aria-modal="true" aria-label="Karte zum Treffpunkt">
+  <div class="map-lightbox" (click)="mapOpen.set(false)" role="dialog" aria-modal="true" aria-label="Karte zum Treffpunkt">
     <img src="/assets/map.webp" alt="Karte: Treffpunkt am Fahrradständer am Waidsee"/>
-    <button type="button" class="map-close" (click)="toggleMap()">Karte schließen</button>
+    <button type="button" class="map-close" (click)="mapOpen.set(false)">Karte schließen</button>
   </div>
 }
 
 <app-events-modal
   [event]="selectedEvent()"
   [show]="!!selectedEvent()"
-  (close)="selectedEvent.set(null)">
+  (closed)="selectedEvent.set(null)">
 </app-events-modal>

@@ -35,7 +35,10 @@
     font-weight: 600;
     cursor: pointer;
 
-    .more { margin-left: 0.4rem; text-decoration: underline; }
+    .more {
+      margin-left: 0.4rem;
+      text-decoration: underline;
+    }
   }
 
   .boost-overlay {
@@ -61,10 +64,20 @@
     color: #5c4500;
     text-align: center;
 
-    h2 { margin: 0 0 0.5rem; }
-    p { margin: 0.4rem 0; }
-    .boost-today { font-weight: 700; }
-    small { display: block; margin-top: 0.75rem; opacity: 0.85; }
+    h2 {
+      margin: 0 0 0.5rem;
+    }
+    p {
+      margin: 0.4rem 0;
+    }
+    .boost-today {
+      font-weight: 700;
+    }
+    small {
+      display: block;
+      margin-top: 0.75rem;
+      opacity: 0.85;
+    }
 
     .boost-close {
       position: absolute;

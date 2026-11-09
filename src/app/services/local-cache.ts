@@ -4,7 +4,10 @@ interface CacheEnvelope<T> {
 }
 
 /** Reads a timestamped value from localStorage. Returns null when missing, stale or unreadable. */
-export function readCache<T>(key: string, isFresh: (timestamp: number) => boolean): { data: T; timestamp: number } | null {
+export function readCache<T>(
+  key: string,
+  isFresh: (timestamp: number) => boolean,
+): { data: T; timestamp: number } | null {
   try {
     const raw = typeof localStorage === 'undefined' ? null : localStorage.getItem(key);
     if (!raw) return null;

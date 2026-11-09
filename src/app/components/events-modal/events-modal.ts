@@ -15,7 +15,7 @@ export class EventsModalComponent {
 
   readonly event = input<AppEvent | null>(null);
   readonly show = input(false);
-  readonly close = output<void>();
+  readonly closed = output<void>();
 
   readonly showAddParticipantForm = signal(false);
   newParticipantName = '';
@@ -26,7 +26,7 @@ export class EventsModalComponent {
     const event = this.event();
     if (!event || !this.newParticipantName) return;
 
-    this.close.emit();
+    this.closed.emit();
     await this.eventsService.addParticipant(event.name, this.newParticipantName);
     this.showAddParticipantForm.set(false);
     this.newParticipantName = '';

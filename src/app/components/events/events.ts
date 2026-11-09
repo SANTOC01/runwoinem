@@ -9,7 +9,7 @@ import { distText, formatEventDate } from '../../utils/event-utils';
   selector: 'app-events',
   imports: [RouterModule],
   templateUrl: './events.html',
-  styleUrls: ['./events.scss']
+  styleUrls: ['./events.scss'],
 })
 export class Events {
   readonly events = toSignal(inject(EventsService).events$, { initialValue: [] });

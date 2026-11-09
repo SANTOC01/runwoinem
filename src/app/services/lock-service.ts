@@ -9,7 +9,7 @@ export class LockService {
 
   requestUnlock(): Promise<boolean> {
     this._visible.set(true);
-    return new Promise(resolve => (this.resolveUnlock = resolve));
+    return new Promise((resolve) => (this.resolveUnlock = resolve));
   }
 
   handleUnlockSuccess() {

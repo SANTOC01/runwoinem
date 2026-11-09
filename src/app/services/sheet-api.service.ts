@@ -18,7 +18,7 @@ export class SheetApi {
   // Apps Script rejects CORS preflights, so the body is sent as text/plain.
   post<T = unknown>(body: Record<string, unknown>): Promise<T> {
     return firstValueFrom(
-      this.http.post<T>(this.url, JSON.stringify(body), { headers: { 'Content-Type': 'text/plain' } })
+      this.http.post<T>(this.url, JSON.stringify(body), { headers: { 'Content-Type': 'text/plain' } }),
     ).then(unwrap);
   }
 }
