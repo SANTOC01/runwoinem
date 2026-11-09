@@ -45,14 +45,10 @@ export class LockScreen implements AfterViewInit, OnDestroy {
   private isTouchActive = false;
   private lastPoint: { x: number; y: number } | null = null;
   private buttonPositions: { [key: string]: { x: number; y: number } } = {};
-  // @ts-ignore
-  private boundMouseMove: (event: MouseEvent) => void;
-  // @ts-ignore
-  private boundMouseUp: (event: MouseEvent) => void;
-  // @ts-ignore
-  private boundTouchMove: (event: TouchEvent) => void;
-  // @ts-ignore
-  private boundTouchEnd: (event: TouchEvent) => void;
+  private readonly boundMouseMove = (event: MouseEvent) => this.handleMouseMove(event);
+  private readonly boundMouseUp = () => this.handleMouseUp();
+  private readonly boundTouchMove = (event: TouchEvent) => this.handleTouchMove(event);
+  private readonly boundTouchEnd = () => this.handleTouchEnd();
 
   ngAfterViewInit() {
     this.setupCanvas();
@@ -74,11 +70,6 @@ export class LockScreen implements AfterViewInit, OnDestroy {
   }
 
   private setupEventListeners() {
-    // Properly bind event Handlers once
-    this.boundMouseMove = this.handleMouseMove.bind(this);
-    this.boundMouseUp = this.handleMouseUp.bind(this);
-    this.boundTouchMove = this.handleTouchMove.bind(this);
-    this.boundTouchEnd = this.handleTouchEnd.bind(this);
 
     // Outside Angular's zone: move events fire constantly and must not trigger change detection.
     // Success/cancel are EventEmitters, which are only emitted on pattern completion.

@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 import { Events } from '../../components/events/events';
 import { ChallengeService } from '../../services/challenge-service';
 import { KmChallengeService } from '../../services/km-challenge-service';
+import { EventsService } from '../../services/events-service';
 import { EuropeMap } from '../../components/europe-map/europe-map';
 import { Subscription } from 'rxjs';
 import { EventsModalComponent } from "../../components/events-modal/events-modal";
@@ -37,6 +38,7 @@ export class Dashboard implements OnInit, OnDestroy {
   constructor(
     public challengeService: ChallengeService,
     public kmChallengeService: KmChallengeService,
+    private eventsService: EventsService,
     private toast: ToastService
   ) {}
 
@@ -100,7 +102,7 @@ export class Dashboard implements OnInit, OnDestroy {
     );
 
     await Promise.all([
-      this.challengeService.loadEvents(),
+      this.eventsService.loadEvents(),
       this.challengeService.loadData(),
       this.kmChallengeService.loadData()
     ]);
@@ -108,7 +110,7 @@ export class Dashboard implements OnInit, OnDestroy {
 
   private async forceRefreshData() {
     await Promise.all([
-      this.challengeService.refreshEvents(),
+      this.eventsService.refreshEvents(),
       this.challengeService.refreshAllData(),
       this.kmChallengeService.refreshAllData()
     ]);

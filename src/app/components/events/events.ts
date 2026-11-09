@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, Output, EventEmitter } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { ChallengeService } from '../../services/challenge-service';
+import { EventsService } from '../../services/events-service';
 import { Subscription } from 'rxjs';
 import { AppEvent } from '../../models/app-event';
 
@@ -20,10 +20,10 @@ export class Events implements OnInit, OnDestroy {
 
   @Output() openEventModal = new EventEmitter<AppEvent>();
 
-  constructor(private challengeService: ChallengeService) {}
+  constructor(private readonly eventsService: EventsService) {}
 
   ngOnInit() {
-    this.subscription = this.challengeService.events$.subscribe(events => {
+    this.subscription = this.eventsService.events$.subscribe(events => {
       this.events = events;
     });
   }

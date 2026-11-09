@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, AfterViewInit, ElementRef, ViewChild } fr
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
-import { ChallengeService } from '../../services/challenge-service';
+import { EventsService } from '../../services/events-service';
 import { AppEvent } from '../../models/app-event';
 import { EventsModalComponent } from '../../components/events-modal/events-modal';
 
@@ -31,11 +31,11 @@ export class EventsPage implements OnInit, AfterViewInit, OnDestroy {
   private subscription: Subscription | null = null;
   private observer: IntersectionObserver | null = null;
 
-  constructor(public readonly challengeService: ChallengeService) {}
+  constructor(private readonly eventsService: EventsService) {}
 
   ngOnInit() {
-    this.challengeService.loadEvents();
-    this.subscription = this.challengeService.events$.subscribe(events => {
+    this.eventsService.loadEvents();
+    this.subscription = this.eventsService.events$.subscribe(events => {
       this.events = [...events].sort((a, b) => a.daysLeft - b.daysLeft);
       this.applyFilter();
     });
@@ -43,7 +43,7 @@ export class EventsPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private async loadPastYears() {
-    this.pastYearCounts = await this.challengeService.loadPastYears();
+    this.pastYearCounts = await this.eventsService.loadPastYears();
     this.pastYears = Object.keys(this.pastYearCounts)
       .map(Number)
       .sort((a, b) => b - a);
@@ -99,7 +99,7 @@ export class EventsPage implements OnInit, AfterViewInit, OnDestroy {
     // Fetch from API if not already loaded
     if (!this.pastEventsByYear.has(year)) {
       this.loadingYears.add(year);
-      const events = await this.challengeService.loadPastEvents(year);
+      const events = await this.eventsService.loadPastEvents(year);
       this.pastEventsByYear.set(year, events);
       this.loadingYears.delete(year);
     }

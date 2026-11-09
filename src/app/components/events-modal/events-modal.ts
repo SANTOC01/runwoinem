@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { AppEvent } from '../../models/app-event';
-import { ChallengeService } from '../../services/challenge-service';
+import { EventsService } from '../../services/events-service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -19,7 +19,7 @@ export class EventsModalComponent {
   showAddParticipantForm = false;
   newParticipantName = '';
 
-  constructor(public challengeService: ChallengeService) {}
+  constructor(private readonly eventsService: EventsService) {}
 
 
   closeModal() {
@@ -32,7 +32,7 @@ export class EventsModalComponent {
     this.closeModal();
 
     try {
-      await this.challengeService.addParticipant(
+      await this.eventsService.addParticipant(
         this.event.name,
         this.newParticipantName
       );
