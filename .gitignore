@@ -41,3 +41,6 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# Apps Script backend source (kept locally, not versioned)
+/backend/
