@@ -16,6 +16,9 @@
           } @else {
             {{ rank.name }}
           }
+          @if (streakOf(rank.name); as weeks) {
+            <span class="streak" [title]="weeks + ' Wochen in Folge gelaufen'">🔥{{ weeks }}</span>
+          }
         </td>
         <td>{{ rank.value }} {{ unit() }}</td>
       </tr>

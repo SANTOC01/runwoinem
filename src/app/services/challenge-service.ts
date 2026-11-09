@@ -16,6 +16,7 @@ export class ChallengeService extends BaseChallengeService {
     metricUnit: 'HM',
     goalValue: 100000,
     maxEntryValue: 1200,
+    milestones: [1000, 2500, 5000, 10000, 15000],
     goals: [
       { target: 10000, emoji: '🎭', reward: 'Trainer im Kostüm' },
       { target: 25000, emoji: '🍕', reward: 'Pizza nach dem Lauf' },

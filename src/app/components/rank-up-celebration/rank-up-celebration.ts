@@ -1,30 +1,8 @@
-import { Component, DestroyRef, computed, effect, inject, input, output, signal } from '@angular/core';
-import { RankUp } from '../../interfaces/challenge.interface';
+import { Component, DestroyRef, computed, effect, inject, input, output } from '@angular/core';
+import { NextTarget, RankUp, RecordHit } from '../../interfaces/challenge.interface';
+import { recordText, targetText } from './submit-feedback';
 
-/**
- * Page-side state for a rank-up: first the celebration overlay, then (after it
- * closes) the climbing row in the ranking table.
- */
-export class RankUpState {
-  readonly celebrating = signal<RankUp | null>(null);
-  readonly highlighted = signal<RankUp | null>(null);
-
-  show(rankUp: RankUp | null): void {
-    if (rankUp) this.celebrating.set(rankUp);
-  }
-
-  dismiss(): void {
-    this.highlighted.set(this.celebrating());
-    this.celebrating.set(null);
-  }
-
-  reset(): void {
-    this.celebrating.set(null);
-    this.highlighted.set(null);
-  }
-}
-
-const AUTO_CLOSE_MS = 5000;
+const AUTO_CLOSE_MS = 6500;
 const CONFETTI = ['🎉', '✨', '🏃', '💪', '🔥', '⭐'];
 const MAX_NAMES = 3;
 
@@ -36,7 +14,18 @@ const MAX_NAMES = 3;
 })
 export class RankUpCelebration {
   readonly rankUp = input.required<RankUp>();
+  /** Personal bests hit by the same entry, shown below the places. */
+  readonly records = input<RecordHit[]>([]);
+  /** Next place to aim for (null when already first). */
+  readonly target = input<NextTarget | null>(null);
+  readonly unit = input('');
   readonly closed = output<void>();
+
+  readonly recordTexts = computed(() => this.records().map((r) => recordText(r, this.unit())));
+  readonly targetLabel = computed(() => {
+    const target = this.target();
+    return target ? targetText(target, this.unit()) : '';
+  });
 
   readonly firstName = computed(() => this.rankUp().name.split(' ')[0]);
   readonly places = computed(() => {

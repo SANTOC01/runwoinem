@@ -1,7 +1,7 @@
 import { inject } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { ChallengeConfig, ChallengeEntry, ChallengeRanking, RankUp } from '../interfaces/challenge.interface';
-import { detectRankUp } from '../utils/challenge-utils';
+import { ChallengeConfig, ChallengeEntry, ChallengeRanking, SubmitResult } from '../interfaces/challenge.interface';
+import { detectRankUp, detectRecords, nextTarget } from '../utils/challenge-utils';
 import { ChartData } from '../models/chart-data';
 import { LockService } from './lock-service';
 import { ToastService } from './toast-service';
@@ -62,8 +62,8 @@ export abstract class BaseChallengeService {
     return this.fetchedAt !== null && Date.now() - this.fetchedAt < withinMs;
   }
 
-  /** Adds an entry. Resolves to a RankUp if the person climbed the ranking, otherwise null. */
-  async submitData(name: string, value: number): Promise<RankUp | null> {
+  /** Adds an entry. Resolves to what changed for the person (null if nothing was submitted). */
+  async submitData(name: string, value: number): Promise<SubmitResult | null> {
     if (!this.config.active) {
       this.toast.show('Die Challenge ist beendet. Keine Einträge mehr möglich. 🔒');
       return null;
@@ -71,14 +71,20 @@ export abstract class BaseChallengeService {
     name = name.trim();
     if (!(await this.lockService.requestUnlock())) return null;
 
-    const before = this.rankingsSubject.value;
+    const entriesBefore = this.entriesSubject.value;
+    const rankingsBefore = this.rankingsSubject.value;
     await this.mutate(
       { name, value, date: new Date().toISOString() },
       'add',
       'Eintrag erfolgreich hinzugefügt!',
       'Fehler beim Hinzufügen des Eintrags!',
     );
-    return detectRankUp(before, this.rankingsSubject.value, name);
+    const rankingsAfter = this.rankingsSubject.value;
+    return {
+      rankUp: detectRankUp(rankingsBefore, rankingsAfter, name),
+      records: detectRecords(entriesBefore, this.entriesSubject.value, name, this.config.milestones),
+      nextTarget: nextTarget(rankingsAfter, name),
+    };
   }
 
   async deleteData(entry: ChallengeEntry): Promise<void> {

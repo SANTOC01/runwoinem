@@ -41,6 +41,20 @@
     }
   }
 
+  .boost-counter {
+    width: fit-content;
+    max-width: 100%;
+    margin: 0 auto 1.25rem;
+    padding: 0.4rem 1rem;
+    background: #fff9e0;
+    border: 1px dashed #f4c637;
+    border-radius: 999px;
+    color: #5c4500;
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-align: center;
+  }
+
   .boost-overlay {
     position: fixed;
     inset: 0;

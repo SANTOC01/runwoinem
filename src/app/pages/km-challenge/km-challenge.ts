@@ -11,9 +11,10 @@ import { LockService } from '../../services/lock-service';
 import { ToastService } from '../../services/toast-service';
 import { ChallengeForm } from '../../components/challenge-form/challenge-form';
 import { PersonalStats } from '../../components/personal-stats/personal-stats';
-import { RankUpCelebration, RankUpState } from '../../components/rank-up-celebration/rank-up-celebration';
+import { RankUpCelebration } from '../../components/rank-up-celebration/rank-up-celebration';
+import { SubmitFeedback } from '../../components/rank-up-celebration/submit-feedback';
 import { ChallengeEntry } from '../../interfaces/challenge.interface';
-import { newestFirst, progressPercent } from '../../utils/challenge-utils';
+import { newestFirst, progressPercent, streaksByName } from '../../utils/challenge-utils';
 
 const BOOST_SEEN_KEY = 'km_boost_intro_seen';
 
@@ -46,7 +47,11 @@ export class KmChallenge {
   readonly selectedName = signal('');
   readonly showBoostIntro = this.kmChallengeService.showBoostIntro();
   readonly boostInfoOpen = signal(false);
-  readonly rankUp = new RankUpState();
+  readonly feedback = new SubmitFeedback();
+  readonly streaks = computed(() => streaksByName(this.entries()));
+  readonly boostDay = this.kmChallengeService.isBoostDay();
+  /** Extra km the boost added to the shared total today. */
+  readonly boostBonus = computed(() => this.kmChallengeService.boostBonusToday(this.entries()));
 
   readonly boostFootnote = '⚡ Dienstag-Boost: zählt doppelt für den Eurotrip, nicht für die persönlichen km.';
   readonly isBoosted = (e: ChallengeEntry) => this.kmChallengeService.isBoosted(e);
@@ -87,11 +92,13 @@ export class KmChallenge {
 
   async onSubmit({ name, value }: { name: string; value: number }) {
     try {
-      this.rankUp.reset();
-      this.rankUp.show(await this.kmChallengeService.submitData(name, value));
-      if (this.kmChallengeService.isBoostDay()) {
-        this.toast.show('⚡ Dienstag-Boost: zählt doppelt für den Eurotrip!');
-      }
+      this.feedback.reset();
+      const result = await this.kmChallengeService.submitData(name, value);
+      const boostNotice =
+        result && this.kmChallengeService.isBoostDay()
+          ? '⚡ Dienstag-Boost: zählt doppelt für den Eurotrip!'
+          : undefined;
+      this.feedback.show(result, this.kmChallengeService.config.metricUnit, boostNotice);
     } catch (error) {
       console.error('Error submitting data:', error);
     }

@@ -2,6 +2,7 @@ import { Component, ElementRef, Injector, afterNextRender, effect, inject, input
 import { ChallengeRanking, RankUp } from '../../interfaces/challenge.interface';
 
 const RANK_EMOJIS = ['🏆', '🥈', '🥉'];
+const MIN_STREAK = 2;
 
 @Component({
   selector: 'app-ranking-table',
@@ -16,6 +17,14 @@ export class RankingTable {
   readonly nameSelected = output<string>();
   /** Animates this person's row climbing into its new place. */
   readonly rankUp = input<RankUp | null>(null);
+  /** Weekly run streak per name; a flame is shown from `MIN_STREAK` weeks on. */
+  readonly streaks = input<ReadonlyMap<string, number>>(new Map());
+
+  /** The streak to show for a name, or 0 when too short to brag about. */
+  streakOf(name: string): number {
+    const weeks = this.streaks().get(name) ?? 0;
+    return weeks >= MIN_STREAK ? weeks : 0;
+  }
 
   /** Rows the highlighted row climbs past (newcomers slide in from below the list). */
   climbRows(index: number): number {

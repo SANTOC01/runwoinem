@@ -52,6 +52,13 @@
         glow 1.2s 1.4s ease-in-out 3;
     }
 
+    .streak {
+      margin-left: 4px;
+      white-space: nowrap;
+      font-weight: bold;
+      color: #d35400;
+    }
+
     .name-link {
       padding: 0;
       background: none;

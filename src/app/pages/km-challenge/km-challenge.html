@@ -16,6 +16,16 @@
       </button>
     }
 
+    @if (boostDay) {
+      <p class="boost-counter">
+        @if (boostBonus() > 0) {
+          ⚡ Heute schon +{{ boostBonus() }} {{ kmChallengeService.config.metricUnit }} Bonus für den Eurotrip!
+        } @else {
+          ⚡ Heute zählt jeder {{ kmChallengeService.config.metricUnit }} doppelt – sei der Erste!
+        }
+      </p>
+    }
+
     @if (boostInfoOpen()) {
       <div class="boost-overlay" (click)="boostInfoOpen.set(false)">
         <div class="boost-modal" role="dialog" aria-modal="true" aria-labelledby="boost-title"
@@ -51,7 +61,8 @@
         [rankings]="rankings()"
         [unit]="kmChallengeService.config.metricUnit"
         [clickable]="true"
-        [rankUp]="rankUp.highlighted()"
+        [rankUp]="feedback.highlighted()"
+        [streaks]="streaks()"
         (nameSelected)="selectedName.set($event)">
       </app-ranking-table>
     </div>
@@ -76,8 +87,14 @@
     </app-personal-stats>
   }
 
-  @if (rankUp.celebrating(); as up) {
-    <app-rank-up-celebration [rankUp]="up" (closed)="rankUp.dismiss()"></app-rank-up-celebration>
+  @if (feedback.celebrating(); as c) {
+    <app-rank-up-celebration
+      [rankUp]="c.rankUp"
+      [records]="c.records"
+      [target]="c.nextTarget"
+      [unit]="kmChallengeService.config.metricUnit"
+      (closed)="feedback.dismiss()">
+    </app-rank-up-celebration>
   }
 
   @if (lockService.visible()) {

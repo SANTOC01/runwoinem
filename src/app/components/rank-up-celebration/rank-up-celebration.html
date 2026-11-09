@@ -31,6 +31,12 @@
       }
     </p>
     <p class="overtaken">Überholt: {{ overtakenText() }}</p>
+    @for (text of recordTexts(); track text) {
+      <p class="record">{{ text }}</p>
+    }
+    @if (targetLabel()) {
+      <p class="target">{{ targetLabel() }}</p>
+    }
 
     <button type="button" class="ok">Weiter so! 💪</button>
   </div>

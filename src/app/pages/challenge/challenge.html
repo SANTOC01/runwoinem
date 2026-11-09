@@ -24,7 +24,8 @@
       <app-ranking-table
         [rankings]="rankings()"
         [unit]="challengeService.config.metricUnit"
-        [rankUp]="rankUp.highlighted()">
+        [rankUp]="feedback.highlighted()"
+        [streaks]="streaks()">
       </app-ranking-table>
     </div>
 
@@ -44,8 +45,14 @@
     </div>
   </div>
 
-  @if (rankUp.celebrating(); as up) {
-    <app-rank-up-celebration [rankUp]="up" (closed)="rankUp.dismiss()"></app-rank-up-celebration>
+  @if (feedback.celebrating(); as c) {
+    <app-rank-up-celebration
+      [rankUp]="c.rankUp"
+      [records]="c.records"
+      [target]="c.nextTarget"
+      [unit]="challengeService.config.metricUnit"
+      (closed)="feedback.dismiss()">
+    </app-rank-up-celebration>
   }
 
   @if (lockService.visible()) {

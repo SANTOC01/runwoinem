@@ -24,6 +24,7 @@ export class KmChallengeService extends BaseChallengeService {
     metricUnit: 'km',
     goalValue: 12310,
     maxEntryValue: 200,
+    milestones: [50, 100, 250, 500, 750, 1000],
     goals: [
       /*{ target:  2630, emoji: '🏖️', reward: 'Wir erreichen Lissabon!' },
       { target:  7330, emoji: '🏺', reward: 'Wir erreichen Athen!' },
@@ -68,6 +69,15 @@ export class KmChallengeService extends BaseChallengeService {
       this.boostCache.set(entry.date, v);
     }
     return v;
+  }
+
+  /** Extra km the Tuesday boost added to the shared total today (the "+1x" part only). */
+  boostBonusToday(entries: ChallengeEntry[], now: Date = new Date()): number {
+    const today = this.berlinDay(now)?.day;
+    if (!today || !this.isBoostDate(now)) return 0;
+    return entries
+      .filter((e) => this.berlinDay(new Date(e.date))?.day === today)
+      .reduce((sum, e) => sum + e.value * (this.BOOST.multiplier - 1), 0);
   }
 
   /** Whether the given day (default: today) is a boost day. */
