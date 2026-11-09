@@ -1,0 +1,37 @@
+<div class="overlay" (click)="closed.emit()">
+  <div class="confetti" aria-hidden="true">
+    @for (c of confetti; track $index) {
+      <span
+        [style.left.%]="c.left"
+        [style.animationDelay.s]="c.delay"
+        [style.animationDuration.s]="c.duration"
+        [style.--drift]="c.drift + 'px'"
+        [style.--spin]="c.spin + 'deg'">
+        {{ c.emoji }}
+      </span>
+    }
+  </div>
+
+  <div class="card" role="status" aria-live="polite">
+    <p class="headline">{{ headline() }}</p>
+
+    <div class="places" aria-hidden="true">
+      @if (rankUp().from !== null) {
+        <span class="old">{{ rankUp().from }}</span>
+        <span class="arrow">➜</span>
+      }
+      <span class="new">{{ rankUp().to }}</span>
+    </div>
+
+    <p class="sub">
+      @if (places(); as p) {
+        {{ p }} {{ p === 1 ? 'Platz' : 'Plätze' }} nach oben, jetzt auf <strong>Platz {{ rankUp().to }}</strong>!
+      } @else {
+        Neu in der Rangliste auf <strong>Platz {{ rankUp().to }}</strong>!
+      }
+    </p>
+    <p class="overtaken">Überholt: {{ overtakenText() }}</p>
+
+    <button type="button" class="ok">Weiter so! 💪</button>
+  </div>
+</div>

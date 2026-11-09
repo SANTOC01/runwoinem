@@ -23,7 +23,8 @@
       </app-stats-table>
       <app-ranking-table
         [rankings]="rankings()"
-        [unit]="challengeService.config.metricUnit">
+        [unit]="challengeService.config.metricUnit"
+        [rankUp]="rankUp.highlighted()">
       </app-ranking-table>
     </div>
 
@@ -42,6 +43,10 @@
       </app-progress-chart>
     </div>
   </div>
+
+  @if (rankUp.celebrating(); as up) {
+    <app-rank-up-celebration [rankUp]="up" (closed)="rankUp.dismiss()"></app-rank-up-celebration>
+  }
 
   @if (lockService.visible()) {
     <app-lock-screen

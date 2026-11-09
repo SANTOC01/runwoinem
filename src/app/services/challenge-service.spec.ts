@@ -89,6 +89,21 @@ describe('Challenge services', () => {
       expect(await firstValueFrom(service.entries$)).toEqual([]);
     });
 
+    it('returns a rank-up when an entry climbs the ranking', async () => {
+      api.get.and.resolveTo({
+        main: [
+          ['Anna', '30', '2025-01-01T10:00:00Z'],
+          ['Ben', '20', '2025-01-01T10:00:00Z'],
+          ['Cleo', '10', '2025-01-01T10:00:00Z'],
+        ],
+      });
+      const service = TestBed.inject(KmChallengeService);
+      await service.loadData();
+
+      expect(await service.submitData('Cleo', 15)).toEqual({ name: 'Cleo', from: 3, to: 2, overtaken: ['Ben'] });
+      expect(await service.submitData('Cleo', 1)).toBeNull();
+    });
+
     it('does nothing when unlock is cancelled', async () => {
       lock.requestUnlock.and.resolveTo(false);
       const service = TestBed.inject(KmChallengeService);

@@ -11,6 +11,7 @@ import { LockService } from '../../services/lock-service';
 import { ToastService } from '../../services/toast-service';
 import { ChallengeForm } from '../../components/challenge-form/challenge-form';
 import { PersonalStats } from '../../components/personal-stats/personal-stats';
+import { RankUpCelebration, RankUpState } from '../../components/rank-up-celebration/rank-up-celebration';
 import { ChallengeEntry } from '../../interfaces/challenge.interface';
 import { newestFirst, progressPercent } from '../../utils/challenge-utils';
 
@@ -18,7 +19,16 @@ const BOOST_SEEN_KEY = 'km_boost_intro_seen';
 
 @Component({
   selector: 'app-km-challenge',
-  imports: [StatsTable, RankingTable, EuropeMap, GoalBanner, LockScreen, ChallengeForm, PersonalStats],
+  imports: [
+    StatsTable,
+    RankingTable,
+    EuropeMap,
+    GoalBanner,
+    LockScreen,
+    ChallengeForm,
+    PersonalStats,
+    RankUpCelebration,
+  ],
   templateUrl: './km-challenge.html',
   styleUrls: ['./km-challenge.scss'],
 })
@@ -36,6 +46,7 @@ export class KmChallenge {
   readonly selectedName = signal('');
   readonly showBoostIntro = this.kmChallengeService.showBoostIntro();
   readonly boostInfoOpen = signal(false);
+  readonly rankUp = new RankUpState();
 
   readonly boostFootnote = '⚡ Dienstag-Boost: zählt doppelt für den Eurotrip, nicht für die persönlichen km.';
   readonly isBoosted = (e: ChallengeEntry) => this.kmChallengeService.isBoosted(e);
@@ -76,7 +87,8 @@ export class KmChallenge {
 
   async onSubmit({ name, value }: { name: string; value: number }) {
     try {
-      await this.kmChallengeService.submitData(name, value);
+      this.rankUp.reset();
+      this.rankUp.show(await this.kmChallengeService.submitData(name, value));
       if (this.kmChallengeService.isBoostDay()) {
         this.toast.show('⚡ Dienstag-Boost: zählt doppelt für den Eurotrip!');
       }

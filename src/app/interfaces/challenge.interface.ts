@@ -9,6 +9,14 @@ export interface ChallengeRanking {
   value: number;
 }
 
+/** Someone climbed the ranking. Places are 1-based; `from` is null for a newcomer. */
+export interface RankUp {
+  name: string;
+  from: number | null;
+  to: number;
+  overtaken: string[];
+}
+
 export interface ChallengeGoal {
   target: number;
   emoji: string;
