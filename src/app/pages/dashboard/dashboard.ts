@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, HostListener, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { Events } from '../../components/events/events';
@@ -10,7 +10,6 @@ import { EventsModalComponent } from "../../components/events-modal/events-modal
 import { AppEvent } from '../../models/app-event';
 import { ToastService } from '../../services/toast-service';
 import { Loading } from '../../components/app-loading/app-loading';
-import { TrainingPopup } from '../../components/training-popup/training-popup';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -20,8 +19,7 @@ import { TrainingPopup } from '../../components/training-popup/training-popup';
     Events,
     EventsModalComponent,
     Loading,
-    EuropeMap,
-    TrainingPopup
+    EuropeMap
   ],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.scss']
@@ -34,10 +32,7 @@ export class Dashboard implements OnInit, OnDestroy {
   mapOpen = false;
   selectedEvent: AppEvent | null = null;
 
-  private readonly KM_OPEN_DATE = new Date('2026-03-03T18:10:00+01:00');
-  isKmChallengeOpen = false;
-  countdown = { days: 0, hours: 0, minutes: 0, seconds: 0 };
-  private countdownInterval: ReturnType<typeof setInterval> | null = null;
+  readonly nextRun = Dashboard.computeNextRun(new Date());
 
   constructor(
     public challengeService: ChallengeService,
@@ -45,12 +40,29 @@ export class Dashboard implements OnInit, OnDestroy {
     private toast: ToastService
   ) {}
 
-  ngOnInit() {
-    this.updateCountdown();
-    if (!this.isKmChallengeOpen) {
-      this.countdownInterval = setInterval(() => this.updateCountdown(), 1000);
-    }
+  /** Next Tuesday run (18:00–19:00), relative to `now`. */
+  static computeNextRun(now: Date): { relative: string; dateLabel: string; soon: boolean } {
+    const RUN_DAY = 2, START = 18, END = 19;
+    const run = new Date(now.getFullYear(), now.getMonth(), now.getDate(), START);
+    let days = (RUN_DAY - now.getDay() + 7) % 7;
+    if (days === 0 && now.getHours() >= END) days = 7;
+    run.setDate(run.getDate() + days);
 
+    const dateLabel = run.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' });
+    if (days === 0) {
+      const running = now.getHours() >= START;
+      return { relative: running ? 'läuft gerade' : 'heute', dateLabel, soon: true };
+    }
+    if (days === 1) return { relative: 'morgen', dateLabel, soon: true };
+    return { relative: `in ${days} Tagen`, dateLabel, soon: false };
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape() {
+    this.mapOpen = false;
+  }
+
+  ngOnInit() {
     // Initial load
     this.loadDashboardData();
 
@@ -66,25 +78,6 @@ export class Dashboard implements OnInit, OnDestroy {
     if (this.subscription) {
       this.subscription.unsubscribe();
     }
-    if (this.countdownInterval) {
-      clearInterval(this.countdownInterval);
-    }
-  }
-
-  private updateCountdown() {
-    const diff = this.KM_OPEN_DATE.getTime() - Date.now();
-    if (diff <= 0) {
-      this.isKmChallengeOpen = true;
-      if (this.countdownInterval) {
-        clearInterval(this.countdownInterval);
-        this.countdownInterval = null;
-      }
-      return;
-    }
-    this.countdown.days    = Math.floor(diff / 86400000);
-    this.countdown.hours   = Math.floor((diff % 86400000) / 3600000);
-    this.countdown.minutes = Math.floor((diff % 3600000) / 60000);
-    this.countdown.seconds = Math.floor((diff % 60000) / 1000);
   }
 
   private async loadDashboardData() {

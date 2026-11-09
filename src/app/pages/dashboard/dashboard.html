@@ -1,56 +1,51 @@
-<div class="dashboard-banner">
-  <img src="/assets/banner/banner.jpg" alt="Banner" class="banner-img"/>
-</div>
-
-<div class="welcome-banner">
-  <h1>Lauftreff Runwoinem</h1>
-</div>
+<header class="hero">
+  <img src="/assets/banner/banner.jpg" alt="Die Laufgruppe von Runwoinem jubelt auf einer Wiese bei Weinheim" class="hero-img"/>
+  <div class="hero-text">
+    <p class="hero-club">Runwoinem, der Lauftreff in Weinheim</p>
+    <h1 class="hero-title">Jeden Dienstag um 18&nbsp;Uhr am&nbsp;Waidsee.</h1>
+    <!-- Styled as a race bib (Startnummer), pinned on with four safety pins -->
+    <p class="bib" [class.is-soon]="nextRun.soon">
+      <span class="bib-label">Nächster Lauf</span>
+      <span class="bib-when">{{ nextRun.relative }}</span>
+      <span class="bib-date">{{ nextRun.dateLabel }}</span>
+    </p>
+  </div>
+</header>
 
 <div class="dashboard">
-
   <div class="content-wrapper">
 
-    <div class="info-widget">
-      <h2>
-        ℹ️ Infos
-      </h2>
-      <p>
-        Unser Lauftreff findet jeden Dienstag um 18 Uhr am Fahrradständer
-        am Waidsee statt. Gemeinsam laufen wir etwa eine Stunde,
-        um Freude an der Bewegung zu haben,
-        fit zu bleiben und den Sport in geselliger Runde zu genießen.
-        Die Streckenlänge und das Tempo passen wir dabei flexibel an die
-        Bedürfnisse und Vorlieben aller Teilnehmer an, damit jeder in seinem
-        eigenen Tempo mitlaufen kann.
-      </p> <br>
-
-      <h2>Social Media</h2>
-      <a href="https://www.strava.com/clubs/runwoinem" target="_blank" rel="noopener"
-         class="social-icon-link" title="Strava">
-        <img src="/assets/banner/strava.png" alt="Strava" class="social-icon"/>
-      </a>
-      <a href="https://www.instagram.com/runwoinem/" target="_blank" rel="noopener"
-         class="social-icon-link" title="Instagram">
-        <img src="/assets/banner/instagram.png" alt="Instagram" class="social-icon"/>
-      </a>
-      <a href="https://chat.whatsapp.com/ERi10lC4L8d9vwRW2m2Js1" target="_blank" rel="noopener"
-         class="social-icon-link" title="WhatsApp">
-        <img src="/assets/banner/whatsapp.png" alt="WhatsApp" class="social-icon"/>
-      </a>
-    </div>
-
-    <div class="map-popup" [class.open]="mapOpen" (click)="toggleMap()">
-      <img src="/assets/map.png" alt="Treffpunkt am Waidsee - Karte"/>
-      <div class="map-caption">
-        <span>📍 Treffpunkt am Waidsee</span>
-        @if (!mapOpen) {
-          <span class="expand-hint">Karte anzeigen ▼</span>
-        }
+    <section class="about" aria-labelledby="about-title">
+      <div class="about-text">
+        <h2 id="about-title">Lauf einfach mit</h2>
+        <p>
+          Wir treffen uns am Fahrradständer am Waidsee und laufen gemeinsam etwa
+          eine Stunde. Strecke und Tempo passen wir an die Gruppe an, damit jeder
+          in seinem eigenen Tempo mitlaufen kann. Anmelden musst du dich nicht.
+        </p>
+        <div class="socials">
+          <a href="https://chat.whatsapp.com/ERi10lC4L8d9vwRW2m2Js1" target="_blank" rel="noopener" class="social social-primary">
+            <img src="/assets/banner/whatsapp.png" alt="" class="social-icon"/>
+            WhatsApp-Gruppe beitreten
+          </a>
+          <a href="https://www.strava.com/clubs/runwoinem" target="_blank" rel="noopener" class="social">
+            <img src="/assets/banner/strava.png" alt="" class="social-icon"/>
+            Strava
+          </a>
+          <a href="https://www.instagram.com/runwoinem/" target="_blank" rel="noopener" class="social">
+            <img src="/assets/banner/instagram.png" alt="" class="social-icon"/>
+            Instagram
+          </a>
+        </div>
       </div>
-      @if (mapOpen) {
-        <div class="close-map-overlay"></div>
-      }
-    </div>
+
+      <button type="button" class="map-card" (click)="toggleMap()" aria-label="Karte zum Treffpunkt vergrößern">
+        <img src="/assets/map.png" alt="Karte: Treffpunkt am Fahrradständer am Waidsee"/>
+        <span class="map-caption">📍 Treffpunkt am Waidsee <span class="map-hint">Vergrößern</span></span>
+      </button>
+    </section>
+
+    <h2 class="section-title">Termine und Challenges</h2>
 
     @if (!showWidget) {
       <div class="dashboard-loading-container">
@@ -71,74 +66,32 @@
         <div class="challenge-column">
 
           <div class="eurotrip-widget"
-               [style.backgroundImage]="isKmChallengeOpen && eurotripBgImage ? 'url(' + eurotripBgImage + ')' : 'none'"
-               [class.has-bg]="isKmChallengeOpen && !!eurotripBgImage"
-               [class.construction-mode]="!isKmChallengeOpen"
-               role="region" aria-label="Eurotrip Challenge Widget">
+               [style.backgroundImage]="eurotripBgImage ? 'url(' + eurotripBgImage + ')' : 'none'"
+               [class.has-bg]="!!eurotripBgImage"
+               role="region" aria-label="Eurotrip Challenge">
 
-            @if (isKmChallengeOpen) {
-              <!-- Hidden: still instantiated to emit the background image path -->
-              <div class="widget-map-hidden" aria-hidden="true">
-                <app-europe-map
-                  [total]="(kmChallengeService.total$ | async) || 0"
-                  (bgImagePath)="eurotripBgImage = $event">
-                </app-europe-map>
+            <!-- Hidden: still instantiated to emit the background image path -->
+            <div class="widget-map-hidden" aria-hidden="true">
+              <app-europe-map
+                [total]="(kmChallengeService.total$ | async) || 0"
+                (bgImagePath)="eurotripBgImage = $event">
+              </app-europe-map>
+            </div>
+            <div class="widget-content">
+              <h3 class="widget-title">🗺️ Eurotrip Challenge</h3>
+              <div class="widget-km-display">
+                <span class="widget-km-number">{{ (kmChallengeService.total$ | async) || 0 | number:'1.0-0':'de' }}</span>
+                <span class="widget-km-unit">km zusammen gelaufen</span>
               </div>
-              <div class="widget-content">
-                <h2 class="widget-title">🗺️ Eurotrip Challenge</h2>
-                <div class="widget-km-display">
-                  <span class="widget-km-number">{{ (kmChallengeService.total$ | async) || 0 | number:'1.0-0' }}</span>
-                  <span class="widget-km-unit">km gelaufen</span>
-                </div>
-                <a routerLink="/km-challenge"
-                   class="challenge-btn"
-                   aria-label="Navigiere zur Eurotrip Challenge Detailseite">
-                  🚀 Eurotrip Challenge
-                </a>
-              </div>
-            } @else {
-              <div class="widget-content construction-content">
-                <h2 class="widget-title">Schnapp dir deine Gummibärchen</h2>
-                <div class="construction-body">
-                  <div class="construction-icon">🗺️</div>
-                  <p class="construction-text">Wir brauchen etwas mehr Zeit als geplant – aber keine Sorge, es wird „Moderat". 😏<br>🏃‍♂️🌍✨</p>
-                  <p class="construction-text"><br>Startet am <strong>3. März 2026 um 18:10 Uhr</strong></p>
-                  <div class="countdown-grid">
-                    <div class="countdown-block">
-                      <span class="countdown-num">{{ countdown.days }}</span>
-                      <span class="countdown-label">Tage</span>
-                    </div>
-                    <div class="countdown-sep">:</div>
-                    <div class="countdown-block">
-                      <span class="countdown-num">{{ countdown.hours | number:'2.0-0' }}</span>
-                      <span class="countdown-label">Std</span>
-                    </div>
-                    <div class="countdown-sep">:</div>
-                    <div class="countdown-block">
-                      <span class="countdown-num">{{ countdown.minutes | number:'2.0-0' }}</span>
-                      <span class="countdown-label">Min</span>
-                    </div>
-                    <div class="countdown-sep">:</div>
-                    <div class="countdown-block">
-                      <span class="countdown-num">{{ countdown.seconds | number:'2.0-0' }}</span>
-                      <span class="countdown-label">Sek</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            }
-
+              <a routerLink="/km-challenge" class="challenge-btn">Zur Eurotrip Challenge</a>
+            </div>
           </div>
 
           <div class="challenge-widget-mini" role="region" aria-label="Gipfelstürmer Challenge (beendet)">
             <div class="widget-content-mini">
               <h3>🏔️ Gipfelstürmer Challenge</h3>
-              <p class="challenge-ended-text">🔒 Challenge beendet – danke für eure Teilnahme!</p>
-              <a routerLink="/challenge"
-                 class="challenge-btn-mini"
-                 aria-label="Gipfelstürmer Challenge Detailseite">
-                🎯 Gipfelstürmer Challenge
-              </a>
+              <p class="challenge-ended-text">Beendet. Danke fürs Mitmachen!</p>
+              <a routerLink="/challenge" class="challenge-btn-mini">Ergebnisse ansehen</a>
             </div>
           </div>
 
@@ -149,11 +102,15 @@
   </div>
 </div>
 
+@if (mapOpen) {
+  <div class="map-lightbox" (click)="toggleMap()" role="dialog" aria-modal="true" aria-label="Karte zum Treffpunkt">
+    <img src="/assets/map.png" alt="Karte: Treffpunkt am Fahrradständer am Waidsee"/>
+    <button type="button" class="map-close" (click)="toggleMap()">Karte schließen</button>
+  </div>
+}
+
 <app-events-modal
   [event]="selectedEvent"
   [show]="!!selectedEvent"
   (close)="closeEventModal()">
 </app-events-modal>
-
-<app-training-popup />
-
