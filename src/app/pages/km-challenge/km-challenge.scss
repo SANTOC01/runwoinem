@@ -67,8 +67,17 @@
     font-size: 0.9rem;
     text-align: center;
 
-    p {
+    .week-line {
       margin: 0;
+      line-height: 1.6;
+
+      & + .week-line {
+        margin-top: 0.1rem;
+      }
+    }
+
+    .keep {
+      white-space: nowrap;
     }
 
     .week-trend {
@@ -83,6 +92,7 @@
 
     // Inline "(▲ +31 km)"; the arrow and sign carry the meaning, colour only reinforces it.
     .trend-toggle {
+      margin-left: 0.35rem;
       padding: 0;
       background: none;
       border: none;

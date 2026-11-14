@@ -28,8 +28,9 @@
 
     @if (week(); as w) {
       <div class="week-pill">
-        <p>
-          📅 Diese Woche: <strong>{{ w.total }} {{ kmChallengeService.config.metricUnit }}</strong> gemeinsam
+        <!-- One short line per fact; each line keeps together instead of wrapping mid-sentence. -->
+        <p class="week-line">
+          <span class="keep">📅 Diese Woche: <strong>{{ w.total }} {{ kmChallengeService.config.metricUnit }}</strong></span>
           @if (change(); as c) {
             <button
               type="button"
@@ -43,15 +44,17 @@
               ({{ changeLabel() }})
             </button>
           }
-          @if (w.leader; as l) {
-            · ⭐ {{ l.name }} führt mit {{ l.value }} {{ kmChallengeService.config.metricUnit }}
-          } @else if (w.total === 0) {
-            · noch niemand unterwegs – wer legt vor?
-          }
-          @if (riser(); as r) {
-            <br />📈 Aufsteiger: {{ r.name }} mit +{{ r.percent }} % über dem eigenen Schnitt
-          }
         </p>
+        @if (w.leader; as l) {
+          <p class="week-line">⭐ <strong>{{ l.name }}</strong> führt mit {{ l.value }} {{ kmChallengeService.config.metricUnit }}</p>
+        } @else if (w.total === 0) {
+          <p class="week-line">Noch niemand unterwegs – wer legt vor?</p>
+        }
+        @if (riser(); as r) {
+          <p class="week-line" title="Mehr gelaufen als sonst: im Vergleich zum eigenen Wochenschnitt">
+            📈 Aufsteiger: <strong>{{ r.name }}</strong> (+{{ r.percent }} %)
+          </p>
+        }
         @if (trendOpen() && change(); as c) {
           <div class="week-trend" id="week-trend">
             <app-week-trend [points]="trend()" [unit]="kmChallengeService.config.metricUnit"></app-week-trend>
