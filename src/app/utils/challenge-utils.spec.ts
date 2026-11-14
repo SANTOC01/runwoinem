@@ -177,6 +177,22 @@ describe('badgesFor', () => {
     expect(earned(entries)).toEqual(['Erster Schritt', 'Waidsee-Stammgast', 'Am Ball', 'Halbmarathon']);
   });
 
+  it('only counts race distances within the tolerance (no bulk-logged months)', () => {
+    const one = (km: number) => earned([e('Anna', km, '2026-11-05')]).filter((l) => l.includes('arathon'));
+    expect(one(20)).toEqual([]);
+    expect(one(21)).toEqual(['Halbmarathon']);
+    expect(one(23)).toEqual(['Halbmarathon']);
+    expect(one(24)).toEqual([]);
+    expect(one(42)).toEqual(['Halbmarathon', 'Marathon']); // a marathon includes a half
+    expect(one(44)).toEqual(['Halbmarathon', 'Marathon']);
+    expect(one(60)).toEqual([]);
+    expect(one(100)).toEqual([]);
+    expect(earned([e('Anna', 22, '2026-11-01'), e('Anna', 43, '2026-11-08')]).slice(-2)).toEqual([
+      'Halbmarathon',
+      'Marathon',
+    ]);
+  });
+
   it('leaves out distance badges for non-km challenges', () => {
     const labels = badgesFor([e('Anna', 500, '2026-11-05')], 'HM').map((b) => b.label);
     expect(labels).not.toContain('Marathon');

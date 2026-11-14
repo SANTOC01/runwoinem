@@ -169,10 +169,19 @@ export function nextStop(total: number, stops: RouteStop[], lapKm: number): Next
     : { name: stops[0].name, remaining: Math.round(lapKm - total) };
 }
 
+/**
+ * Race-distance badges only count a single entry within [min, max] km: a bit of tolerance
+ * for GPS and the way home, but a 60 or 100 km entry is a month logged at once, not a race.
+ */
+export const DISTANCE_BADGES = {
+  half: { min: 21, max: 23 },
+  marathon: { min: 42, max: 44 },
+} as const;
+
 /** Badges for one person's entries. Distance badges only apply to km challenges. */
 export function badgesFor(mine: ChallengeEntry[], unit: string): Badge[] {
   const runs = mine.length;
-  const longest = Math.max(0, ...mine.map((e) => e.value));
+  const ranRange = ({ min, max }: { min: number; max: number }) => mine.some((e) => e.value >= min && e.value <= max);
   const tuesdays = new Set(
     mine
       .map((e) => new Date(e.date))
@@ -190,8 +199,18 @@ export function badgesFor(mine: ChallengeEntry[], unit: string): Badge[] {
   ];
   if (unit === 'km') {
     badges.push(
-      { emoji: '🏃', label: 'Halbmarathon', hint: 'Ein Lauf ab 21 km', earned: longest >= 21 },
-      { emoji: '🦄', label: 'Marathon', hint: 'Ein Lauf ab 42 km', earned: longest >= 42 },
+      {
+        emoji: '🏃',
+        label: 'Halbmarathon',
+        hint: `Ein Lauf von ${DISTANCE_BADGES.half.min}–${DISTANCE_BADGES.half.max} km`,
+        earned: ranRange(DISTANCE_BADGES.half) || ranRange(DISTANCE_BADGES.marathon), // a marathon includes a half
+      },
+      {
+        emoji: '🦄',
+        label: 'Marathon',
+        hint: `Ein Lauf von ${DISTANCE_BADGES.marathon.min}–${DISTANCE_BADGES.marathon.max} km`,
+        earned: ranRange(DISTANCE_BADGES.marathon),
+      },
     );
   }
   return badges;
