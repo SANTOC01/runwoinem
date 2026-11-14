@@ -5,6 +5,11 @@ export interface ChallengeEntry {
   date: string;
   /** Row id from the backend (missing for entries not yet saved, or from older backends). */
   id?: string;
+  /**
+   * Several runs logged at once: counts for totals and the ranking, but not for run/week
+   * analytics (longest run, best week, badges, week spotlight, trend).
+   */
+  collection?: boolean;
 }
 
 /** This week's spotlight, computed by the backend. */
@@ -116,6 +121,12 @@ export interface ChallengeConfig {
   metricUnit: string;
   goalValue: number;
   maxEntryValue: number;
+  /**
+   * Collections (several runs logged at once). New entries above `askAbove` ask the runner
+   * whether it was one run; older entries without an answer count as a collection above
+   * `legacyAbove`. Omit for challenges without the question (e.g. Höhenmeter).
+   */
+  collections?: { askAbove: number; legacyAbove: number };
   /** Personal total thresholds that get celebrated when crossed. */
   milestones: number[];
   goals: ChallengeGoal[];

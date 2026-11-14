@@ -25,11 +25,12 @@ Live at https://runwoinem.de (GitHub Pages).
 Google Apps Script bound to the Google Sheet (Extensions → Apps Script). The source is kept locally in `backend/` (git-ignored, so it never reaches GitHub): `Code.gs`, `appsscript.json` and clasp's `.clasp.json` (holds the Script ID). The web app URL is in `src/environments/environment*.ts`.
 
 ### API
-- Sheet `MainTable` columns: A name · B value · C date (the run's day) · D challenge · E id · F submittedAt. Rows without an id get one on the next read.
-- GET `?action=getAll&challenge=HM1|KM1` → `{ main: [[name, value, date, id], …], week: { total, leader, riser } }`. `week` = Läufer/Aufsteiger der Woche, computed on the server; names in `SPOTLIGHT_SKIP` (in `Code.gs` only, deliberately not in the public frontend) are never picked.
+- Sheet `MainTable` columns: A name · B value · C date (the run's day) · D challenge · E id · F submittedAt · G kind. Rows without an id get one on the next read.
+- **Collections** (several runs logged at once, `kind = "collection"`): count for totals, ranking and milestones, but not for run/week analytics (longest run, best week, Ø pro Lauf, distance badges, week pill/trend, Läufer/Aufsteiger). The form asks above `collections.askAbove` (29 km) and stores the answer (`collection` / `single`); older rows without an answer count as a collection above `legacyAbove` (53 km). Same rule in `isCollection` (challenge-utils.ts) and `isCollection_` (Code.gs).
+- GET `?action=getAll&challenge=HM1|KM1` → `{ main: [[name, value, date, id, kind], …], week: { total, leader, riser } }`. `week` = Läufer/Aufsteiger der Woche, computed on the server; names in `SPOTLIGHT_SKIP` (in `Code.gs` only, deliberately not in the public frontend) are never picked.
 - GET `getEvents`, `getPastEvents[&year=YYYY]`, `training` (not used by the site, kept for compatibility).
 - POST (body sent as `text/plain` to avoid a CORS preflight):
-  - `add`: `name`, `hohenmeter` (= the value, any unit), `challenge`, optional `date` (`YYYY-MM-DD`, up to 7 days back). Answers `{ status, entry: [name, value, date, id], main, week }`.
+  - `add`: `name`, `hohenmeter` (= the value, any unit), `challenge`, optional `date` (`YYYY-MM-DD`, up to 7 days back), optional `kind` (`collection` | `single`). Answers `{ status, entry: [name, value, date, id, kind], main, week }`.
   - `delete`: `id` (preferred) or `name` + `hohenmeter` + `challenge` (old clients). Answers `{ status, main, week }`.
   - `addParticipant`: `eventName`, `participantName`.
 - Server-side rules: per-challenge max (`MAX_VALUE_BY_CHALLENGE`), closed challenges (`CLOSED_CHALLENGES`), names reuse the existing spelling, the same entry within 60 s is a retry (not saved twice).

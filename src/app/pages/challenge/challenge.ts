@@ -9,7 +9,7 @@ import { GoalBanner } from '../../components/goal-banner/goal-banner';
 import { LockScreen } from '../../components/app-lock-screen/app-lock-screen';
 import { LockService } from '../../services/lock-service';
 import { ToastService } from '../../services/toast-service';
-import { ChallengeForm } from '../../components/challenge-form/challenge-form';
+import { ChallengeForm, FormSubmission } from '../../components/challenge-form/challenge-form';
 import { RankUpCelebration } from '../../components/rank-up-celebration/rank-up-celebration';
 import { SubmitFeedback } from '../../components/rank-up-celebration/submit-feedback';
 import { SubmitProgress } from '../../components/submit-progress/submit-progress';
@@ -57,7 +57,7 @@ export class Challenge {
     }
   }
 
-  async onSubmit({ name, value, date }: { name: string; value: number; date?: string }) {
+  async onSubmit({ name, value, date }: FormSubmission) {
     try {
       this.feedback.reset();
       const result = await this.challengeService.submitData(name, value, date);

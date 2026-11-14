@@ -34,6 +34,35 @@ export function weekStart(date: Date): number {
   return Math.round((d.getTime() - offset * DAY_MS) / DAY_MS);
 }
 
+/**
+ * Whether an entry is a collection of several runs logged at once. Entries saved with the
+ * question answered carry the answer (`kind`); older ones count as a collection above `legacyAbove`.
+ * Collections count for totals and the ranking, but not for run/week analytics.
+ */
+export function isCollection(value: number, kind: string | undefined, legacyAbove = Infinity): boolean {
+  if (kind === 'collection') return true;
+  if (kind === 'single') return false;
+  return value > legacyAbove;
+}
+
+/** Entries that describe single runs (no collections): the basis for run/week analytics. */
+export function singleRuns(entries: ChallengeEntry[]): ChallengeEntry[] {
+  return entries.filter((e) => !e.collection);
+}
+
+/**
+ * Like `weeklyTotals`, but weeks that contain a collection are left out entirely:
+ * their km were run over a longer time, so the week can't be a best week.
+ */
+export function validWeeklyTotals(entries: ChallengeEntry[]): Map<number, number> {
+  const weeks = weeklyTotals(entries);
+  for (const e of entries) {
+    const d = new Date(e.date);
+    if (e.collection && !isNaN(d.getTime())) weeks.delete(weekStart(d));
+  }
+  return weeks;
+}
+
 /** Summed value per week (keyed by `weekStart`) for entries of a single person. */
 export function weeklyTotals(entries: ChallengeEntry[]): Map<number, number> {
   const weeks = new Map<number, number>();
@@ -87,12 +116,12 @@ export function longestStreak(weeks: Iterable<number>): number {
 }
 
 /**
- * This week's sum for everyone together. (Läufer/Aufsteiger der Woche are computed by
- * the backend, see `WeekSummary`.)
+ * This week's sum of single runs for everyone together (collections are left out).
+ * Läufer/Aufsteiger der Woche are computed by the backend, see `WeekSummary`.
  */
 export function weekTotal(entries: ChallengeEntry[], now = new Date()): number {
   const week = weekStart(now);
-  return entries.reduce((sum, e) => {
+  return singleRuns(entries).reduce((sum, e) => {
     const d = new Date(e.date);
     return !isNaN(d.getTime()) && weekStart(d) === week ? sum + e.value : sum;
   }, 0);
@@ -111,14 +140,15 @@ export interface TrendPoint {
 }
 
 /**
- * Rolling 7-day totals for everyone together, one point per day for the last `days`
- * days (ending today). Rolling windows avoid the dip every Monday that calendar weeks have.
+ * Rolling 7-day totals of single runs for everyone together (collections are left out), one
+ * point per day for the last `days` days (ending today). Rolling windows avoid the dip every
+ * Monday that calendar weeks have.
  */
 export function rollingWeekTrend(entries: ChallengeEntry[], now = new Date(), days = 56): TrendPoint[] {
   const today = dayNumber(now);
   const first = today - days + 1;
   const perDay = new Map<number, number>();
-  for (const e of entries) {
+  for (const e of singleRuns(entries)) {
     const d = new Date(e.date);
     if (isNaN(d.getTime())) continue;
     const day = dayNumber(d);
@@ -197,7 +227,8 @@ export const DISTANCE_BADGES = {
 /** Badges for one person's entries. Distance badges only apply to km challenges. */
 export function badgesFor(mine: ChallengeEntry[], unit: string): Badge[] {
   const runs = mine.length;
-  const ranRange = ({ min, max }: { min: number; max: number }) => mine.some((e) => e.value >= min && e.value <= max);
+  const ranRange = ({ min, max }: { min: number; max: number }) =>
+    singleRuns(mine).some((e) => e.value >= min && e.value <= max);
   const tuesdays = new Set(
     mine
       .map((e) => new Date(e.date))
@@ -240,10 +271,16 @@ export function nextTarget(rankings: ChallengeRanking[], name: string): NextTarg
   return { name: ahead.name, place: index, needed: ahead.value - rankings[index].value + 1 };
 }
 
+/** Longest single run (collections don't count). 0 if none. */
+export function longestRun(entries: ChallengeEntry[]): number {
+  return singleRuns(entries).reduce((best, e) => (e.value > best ? e.value : best), 0);
+}
+
 /**
- * Personal bests hit by the entry that turned `before` into `after`: longest single
- * entry, best week (only when the week newly passes the previous best) and the
- * highest personal-total milestone crossed. The very first entry never counts as a record.
+ * Personal bests hit by the entry that turned `before` into `after`: longest single run,
+ * best week (only when the week newly passes the previous best; weeks with a collection
+ * don't count) and the highest personal-total milestone crossed (collections count there).
+ * The very first entry never counts as a record.
  */
 export function detectRecords(
   before: ChallengeEntry[],
@@ -258,12 +295,13 @@ export function detectRecords(
   const hits: RecordHit[] = [];
 
   if (mineBefore.length) {
-    const prevLongest = Math.max(...mineBefore.map((e) => e.value));
-    const newLongest = Math.max(...mineAfter.map((e) => e.value));
-    if (newLongest > prevLongest) hits.push({ kind: 'longest', value: newLongest });
+    const prevLongest = longestRun(mineBefore);
+    const newLongest = longestRun(mineAfter);
+    if (prevLongest > 0 && newLongest > prevLongest) hits.push({ kind: 'longest', value: newLongest });
 
-    const weeksBefore = weeklyTotals(mineBefore);
-    for (const [week, total] of weeklyTotals(mineAfter)) {
+    // Weeks with a collection neither set nor beat a best week.
+    const weeksBefore = validWeeklyTotals(mineBefore);
+    for (const [week, total] of validWeeklyTotals(mineAfter)) {
       const prevTotal = weeksBefore.get(week) ?? 0;
       if (total <= prevTotal) continue;
       const prevBest = Math.max(0, ...[...weeksBefore].filter(([w]) => w !== week).map(([, t]) => t));

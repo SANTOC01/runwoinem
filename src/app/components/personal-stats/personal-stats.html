@@ -9,11 +9,15 @@
       <div class="grid">
         <div class="tile"><span class="val">{{ s.total }} {{ unit() }}</span><span class="lbl">Gesamt</span></div>
         <div class="tile"><span class="val">{{ s.runs }}</span><span class="lbl">Läufe</span></div>
-        <div class="tile"><span class="val">{{ s.longest }} {{ unit() }}</span><span class="lbl">Längster Lauf</span></div>
-        <div class="tile"><span class="val">{{ s.average }} {{ unit() }}</span><span class="lbl">Ø pro Lauf</span></div>
         <div class="tile">
-          <span class="val">{{ s.bestWeekKm }} {{ unit() }}</span>
-          <span class="lbl">Beste Woche ({{ s.bestWeekLabel }})</span>
+          <span class="val">{{ s.longest ? s.longest + ' ' + unit() : '–' }}</span><span class="lbl">Längster Lauf</span>
+        </div>
+        <div class="tile">
+          <span class="val">{{ s.average ? s.average + ' ' + unit() : '–' }}</span><span class="lbl">Ø pro Lauf</span>
+        </div>
+        <div class="tile">
+          <span class="val">{{ s.bestWeekKm ? s.bestWeekKm + ' ' + unit() : '–' }}</span>
+          <span class="lbl">Beste Woche{{ s.bestWeekLabel ? ' (' + s.bestWeekLabel + ')' : '' }}</span>
         </div>
         <div class="tile">
           <span class="val">{{ s.streak }} {{ s.streak === 1 ? 'Woche' : 'Wochen' }}</span>

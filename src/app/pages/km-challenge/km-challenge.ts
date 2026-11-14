@@ -9,7 +9,7 @@ import { GoalBanner } from '../../components/goal-banner/goal-banner';
 import { LockScreen } from '../../components/app-lock-screen/app-lock-screen';
 import { LockService } from '../../services/lock-service';
 import { ToastService } from '../../services/toast-service';
-import { ChallengeForm } from '../../components/challenge-form/challenge-form';
+import { ChallengeForm, FormSubmission } from '../../components/challenge-form/challenge-form';
 import { PersonalStats } from '../../components/personal-stats/personal-stats';
 import { RankUpCelebration } from '../../components/rank-up-celebration/rank-up-celebration';
 import { SubmitFeedback } from '../../components/rank-up-celebration/submit-feedback';
@@ -125,10 +125,10 @@ export class KmChallenge {
     }
   }
 
-  async onSubmit({ name, value, date }: { name: string; value: number; date?: string }) {
+  async onSubmit({ name, value, date, collection }: FormSubmission) {
     try {
       this.feedback.reset();
-      const result = await this.kmChallengeService.submitData(name, value, date);
+      const result = await this.kmChallengeService.submitData(name, value, date, collection);
       const runDay = date ? new Date(`${date}T12:00:00`) : new Date();
       const boostNotice =
         result && this.kmChallengeService.isBoostDay(runDay)

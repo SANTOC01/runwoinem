@@ -177,16 +177,48 @@ describe('Challenge services', () => {
       expect(lock.requestUnlock).not.toHaveBeenCalled();
     });
 
-    it('still reads the cache format of older versions', async () => {
+    it('fetches fresh data instead of using a cache from an older version', async () => {
       localStorage.setItem(
         'km_challenge_data',
         JSON.stringify({ data: [{ name: 'Anna', value: 7, date: '2025-01-01T10:00:00Z' }], timestamp: Date.now() }),
       );
+      api.get.and.resolveTo({ main: [['Ben', 5, '2025-01-01T10:00:00Z', 'b1', '']] });
       const service = TestBed.inject(KmChallengeService);
       await service.loadData();
-      expect(api.get).not.toHaveBeenCalled();
-      expect((await firstValueFrom(service.entries$))[0].name).toBe('Anna');
-      expect(service.week()).toBeNull();
+      expect(api.get).toHaveBeenCalled();
+      expect((await firstValueFrom(service.entries$))[0].name).toBe('Ben');
+    });
+
+    it('marks collections from the answer or, for old entries, above 53 km', async () => {
+      const day = '2025-01-01T10:00:00Z';
+      api.get.and.resolveTo({
+        main: [
+          ['Anna', 102, day, 'a1', ''], // old entry, no answer: collection
+          ['Anna', 53, day, 'a2'], // old entry at the limit: single run
+          ['Ben', 35, day, 'b1', 'collection'],
+          ['Ben', 60, day, 'b2', 'single'], // "Respekt.."
+        ],
+      });
+      const service = TestBed.inject(KmChallengeService);
+      await service.loadData();
+      const flags = (await firstValueFrom(service.entries$)).map((e) => !!e.collection);
+      expect(flags).toEqual([true, false, true, false]);
+    });
+
+    it('sends the answer to "several runs?" with the entry', async () => {
+      api.get.and.resolveTo({ main: [] });
+      const service = TestBed.inject(KmChallengeService);
+      await service.loadData();
+      await service.submitData('Anna', 35, undefined, true);
+      expect(api.post).toHaveBeenCalledWith(jasmine.objectContaining({ action: 'add', kind: 'collection' }));
+      expect((await firstValueFrom(service.entries$))[0].collection).toBeTrue();
+
+      await service.submitData('Anna', 60, undefined, false);
+      expect(api.post).toHaveBeenCalledWith(jasmine.objectContaining({ hohenmeter: 60, kind: 'single' }));
+
+      api.post.calls.reset();
+      await service.submitData('Anna', 5);
+      expect(api.post.calls.mostRecent().args[0]).not.toEqual(jasmine.objectContaining({ kind: jasmine.anything() }));
     });
 
     it('tracks the save state of a new entry', async () => {

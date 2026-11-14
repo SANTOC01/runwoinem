@@ -10,7 +10,7 @@ import {
   SubmitResult,
   WeekSummary,
 } from '../interfaces/challenge.interface';
-import { detectRankUp, detectRecords, nextTarget, roundValue } from '../utils/challenge-utils';
+import { detectRankUp, detectRecords, isCollection, nextTarget, roundValue } from '../utils/challenge-utils';
 import { ChartData } from '../models/chart-data';
 import { LockService } from './lock-service';
 import { ToastService } from './toast-service';
@@ -19,7 +19,7 @@ import { readCache, writeCache } from './local-cache';
 
 const CACHE_DURATION_MS = 5 * 60 * 1000;
 
-/** Rows are [name, value, date, id?]; `week` comes from newer backends only. */
+/** Rows are [name, value, date, id?, kind?]; `week` comes from newer backends only. */
 interface EntriesResponse {
   main?: unknown[][];
   week?: WeekSummary | null;
@@ -27,10 +27,14 @@ interface EntriesResponse {
 
 /** Answer to add/delete. Newer backends include the fresh list and the saved entry. */
 interface MutationResponse extends EntriesResponse {
-  entry?: [string, number, string, string];
+  entry?: [string, number, string, string, string?];
 }
 
+/** Bump when the cached shape or meaning changes; other versions are refetched. */
+const CACHE_VERSION = 2;
+
 interface CachedData {
+  v: number;
   entries: ChallengeEntry[];
   week: WeekSummary | null;
 }
@@ -67,11 +71,10 @@ export abstract class BaseChallengeService {
 
   async loadData(): Promise<void> {
     if (this.dataLoaded) return;
-    const cached = readCache<CachedData | ChallengeEntry[]>(this.cacheKey, (ts) => Date.now() - ts < CACHE_DURATION_MS);
-    if (cached) {
-      // Older versions cached the bare entry list.
-      const data = Array.isArray(cached.data) ? { entries: cached.data, week: null } : cached.data;
-      this.updateState(data.entries, data.week);
+    const cached = readCache<Partial<CachedData>>(this.cacheKey, (ts) => Date.now() - ts < CACHE_DURATION_MS);
+    // Older versions cached other shapes (e.g. without collection flags): fetch fresh instead.
+    if (cached?.data?.v === CACHE_VERSION && Array.isArray(cached.data.entries)) {
+      this.updateState(cached.data.entries, cached.data.week ?? null);
       this.fetchedAt = cached.timestamp;
       return;
     }
@@ -96,9 +99,10 @@ export abstract class BaseChallengeService {
 
   /**
    * Adds an entry. `runDate` (YYYY-MM-DD, local) logs a run from an earlier day; default today.
+   * `collection` is the runner's answer to "several runs at once?" (undefined if not asked).
    * Resolves to what changed for the person (null if nothing was submitted).
    */
-  async submitData(name: string, value: number, runDate?: string): Promise<SubmitResult | null> {
+  async submitData(name: string, value: number, runDate?: string, collection?: boolean): Promise<SubmitResult | null> {
     if (!this.config.active) {
       this.toast.show('Die Challenge ist beendet. Keine Einträge mehr möglich. 🔒');
       return null;
@@ -116,12 +120,14 @@ export abstract class BaseChallengeService {
     let response: MutationResponse | null;
     try {
       // Shown rounded right away; the sheet keeps the exact value.
+      const kind = collection === undefined ? undefined : collection ? 'collection' : 'single';
+      const rounded = roundValue(value);
       response = await this.mutate(
-        { name, value: roundValue(value), date },
+        { name, value: rounded, date, ...(this.collectionFlag(rounded, kind) ? { collection: true } : {}) },
         'add',
         'Eintrag erfolgreich hinzugefügt!',
         'Fehler beim Hinzufügen des Eintrags!',
-        { hohenmeter: value, ...(runDate ? { date: runDate } : {}) },
+        { hohenmeter: value, ...(runDate ? { date: runDate } : {}), ...(kind ? { kind } : {}) },
       );
     } catch (error) {
       this.saveStateSignal.set('error');
@@ -220,7 +226,11 @@ export abstract class BaseChallengeService {
   }
 
   private writeLocalCache(): void {
-    writeCache<CachedData>(this.cacheKey, { entries: this.entriesSubject.value, week: this.weekSignal() });
+    writeCache<CachedData>(this.cacheKey, {
+      v: CACHE_VERSION,
+      entries: this.entriesSubject.value,
+      week: this.weekSignal(),
+    });
   }
 
   private updateState(entries: ChallengeEntry[], week: WeekSummary | null): void {
@@ -232,11 +242,22 @@ export abstract class BaseChallengeService {
     this.dataLoaded = true;
   }
 
+  /** Rows are [name, value, date, id?, kind?]; `kind` is 'collection' | 'single' | '' (not asked). */
   private processEntries(data: unknown[][]): ChallengeEntry[] {
     return data.map((row) => {
-      const [name, value, date, id] = row as [string, string, string, string | undefined];
-      return id ? { name, value: roundValue(value), date, id: String(id) } : { name, value: roundValue(value), date };
+      const [name, raw, date, id, kind] = row as [string, unknown, string, unknown, unknown];
+      const value = roundValue(raw);
+      const entry: ChallengeEntry = { name, value, date };
+      if (id) entry.id = String(id);
+      if (this.collectionFlag(value, kind ? String(kind) : undefined)) entry.collection = true;
+      return entry;
     });
+  }
+
+  /** Collection rules only apply to challenges that configure them (see `ChallengeConfig.collections`). */
+  private collectionFlag(value: number, kind: string | undefined): boolean {
+    const rules = this.config.collections;
+    return !!rules && isCollection(value, kind, rules.legacyAbove);
   }
 
   /** Total for the shared goal. Subclasses can weight entries (e.g. boost days). */

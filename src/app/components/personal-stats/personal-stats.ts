@@ -1,6 +1,13 @@
 import { Component, computed, input, output } from '@angular/core';
 import { Badge, ChallengeEntry } from '../../interfaces/challenge.interface';
-import { badgesFor, streakFromWeeks, weeklyTotals } from '../../utils/challenge-utils';
+import {
+  badgesFor,
+  longestRun,
+  singleRuns,
+  streakFromWeeks,
+  validWeeklyTotals,
+  weeklyTotals,
+} from '../../utils/challenge-utils';
 
 interface PersonalStatsData {
   total: number;
@@ -38,13 +45,17 @@ export class PersonalStats {
     if (!mine.length) return null;
 
     const total = mine.reduce((s, e) => s + e.value, 0);
-    const longest = Math.max(...mine.map((e) => e.value));
+    // Collections (several runs logged at once) count for the total, not for run analytics.
+    const longest = longestRun(mine);
+    const runs = singleRuns(mine);
+    const average = runs.length ? Math.round((runs.reduce((s, e) => s + e.value, 0) / runs.length) * 10) / 10 : 0;
 
     const perWeek = weeklyTotals(mine);
 
+    // Best week: weeks with a collection don't count.
     let bestWeek = 0;
     let bestKm = 0;
-    perWeek.forEach((km, wk) => {
+    validWeeklyTotals(mine).forEach((km, wk) => {
       if (km > bestKm) {
         bestKm = km;
         bestWeek = wk;
@@ -62,7 +73,7 @@ export class PersonalStats {
       total,
       runs: mine.length,
       longest,
-      average: Math.round((total / mine.length) * 10) / 10,
+      average,
       bestWeekKm: bestKm,
       bestWeekLabel: bestKm
         ? 'KW ab ' + new Date(bestWeek * DAY_MS).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })

@@ -30,3 +30,19 @@
     <p class="challenge-status">🔒 Challenge beendet – danke für eure Teilnahme!</p>
   }
 </div>
+
+@if (asking(); as km) {
+  <div class="collection-overlay" (click)="cancelQuestion()">
+    <div class="collection-modal" role="dialog" aria-modal="true" aria-labelledby="collection-title"
+         (click)="$event.stopPropagation()">
+      <button type="button" class="close" aria-label="Abbrechen" (click)="cancelQuestion()">✕</button>
+      <h2 id="collection-title">📦 {{ km }} {{ config().metricUnit }} auf einmal?</h2>
+      <p>Mehrere Läufe zusammen eingetragen (z. B. nachgetragene Woche) oder ein einzelner Lauf?</p>
+      <div class="answers">
+        <button type="button" class="answer" (click)="answer(true)">📦 Mehrere Läufe</button>
+        <button type="button" class="answer single" (click)="answer(false)">🏃 Ein Lauf</button>
+      </div>
+      <small>Mehrere Läufe zählen voll für den Eurotrip und die Rangliste, aber nicht für Bestwerte wie längster Lauf oder beste Woche.</small>
+    </div>
+  </div>
+}

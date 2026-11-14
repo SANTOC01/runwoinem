@@ -26,6 +26,7 @@ export class KmChallengeService extends BaseChallengeService {
     metricUnit: 'km',
     goalValue: 12310,
     maxEntryValue: 200,
+    collections: { askAbove: 29, legacyAbove: 53 },
     milestones: [50, 100, 250, 500, 750, 1000],
     goals: [
       /*{ target:  2630, emoji: '🏖️', reward: 'Wir erreichen Lissabon!' },

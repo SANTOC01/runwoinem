@@ -4,6 +4,7 @@ import {
   crossedStop,
   detectRankUp,
   detectRecords,
+  longestRun,
   longestStreak,
   nextStop,
   nextTarget,
@@ -13,6 +14,9 @@ import {
   roundValue,
   runDayOptions,
   trendChange,
+  validWeeklyTotals,
+  isCollection,
+  singleRuns,
   weekStart,
 } from './challenge-utils';
 
@@ -300,5 +304,59 @@ describe('roundValue', () => {
     expect(roundValue('300')).toBe(300);
     expect(roundValue('abc')).toBe(0);
     expect(roundValue(undefined)).toBe(0);
+  });
+});
+
+describe('collections (several runs logged at once)', () => {
+  /** A collection entry: counts for totals, not for run/week analytics. */
+  const c = (name: string, value: number, day: string): ChallengeEntry => ({
+    ...e(name, value, day),
+    collection: true,
+  });
+
+  it('uses the answer when there is one, else the legacy limit', () => {
+    expect(isCollection(30, 'collection', 53)).toBeTrue();
+    expect(isCollection(102, 'single', 53)).toBeFalse(); // "Respekt.."
+    expect(isCollection(54, undefined, 53)).toBeTrue();
+    expect(isCollection(53, '', 53)).toBeFalse();
+    expect(isCollection(500, undefined)).toBeFalse(); // challenges without rules
+  });
+
+  it('leaves collections out of the longest run, average basis and distance badges', () => {
+    const mine = [e('Anna', 30, '2026-11-02'), c('Anna', 102, '2026-11-03'), c('Anna', 43, '2026-11-04')];
+    expect(longestRun(mine)).toBe(30);
+    expect(singleRuns(mine).length).toBe(1);
+    expect(badgesFor(mine, 'km').find((b) => b.label === 'Marathon')?.earned).toBeFalse();
+    expect(longestRun([c('Anna', 54, '2026-11-02')])).toBe(0);
+    expect(longestRun([e('Anna', 60, '2026-11-02')])).toBe(60); // answered "Ein Lauf"
+  });
+
+  it('drops weeks with a collection from the best week', () => {
+    // Weeks start Mon 2026-10-26 and 2026-11-02.
+    const entries = [e('Anna', 20, '2026-10-26'), c('Anna', 102, '2026-11-02'), e('Anna', 5, '2026-11-03')];
+    expect([...validWeeklyTotals(entries).values()]).toEqual([20]);
+  });
+
+  it('a collection triggers neither a longest-run nor a best-week record', () => {
+    const before = [e('Anna', 20, '2026-10-26'), e('Anna', 10, '2026-11-02')];
+    const bulk = [...before, c('Anna', 80, '2026-11-03')];
+    expect(detectRecords(before, bulk, 'Anna', []).map((h) => h.kind)).toEqual([]);
+
+    // A real 25 km week later counts against the 20 km week, not against the collection week.
+    const real = [...bulk, e('Anna', 25, '2026-11-09')];
+    expect(detectRecords(bulk, real, 'Anna', [])).toContain({ kind: 'bestWeek', value: 25 });
+  });
+
+  it('still counts collections for milestones (they are real km)', () => {
+    const before = [e('Anna', 10, '2026-11-02')];
+    const after = [...before, c('Anna', 45, '2026-11-03')];
+    expect(detectRecords(before, after, 'Anna', [50])).toEqual([{ kind: 'milestone', value: 50 }]);
+  });
+
+  it('leaves collections out of the week total and the trend', () => {
+    const now = new Date('2026-11-12T12:00:00');
+    const entries = [e('Anna', 10, '2026-11-10'), c('Ben', 90, '2026-11-11')];
+    expect(weekTotal(entries, now)).toBe(10);
+    expect(rollingWeekTrend(entries, now, 7).at(-1)?.value).toBe(10);
   });
 });
