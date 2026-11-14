@@ -1,7 +1,17 @@
 export interface ChallengeEntry {
   name: string;
   value: number;
+  /** The run's day (ISO). */
   date: string;
+  /** Row id from the backend (missing for entries not yet saved, or from older backends). */
+  id?: string;
+}
+
+/** This week's spotlight, computed by the backend. */
+export interface WeekSummary {
+  total: number;
+  leader: WeekLeader | null;
+  riser: WeekRiser | null;
 }
 
 export interface ChallengeRanking {

@@ -59,13 +59,53 @@
     width: fit-content;
     max-width: 100%;
     margin: 0 auto 1.25rem;
-    padding: 0.4rem 1rem;
+    padding: 0.5rem 1rem;
     background: rgba(255, 255, 255, 0.92);
     border: 1px solid #43c6ac;
-    border-radius: 999px;
+    border-radius: 16px;
     color: #2c3e50;
     font-size: 0.9rem;
     text-align: center;
+
+    p {
+      margin: 0;
+    }
+
+    .week-trend {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.1rem;
+      margin-top: 0.4rem;
+      padding-top: 0.4rem;
+      border-top: 1px solid #e3f4f0;
+    }
+
+    // Inline "(▲ +31 km)"; the arrow and sign carry the meaning, colour only reinforces it.
+    .trend-toggle {
+      padding: 0;
+      background: none;
+      border: none;
+      font: inherit;
+      font-weight: 700;
+      color: #2c3e50;
+      white-space: nowrap;
+      cursor: pointer;
+      text-decoration: underline dotted;
+      text-underline-offset: 3px;
+
+      &.up {
+        color: #1e7d69;
+      }
+      &.down {
+        color: #b03a2e;
+      }
+    }
+
+    .trend-caption {
+      font-size: 0.7rem;
+      color: #5f6b6d;
+    }
   }
 
   .boost-overlay {

@@ -57,10 +57,10 @@ export class Challenge {
     }
   }
 
-  async onSubmit({ name, value }: { name: string; value: number }) {
+  async onSubmit({ name, value, date }: { name: string; value: number; date?: string }) {
     try {
       this.feedback.reset();
-      const result = await this.challengeService.submitData(name, value);
+      const result = await this.challengeService.submitData(name, value, date);
       this.feedback.show(result, this.challengeService.config.metricUnit);
     } catch (error) {
       console.error('Error submitting data:', error);

@@ -8,8 +8,10 @@ import {
   nextStop,
   nextTarget,
   streaksByName,
-  thisWeek,
-  weekRiser,
+  weekTotal,
+  rollingWeekTrend,
+  runDayOptions,
+  trendChange,
   weekStart,
 } from './challenge-utils';
 
@@ -135,29 +137,6 @@ describe('longestStreak', () => {
   });
 });
 
-describe('thisWeek', () => {
-  const now = new Date('2026-11-12T12:00:00'); // Thursday, week starts Mon 2026-11-09
-
-  it('sums the current week and finds the leader', () => {
-    const entries = [
-      e('Anna', 10, '2026-11-09'),
-      e('Ben', 8, '2026-11-10'),
-      e('Ben', 5, '2026-11-12'),
-      e('Anna', 99, '2026-11-08'), // Sunday of the previous week
-    ];
-    expect(thisWeek(entries, now)).toEqual({ total: 23, leader: { name: 'Ben', value: 13 } });
-  });
-
-  it('can leave names out of the leader spot while still counting their km', () => {
-    const entries = [e('Max', 50, '2026-11-10'), e('Ben', 8, '2026-11-10')];
-    expect(thisWeek(entries, now, ['max'])).toEqual({ total: 58, leader: { name: 'Ben', value: 8 } });
-  });
-
-  it('has no leader when nobody logged this week', () => {
-    expect(thisWeek([e('Anna', 10, '2026-11-01')], now)).toEqual({ total: 0, leader: null });
-  });
-});
-
 describe('crossedStop', () => {
   const stops = [
     { name: 'Weinheim', emoji: '🏁', cumulativeKm: 0 },
@@ -223,39 +202,6 @@ describe('detectRecords: beating last week', () => {
   });
 });
 
-describe('weekRiser', () => {
-  const now = new Date('2026-11-12T12:00:00'); // week starts Mon 2026-11-09
-  const entries = [
-    // Ben: usually 10 per week, 15 this week -> +50 %
-    e('Ben', 10, '2026-10-26'),
-    e('Ben', 10, '2026-11-02'),
-    e('Ben', 15, '2026-11-10'),
-    // Cleo: usually 20, 22 this week -> +10 %
-    e('Cleo', 20, '2026-10-26'),
-    e('Cleo', 20, '2026-11-02'),
-    e('Cleo', 22, '2026-11-10'),
-    // Dana: only one earlier week, not enough history
-    e('Dana', 5, '2026-11-02'),
-    e('Dana', 50, '2026-11-10'),
-    // Eve: below her usual week
-    e('Eve', 40, '2026-10-26'),
-    e('Eve', 40, '2026-11-02'),
-    e('Eve', 5, '2026-11-10'),
-  ];
-
-  it('picks the biggest jump over the own usual week', () => {
-    expect(weekRiser(entries, now)).toEqual({ name: 'Ben', value: 15, percent: 50 });
-  });
-
-  it('skips the given names', () => {
-    expect(weekRiser(entries, now, ['ben'])).toEqual({ name: 'Cleo', value: 22, percent: 10 });
-  });
-
-  it('is null when nobody beats their usual week', () => {
-    expect(weekRiser(entries, now, ['Ben', 'Cleo'])).toBeNull();
-  });
-});
-
 describe('nextStop', () => {
   const stops = [
     { name: 'Weinheim', cumulativeKm: 0 },
@@ -271,5 +217,54 @@ describe('nextStop', () => {
   it('leads back to the start after the last stop and ends with the lap', () => {
     expect(nextStop(700, stops, 1000)).toEqual({ name: 'Weinheim', remaining: 300 });
     expect(nextStop(1000, stops, 1000)).toBeNull();
+  });
+});
+
+describe('weekTotal', () => {
+  it("sums everyone's entries of the current week only", () => {
+    const now = new Date('2026-11-12T12:00:00'); // Thursday, week starts Mon 2026-11-09
+    const entries = [
+      e('Anna', 10, '2026-11-09'),
+      e('Ben', 8, '2026-11-10'),
+      e('Anna', 99, '2026-11-08'), // Sunday of the previous week
+    ];
+    expect(weekTotal(entries, now)).toBe(18);
+  });
+});
+
+describe('runDayOptions', () => {
+  it('offers today, yesterday and five earlier days as local dates', () => {
+    const options = runDayOptions(new Date('2026-11-12T08:00:00'));
+    expect(options.length).toBe(7);
+    expect(options[0]).toEqual({ value: '', label: 'Heute' });
+    expect(options[1]).toEqual({ value: '2026-11-11', label: 'Gestern' });
+    expect(options[2].value).toBe('2026-11-10');
+    expect(options[2].label).toContain('10.11.');
+    expect(options[6].value).toBe('2026-11-06');
+  });
+});
+
+describe('rollingWeekTrend / trendChange', () => {
+  const now = new Date('2026-11-14T09:00:00'); // Saturday
+
+  it('sums the 7 days ending on each day', () => {
+    const entries = [
+      e('Anna', 10, '2026-11-14'), // today
+      e('Ben', 5, '2026-11-08'), // 6 days ago: still in today's window
+      e('Ben', 7, '2026-11-07'), // 7 days ago: only in earlier windows
+      e('Cleo', 99, '2026-12-01'), // future: ignored
+    ];
+    const trend = rollingWeekTrend(entries, now, 14);
+    expect(trend.length).toBe(14);
+    expect(trend[13].value).toBe(15);
+    expect(trend[12].value).toBe(12); // window 11-07 .. 11-13
+    expect(trend[13].date.getDate()).toBe(14);
+    expect(trend[0].date.getDate()).toBe(1);
+  });
+
+  it('compares the last 7 days with the 7 before', () => {
+    const entries = [e('Anna', 30, '2026-11-12'), e('Anna', 10, '2026-11-05')];
+    expect(trendChange(rollingWeekTrend(entries, now, 14))).toEqual({ last7: 30, previous7: 10, delta: 20 });
+    expect(trendChange(rollingWeekTrend(entries, now, 7))).toBeNull();
   });
 });

@@ -7,8 +7,6 @@ import {
   NextTarget,
   RankUp,
   RecordHit,
-  WeekLeader,
-  WeekRiser,
 } from '../interfaces/challenge.interface';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -73,70 +71,76 @@ export function longestStreak(weeks: Iterable<number>): number {
 }
 
 /**
- * This week's sum for everyone together and the person with the most (null if nobody logged yet).
- * Names in `notLeader` count for the total but are never picked as leader.
+ * This week's sum for everyone together. (Läufer/Aufsteiger der Woche are computed by
+ * the backend, see `WeekSummary`.)
  */
-export function thisWeek(
-  entries: ChallengeEntry[],
-  now = new Date(),
-  notLeader: readonly string[] = [],
-): { total: number; leader: WeekLeader | null } {
-  const skip = new Set(notLeader.map(normName));
+export function weekTotal(entries: ChallengeEntry[], now = new Date()): number {
   const week = weekStart(now);
-  const perName = new Map<string, number>();
-  for (const e of entries) {
+  return entries.reduce((sum, e) => {
     const d = new Date(e.date);
-    if (isNaN(d.getTime()) || weekStart(d) !== week) continue;
-    perName.set(e.name, (perName.get(e.name) ?? 0) + e.value);
-  }
-  let total = 0;
-  let leader: WeekLeader | null = null;
-  for (const [name, value] of perName) {
-    total += value;
-    if (skip.has(normName(name))) continue;
-    if (value > 0 && (!leader || value > leader.value)) leader = { name, value };
-  }
-  return { total, leader };
+    return !isNaN(d.getTime()) && weekStart(d) === week ? sum + e.value : sum;
+  }, 0);
 }
 
-const normName = (name: string) => name.trim().toLowerCase();
+/** Local calendar day as a day number (midnight-based, safe across DST changes). */
+function dayNumber(d: Date): number {
+  return Math.round(new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime() / DAY_MS);
+}
 
-/** How many past weeks count towards someone's usual week. */
-const RISER_LOOKBACK_WEEKS = 8;
+export interface TrendPoint {
+  /** The last day of the 7-day window. */
+  date: Date;
+  /** Sum of the 7 days ending on `date`. */
+  value: number;
+}
 
 /**
- * "Aufsteiger der Woche": who beats their own usual week (average of their active weeks
- * in the last 8, at least `minWeeks` of them) by the biggest percentage this week.
- * Rewards effort instead of volume, so anyone can win it. Names in `skip` are never picked.
+ * Rolling 7-day totals for everyone together, one point per day for the last `days`
+ * days (ending today). Rolling windows avoid the dip every Monday that calendar weeks have.
  */
-export function weekRiser(
-  entries: ChallengeEntry[],
-  now = new Date(),
-  skip: readonly string[] = [],
-  minWeeks = 2,
-): WeekRiser | null {
-  const thisWk = weekStart(now);
-  const oldest = thisWk - RISER_LOOKBACK_WEEKS * 7;
-  const skipped = new Set(skip.map(normName));
-  const byName = new Map<string, ChallengeEntry[]>();
+export function rollingWeekTrend(entries: ChallengeEntry[], now = new Date(), days = 56): TrendPoint[] {
+  const today = dayNumber(now);
+  const first = today - days + 1;
+  const perDay = new Map<number, number>();
   for (const e of entries) {
-    if (skipped.has(normName(e.name))) continue;
-    const list = byName.get(e.name) ?? [];
-    list.push(e);
-    byName.set(e.name, list);
+    const d = new Date(e.date);
+    if (isNaN(d.getTime())) continue;
+    const day = dayNumber(d);
+    if (day < first - 6 || day > today) continue;
+    perDay.set(day, (perDay.get(day) ?? 0) + e.value);
   }
+  return Array.from({ length: days }, (_, i) => {
+    const end = first + i;
+    let value = 0;
+    for (let day = end - 6; day <= end; day++) value += perDay.get(day) ?? 0;
+    return { date: new Date(now.getFullYear(), now.getMonth(), now.getDate() - (days - 1 - i)), value };
+  });
+}
 
-  let best: WeekRiser | null = null;
-  for (const [name, mine] of byName) {
-    const weeks = weeklyTotals(mine);
-    const value = weeks.get(thisWk) ?? 0;
-    const past = [...weeks].filter(([wk, total]) => wk < thisWk && wk >= oldest && total > 0).map(([, t]) => t);
-    if (past.length < minWeeks || value <= 0) continue;
-    const usual = past.reduce((s, t) => s + t, 0) / past.length;
-    const percent = Math.round((value / usual - 1) * 100);
-    if (percent > 0 && (!best || percent > best.percent)) best = { name, value, percent };
-  }
-  return best;
+/** Last 7 days compared with the 7 days before, from a rolling trend (null if too short). */
+export function trendChange(trend: TrendPoint[]): { last7: number; previous7: number; delta: number } | null {
+  if (trend.length < 8) return null;
+  const last7 = trend[trend.length - 1].value;
+  const previous7 = trend[trend.length - 8].value;
+  return { last7, previous7, delta: last7 - previous7 };
+}
+
+const WEEKDAY = new Intl.DateTimeFormat('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit' });
+
+/** Choices for "when did you run?": today, yesterday and the 5 days before (value '' = today). */
+export function runDayOptions(now = new Date(), days = 7): { value: string; label: string }[] {
+  return Array.from({ length: days }, (_, ago) => {
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - ago);
+    const value = ago === 0 ? '' : localDayKey(d);
+    const label = ago === 0 ? 'Heute' : ago === 1 ? 'Gestern' : WEEKDAY.format(d);
+    return { value, label };
+  });
+}
+
+/** YYYY-MM-DD of a date in local time. */
+export function localDayKey(d: Date): string {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
 export interface RouteStop {

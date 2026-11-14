@@ -27,17 +27,38 @@
     }
 
     @if (week(); as w) {
-      <p class="week-pill">
-        📅 Diese Woche: <strong>{{ w.total }} {{ kmChallengeService.config.metricUnit }}</strong> gemeinsam
-        @if (w.leader; as l) {
-          · ⭐ {{ l.name }} führt mit {{ l.value }} {{ kmChallengeService.config.metricUnit }}
-        } @else {
-          · noch niemand unterwegs – wer legt vor?
+      <div class="week-pill">
+        <p>
+          📅 Diese Woche: <strong>{{ w.total }} {{ kmChallengeService.config.metricUnit }}</strong> gemeinsam
+          @if (change(); as c) {
+            <button
+              type="button"
+              class="trend-toggle"
+              [class.up]="c.delta > 0"
+              [class.down]="c.delta < 0"
+              [attr.aria-expanded]="trendOpen()"
+              aria-controls="week-trend"
+              [title]="trendOpen() ? 'Verlauf ausblenden' : 'Letzte 7 Tage ggü. den 7 Tagen davor – Verlauf anzeigen'"
+              (click)="trendOpen.set(!trendOpen())">
+              ({{ changeLabel() }})
+            </button>
+          }
+          @if (w.leader; as l) {
+            · ⭐ {{ l.name }} führt mit {{ l.value }} {{ kmChallengeService.config.metricUnit }}
+          } @else if (w.total === 0) {
+            · noch niemand unterwegs – wer legt vor?
+          }
+          @if (riser(); as r) {
+            <br />📈 Aufsteiger: {{ r.name }} mit +{{ r.percent }} % über dem eigenen Schnitt
+          }
+        </p>
+        @if (trendOpen() && change(); as c) {
+          <div class="week-trend" id="week-trend">
+            <app-week-trend [points]="trend()" [unit]="kmChallengeService.config.metricUnit"></app-week-trend>
+            <small class="trend-caption">7 Tage davor: {{ c.previous7 }} {{ kmChallengeService.config.metricUnit }}</small>
+          </div>
         }
-        @if (riser(); as r) {
-          <br />📈 Aufsteiger: {{ r.name }} mit +{{ r.percent }} % über dem eigenen Schnitt
-        }
-      </p>
+      </div>
     }
 
     @if (boostInfoOpen()) {

@@ -8,6 +8,7 @@ import {
   NextStop,
   SaveState,
   SubmitResult,
+  WeekSummary,
 } from '../interfaces/challenge.interface';
 import { detectRankUp, detectRecords, nextTarget } from '../utils/challenge-utils';
 import { ChartData } from '../models/chart-data';
@@ -17,6 +18,22 @@ import { SheetApi } from './sheet-api.service';
 import { readCache, writeCache } from './local-cache';
 
 const CACHE_DURATION_MS = 5 * 60 * 1000;
+
+/** Rows are [name, value, date, id?]; `week` comes from newer backends only. */
+interface EntriesResponse {
+  main?: unknown[][];
+  week?: WeekSummary | null;
+}
+
+/** Answer to add/delete. Newer backends include the fresh list and the saved entry. */
+interface MutationResponse extends EntriesResponse {
+  entry?: [string, number, string, string];
+}
+
+interface CachedData {
+  entries: ChallengeEntry[];
+  week: WeekSummary | null;
+}
 
 /** Shared load / cache / submit / delete / ranking logic for all challenges. */
 export abstract class BaseChallengeService {
@@ -34,11 +51,14 @@ export abstract class BaseChallengeService {
   private readonly totalSubject = new BehaviorSubject<number>(0);
   private readonly chartDataSubject = new BehaviorSubject<ChartData>({ labels: [], values: [] });
   private readonly saveStateSignal = signal<SaveState>('idle');
+  private readonly weekSignal = signal<WeekSummary | null>(null);
   private dataLoaded = false;
   private fetchedAt: number | null = null;
 
   /** Progress of the latest new entry, from after the unlock until the backend answered. */
   readonly saveState = this.saveStateSignal.asReadonly();
+  /** This week's leader and riser as computed by the backend (null with older backends). */
+  readonly week = this.weekSignal.asReadonly();
 
   readonly entries$ = this.entriesSubject.asObservable();
   readonly rankings$ = this.rankingsSubject.asObservable();
@@ -47,9 +67,11 @@ export abstract class BaseChallengeService {
 
   async loadData(): Promise<void> {
     if (this.dataLoaded) return;
-    const cached = readCache<ChallengeEntry[]>(this.cacheKey, (ts) => Date.now() - ts < CACHE_DURATION_MS);
+    const cached = readCache<CachedData | ChallengeEntry[]>(this.cacheKey, (ts) => Date.now() - ts < CACHE_DURATION_MS);
     if (cached) {
-      this.updateState(cached.data);
+      // Older versions cached the bare entry list.
+      const data = Array.isArray(cached.data) ? { entries: cached.data, week: null } : cached.data;
+      this.updateState(data.entries, data.week);
       this.fetchedAt = cached.timestamp;
       return;
     }
@@ -58,10 +80,8 @@ export abstract class BaseChallengeService {
 
   async refreshAllData(): Promise<void> {
     try {
-      const response = await this.api.get<{ main?: unknown[][] }>('getAll', { challenge: this.challengeId });
-      const entries = this.processEntries(response?.main ?? []);
-      this.updateState(entries);
-      writeCache(this.cacheKey, entries);
+      const response = await this.api.get<EntriesResponse>('getAll', { challenge: this.challengeId });
+      this.applyServerData(response ?? {});
       this.fetchedAt = Date.now();
     } catch (error) {
       console.error(`Error refreshing ${this.challengeId} data:`, error);
@@ -74,25 +94,33 @@ export abstract class BaseChallengeService {
     return this.fetchedAt !== null && Date.now() - this.fetchedAt < withinMs;
   }
 
-  /** Adds an entry. Resolves to what changed for the person (null if nothing was submitted). */
-  async submitData(name: string, value: number): Promise<SubmitResult | null> {
+  /**
+   * Adds an entry. `runDate` (YYYY-MM-DD, local) logs a run from an earlier day; default today.
+   * Resolves to what changed for the person (null if nothing was submitted).
+   */
+  async submitData(name: string, value: number, runDate?: string): Promise<SubmitResult | null> {
     if (!this.config.active) {
       this.toast.show('Die Challenge ist beendet. Keine Einträge mehr möglich. 🔒');
+      return null;
+    }
+    if (value > this.config.maxEntryValue) {
+      this.toast.show(`Maximal ${this.config.maxEntryValue} ${this.config.metricUnit} pro Eintrag 😉`, 4000);
       return null;
     }
     name = name.trim();
     if (!(await this.lockService.requestUnlock())) return null;
 
-    const entriesBefore = this.entriesSubject.value;
-    const rankingsBefore = this.rankingsSubject.value;
-    const totalBefore = this.totalSubject.value;
+    let before = this.entriesSubject.value;
+    const date = runDate ? new Date(`${runDate}T12:00:00`).toISOString() : new Date().toISOString();
     this.saveStateSignal.set('saving');
+    let response: MutationResponse | null;
     try {
-      await this.mutate(
-        { name, value, date: new Date().toISOString() },
+      response = await this.mutate(
+        { name, value, date },
         'add',
         'Eintrag erfolgreich hinzugefügt!',
         'Fehler beim Hinzufügen des Eintrags!',
+        runDate ? { date: runDate } : {},
       );
     } catch (error) {
       this.saveStateSignal.set('error');
@@ -100,13 +128,26 @@ export abstract class BaseChallengeService {
     }
     this.saveStateSignal.set('done');
 
-    const rankingsAfter = this.rankingsSubject.value;
-    const totalAfter = this.totalSubject.value;
+    // With a fresh list from the server, compare against exactly that list without the new
+    // entry, so celebrations stay correct even if others logged since this page loaded.
+    const id = response?.entry?.[3];
+    if (response?.main && id) {
+      name = String(response.entry?.[0] ?? name);
+      before = this.entriesSubject.value.filter((e) => e.id !== id);
+    }
+    return this.submitResult(name, before, this.entriesSubject.value);
+  }
+
+  private submitResult(name: string, before: ChallengeEntry[], after: ChallengeEntry[]): SubmitResult {
+    const rankingsBefore = this.calculateRankings(before);
+    const rankingsAfter = this.calculateRankings(after);
+    const totalBefore = this.calculateTotal(before);
+    const totalAfter = this.calculateTotal(after);
     const stop = this.nextStop?.(totalAfter) ?? null;
     return {
       name,
       rankUp: detectRankUp(rankingsBefore, rankingsAfter, name),
-      records: detectRecords(entriesBefore, this.entriesSubject.value, name, this.config.milestones),
+      records: detectRecords(before, after, name, this.config.milestones),
       nextTarget: nextTarget(rankingsAfter, name),
       arrival: this.detectArrival?.(totalBefore, totalAfter) ?? null,
       route: stop ? { ...stop, added: totalAfter - totalBefore } : null,
@@ -124,17 +165,30 @@ export abstract class BaseChallengeService {
     await this.mutate(entry, 'delete', 'Eintrag gelöscht.', 'Fehler beim Löschen des Eintrags!');
   }
 
-  /** Optimistically updates local state, then syncs with the backend (reloads on error). */
+  /**
+   * Optimistically updates local state, then syncs with the backend (reloads on error).
+   * When the backend answers with the fresh entry list, that list replaces the local state.
+   */
   private async mutate(
     entry: ChallengeEntry,
     action: 'add' | 'delete',
     okMessage: string,
     errorMessage: string,
-  ): Promise<void> {
+    extra: Record<string, unknown> = {},
+  ): Promise<MutationResponse | null> {
     try {
       this.updateLocalState(entry, action);
-      await this.api.post({ action, name: entry.name, hohenmeter: entry.value, challenge: this.challengeId });
+      const response = await this.api.post<MutationResponse | null>({
+        action,
+        name: entry.name,
+        hohenmeter: entry.value,
+        challenge: this.challengeId,
+        ...(entry.id ? { id: entry.id } : {}),
+        ...extra,
+      });
+      if (response?.main) this.applyServerData(response);
       this.toast.show(okMessage);
+      return response;
     } catch (error) {
       console.error(`Error during ${action}:`, error);
       await this.refreshAllData();
@@ -148,26 +202,41 @@ export abstract class BaseChallengeService {
     if (action === 'add') {
       entries.unshift(entry);
     } else {
-      const index = entries.findIndex((e) => e.name === entry.name && e.value === entry.value);
+      const index = entry.id
+        ? entries.findIndex((e) => e.id === entry.id)
+        : entries.findIndex((e) => e.name === entry.name && e.value === entry.value);
       if (index === -1) return;
       entries.splice(index, 1);
     }
-    this.updateState(entries);
-    writeCache(this.cacheKey, entries);
+    this.updateState(entries, this.weekSignal());
+    this.writeLocalCache();
   }
 
-  private updateState(entries: ChallengeEntry[]): void {
+  /** Takes over the server's entries and week summary (newer backends send them with every answer). */
+  private applyServerData(response: EntriesResponse): void {
+    this.updateState(this.processEntries(response.main ?? []), response.week ?? null);
+    this.writeLocalCache();
+  }
+
+  private writeLocalCache(): void {
+    writeCache<CachedData>(this.cacheKey, { entries: this.entriesSubject.value, week: this.weekSignal() });
+  }
+
+  private updateState(entries: ChallengeEntry[], week: WeekSummary | null): void {
     this.entriesSubject.next(entries);
     this.rankingsSubject.next(this.calculateRankings(entries));
     this.totalSubject.next(this.calculateTotal(entries));
     this.chartDataSubject.next(this.calculateChartData(entries));
+    this.weekSignal.set(week);
     this.dataLoaded = true;
   }
 
   private processEntries(data: unknown[][]): ChallengeEntry[] {
     return data.map((row) => {
-      const [name, value, date] = row as [string, string, string];
-      return { name, value: parseInt(value, 10), date };
+      const [name, value, date, id] = row as [string, string, string, string | undefined];
+      return id
+        ? { name, value: parseInt(value, 10), date, id: String(id) }
+        : { name, value: parseInt(value, 10), date };
     });
   }
 

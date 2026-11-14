@@ -129,6 +129,66 @@ describe('Challenge services', () => {
       expect(result?.route?.name).toBe('Paris');
     });
 
+    it('uses the fresh list from a newer backend: ids, canonical name, run date, week', async () => {
+      const day = '2025-01-01T10:00:00Z';
+      api.get.and.resolveTo({
+        main: [
+          ['Anna', 30, day, 'a1'],
+          ['Ben', 20, day, 'b1'],
+        ],
+      });
+      const service = TestBed.inject(KmChallengeService);
+      spyOn(service, 'isBoosted').and.returnValue(false);
+      await service.loadData();
+
+      // Meanwhile Cleo logged 25 km on another phone; this page doesn't know yet.
+      api.post.and.resolveTo({
+        status: 'success',
+        entry: ['Ben', 15, day, 'n1'],
+        main: [
+          ['Anna', 30, day, 'a1'],
+          ['Ben', 20, day, 'b1'],
+          ['Cleo', 25, day, 'c1'],
+          ['Ben', 15, day, 'n1'],
+        ],
+        week: { total: 40, leader: { name: 'Ben', value: 15 }, riser: null },
+      });
+      const result = await service.submitData('ben', 15, '2026-11-10');
+
+      expect(api.post).toHaveBeenCalledWith(
+        jasmine.objectContaining({ action: 'add', name: 'ben', hohenmeter: 15, date: '2026-11-10' }),
+      );
+      expect(result?.name).toBe('Ben');
+      // Ranked 3rd behind Anna and Cleo before, 1st after.
+      expect(result?.rankUp).toEqual({ name: 'Ben', from: 3, to: 1, overtaken: ['Anna', 'Cleo'] });
+      expect(service.week()?.leader?.name).toBe('Ben');
+
+      const entries = await firstValueFrom(service.entries$);
+      expect(entries.map((e) => e.id)).toEqual(['a1', 'b1', 'c1', 'n1']);
+
+      api.post.and.resolveTo({ status: 'deleted' });
+      await service.deleteData(entries[1]);
+      expect(api.post).toHaveBeenCalledWith(jasmine.objectContaining({ action: 'delete', id: 'b1' }));
+      expect((await firstValueFrom(service.entries$)).map((e) => e.id)).toEqual(['a1', 'c1', 'n1']);
+    });
+
+    it('refuses values above the per-entry maximum before asking for the unlock', async () => {
+      expect(await TestBed.inject(KmChallengeService).submitData('Anna', 201)).toBeNull();
+      expect(lock.requestUnlock).not.toHaveBeenCalled();
+    });
+
+    it('still reads the cache format of older versions', async () => {
+      localStorage.setItem(
+        'km_challenge_data',
+        JSON.stringify({ data: [{ name: 'Anna', value: 7, date: '2025-01-01T10:00:00Z' }], timestamp: Date.now() }),
+      );
+      const service = TestBed.inject(KmChallengeService);
+      await service.loadData();
+      expect(api.get).not.toHaveBeenCalled();
+      expect((await firstValueFrom(service.entries$))[0].name).toBe('Anna');
+      expect(service.week()).toBeNull();
+    });
+
     it('tracks the save state of a new entry', async () => {
       api.get.and.resolveTo({ main: [] });
       const service = TestBed.inject(KmChallengeService);
