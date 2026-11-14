@@ -70,11 +70,12 @@ export class Dashboard {
   }
 
   private async forceRefreshData() {
-    await Promise.all([
+    const results = await Promise.all([
       this.eventsService.refreshEvents(),
       this.challengeService.refreshAllData(),
       this.kmChallengeService.refreshAllData(),
     ]);
-    this.toast.show('🟢 Live');
+    // Only claim "live" if nothing failed; otherwise the error toast stays visible.
+    if (results.every(Boolean)) this.toast.show('🟢 Live');
   }
 }

@@ -15,6 +15,7 @@ import { RankUpCelebration } from '../../components/rank-up-celebration/rank-up-
 import { SubmitFeedback } from '../../components/rank-up-celebration/submit-feedback';
 import { SubmitProgress } from '../../components/submit-progress/submit-progress';
 import { ChallengeEntry } from '../../interfaces/challenge.interface';
+import { Tip } from '../../directives/tip';
 import { WeekTrend } from '../../components/week-trend/week-trend';
 import {
   newestFirst,
@@ -40,6 +41,7 @@ const BOOST_SEEN_KEY = 'km_boost_intro_seen';
     RankUpCelebration,
     SubmitProgress,
     WeekTrend,
+    Tip,
   ],
   templateUrl: './km-challenge.html',
   styleUrls: ['./km-challenge.scss'],

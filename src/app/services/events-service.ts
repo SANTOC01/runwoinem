@@ -30,16 +30,19 @@ export class EventsService {
     await this.refreshEvents();
   }
 
-  async refreshEvents(): Promise<void> {
+  /** Fetches fresh events. Resolves to false if that failed (an error toast was shown). */
+  async refreshEvents(): Promise<boolean> {
     try {
       const response = await this.api.get<{ events?: AppEvent[] }>('getEvents');
       const events = response?.events ?? [];
       this.eventsSubject.next(events);
       writeCache(EVENTS_CACHE_KEY, events);
       this.eventsLoaded = true;
+      return true;
     } catch (error) {
       console.error('Error refreshing events:', error);
       this.toast.show('Fehler beim Laden der Events!', 4000);
+      return false;
     }
   }
 

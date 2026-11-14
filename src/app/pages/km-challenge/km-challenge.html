@@ -51,7 +51,7 @@
           <p class="week-line">Noch niemand unterwegs – wer legt vor?</p>
         }
         @if (riser(); as r) {
-          <p class="week-line" title="Mehr gelaufen als sonst: im Vergleich zum eigenen Wochenschnitt">
+          <p class="week-line" appTip="Mehr gelaufen als sonst: im Vergleich zum eigenen Wochenschnitt">
             📈 Aufsteiger: <strong>{{ r.name }}</strong> (+{{ r.percent }} %)
           </p>
         }

@@ -13,6 +13,25 @@ export interface FormSubmission {
   collection?: boolean;
 }
 
+const NAME_KEY = 'runner_name';
+
+/** Browser storage can be blocked: the form then simply starts empty. */
+function loadName(): string {
+  try {
+    return localStorage.getItem(NAME_KEY) ?? '';
+  } catch {
+    return '';
+  }
+}
+
+function saveName(name: string): void {
+  try {
+    localStorage.setItem(NAME_KEY, name.trim());
+  } catch {
+    /* ignore */
+  }
+}
+
 @Component({
   selector: 'app-challenge-form',
   imports: [FormsModule],
@@ -28,7 +47,8 @@ export class ChallengeForm {
   readonly submitted = output<FormSubmission>();
   readonly valueChanged = output<{ name: string; value: number }>();
 
-  name = '';
+  /** The runner's name, remembered from the last entry on this device. */
+  name = loadName();
   value: number | null = null;
   /** '' = today. */
   day = '';
@@ -65,6 +85,7 @@ export class ChallengeForm {
 
   private emit(collection?: boolean) {
     if (this.value == null) return;
+    saveName(this.name);
     this.submitted.emit({
       name: this.name,
       value: this.value,

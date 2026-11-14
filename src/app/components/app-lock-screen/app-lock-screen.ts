@@ -50,6 +50,8 @@ export class LockScreen implements AfterViewInit, OnDestroy {
   private readonly boundMouseUp = () => this.handleMouseUp();
   private readonly boundTouchMove = (event: TouchEvent) => this.handleTouchMove(event);
   private readonly boundTouchEnd = () => this.handleTouchEnd();
+  private readonly boundResize = () => this.remeasure();
+  private savedScrollY = 0;
 
   ngAfterViewInit() {
     this.setupCanvas();
@@ -78,13 +80,23 @@ export class LockScreen implements AfterViewInit, OnDestroy {
       document.addEventListener('mouseup', this.boundMouseUp);
       document.addEventListener('touchmove', this.boundTouchMove, { passive: false });
       document.addEventListener('touchend', this.boundTouchEnd);
+      window.addEventListener('resize', this.boundResize);
     });
   }
 
   private disableScrolling() {
+    // position: fixed stops scrolling on iOS too, but would jump to the top: pin the page where it is.
+    this.savedScrollY = window.scrollY;
     document.body.style.overflow = 'hidden';
     document.body.style.position = 'fixed';
+    document.body.style.top = `-${this.savedScrollY}px`;
     document.body.style.width = '100%';
+  }
+
+  /** Canvas size and button centres depend on the layout: measure again after a resize or rotation. */
+  private remeasure() {
+    this.updateCanvasSize();
+    this.storeButtonPositions();
   }
 
   handleMouseDown(event: MouseEvent) {
@@ -199,18 +211,25 @@ export class LockScreen implements AfterViewInit, OnDestroy {
     document.removeEventListener('mouseup', this.boundMouseUp);
     document.removeEventListener('touchmove', this.boundTouchMove);
     document.removeEventListener('touchend', this.boundTouchEnd);
+    window.removeEventListener('resize', this.boundResize);
 
-    // Reset body styles
+    // Reset body styles and return to where the page was scrolled
     document.body.style.overflow = '';
     document.body.style.position = '';
+    document.body.style.top = '';
     document.body.style.width = '';
+    window.scrollTo(0, this.savedScrollY);
   }
 
   private updateCanvasSize() {
     const canvas = this.canvasRef().nativeElement as HTMLCanvasElement;
     const container = this.gridContainer().nativeElement as HTMLElement;
-    canvas.width = container.offsetWidth;
-    canvas.height = container.offsetHeight;
+    // Draw at the device's pixel density so lines stay sharp on phones (CSS keeps the display size).
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.round(container.offsetWidth * dpr);
+    canvas.height = Math.round(container.offsetHeight * dpr);
+    // Setting the size resets the context, so the scale is applied again.
+    canvas.getContext('2d')?.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
 
   private storeButtonPositions() {

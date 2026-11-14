@@ -17,13 +17,13 @@
             {{ rank.name }}
           }
           @if (weekLeader() === rank.name) {
-            <span class="week-star" title="Läufer der Woche: meiste km diese Woche">⭐</span>
+            <span class="week-star" appTip="Läufer der Woche: meiste km diese Woche">⭐</span>
           }
           @if (weekRiser() === rank.name) {
-            <span class="week-star" title="Aufsteiger der Woche: mehr als sonst gelaufen">📈</span>
+            <span class="week-star" appTip="Aufsteiger der Woche: mehr als sonst gelaufen">📈</span>
           }
           @if (streakOf(rank.name); as weeks) {
-            <span class="streak" [title]="weeks + ' Wochen in Folge gelaufen'">🔥{{ weeks }}</span>
+            <span class="streak" [appTip]="weeks + ' Wochen in Folge gelaufen'">🔥{{ weeks }}</span>
           }
         </td>
         <td>{{ rank.value }} {{ unit() }}</td>

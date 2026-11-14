@@ -3,8 +3,11 @@
     <div class="events-container">
       <h2>📰 Nächste Events
         <span class="info-container">
-          <img src="assets/info.png" alt="Description" class="info-icon">
-          <span class="info-tooltip">
+          <button type="button" class="info-button" aria-label="Legende der Distanzen"
+                  [attr.aria-expanded]="legendOpen()" (click)="legendOpen.set(!legendOpen())">
+            <img src="assets/info.png" alt="" class="info-icon">
+          </button>
+          <span class="info-tooltip" [class.open]="legendOpen()">
             ⚫ 42KM<br>
             🔴 21KM<br>
             🟡 10KM<br>

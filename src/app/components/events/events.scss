@@ -54,10 +54,23 @@
   margin-left: 5px;
   z-index: 200;
 
+  .info-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    // 44px is the usual minimum for a touch target; the icon itself stays small.
+    min-width: 44px;
+    min-height: 44px;
+    margin: -12px;
+    padding: 0;
+    background: none;
+    border: 0;
+    cursor: pointer;
+  }
+
   .info-icon {
     width: 20px;
     height: auto;
-    cursor: pointer;
   }
 
   .info-tooltip {
@@ -77,8 +90,14 @@
     margin-top: 5px;
   }
 
-  &:hover .info-tooltip {
+  .info-tooltip.open {
     visibility: visible;
+  }
+
+  @media (hover: hover) {
+    &:hover .info-tooltip {
+      visibility: visible;
+    }
   }
 }
 

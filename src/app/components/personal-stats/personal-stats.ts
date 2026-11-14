@@ -1,4 +1,5 @@
 import { Component, computed, input, output } from '@angular/core';
+import { Tip } from '../../directives/tip';
 import { Badge, ChallengeEntry } from '../../interfaces/challenge.interface';
 import {
   badgesFor,
@@ -27,6 +28,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 
 @Component({
   selector: 'app-personal-stats',
+  imports: [Tip],
   templateUrl: './personal-stats.html',
   styleUrl: './personal-stats.scss',
 })
