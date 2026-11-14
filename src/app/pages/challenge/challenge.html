@@ -11,6 +11,7 @@
 
     <app-challenge-form
       [config]="challengeService.config"
+      [busy]="challengeService.saveState() === 'saving'"
       (submitted)="onSubmit($event)"
       (valueChanged)="onValueChange($event)">
     </app-challenge-form>
@@ -48,12 +49,16 @@
   @if (feedback.celebrating(); as c) {
     <app-rank-up-celebration
       [rankUp]="c.rankUp"
+      [arrival]="c.arrival"
+      [name]="c.name"
       [records]="c.records"
       [target]="c.nextTarget"
       [unit]="challengeService.config.metricUnit"
       (closed)="feedback.dismiss()">
     </app-rank-up-celebration>
   }
+
+  <app-submit-progress [state]="challengeService.saveState()"></app-submit-progress>
 
   @if (lockService.visible()) {
     <app-lock-screen

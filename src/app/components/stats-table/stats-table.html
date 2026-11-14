@@ -16,6 +16,10 @@
           @if (row.boosted) {
             <span class="boost-badge" title="Zählt doppelt für den Eurotrip">⚡</span>
           }
+          @if (row.entry.collection) {
+            <span class="collection-badge"
+                  title="Mehrere Läufe zusammen eingetragen – zählt für den Eurotrip und die Rangliste, nicht für Bestwerte">📦</span>
+          }
         </td>
         <td>{{ row.dateLabel }}</td>
         <td>

@@ -15,22 +15,29 @@
   <div class="card" role="status" aria-live="polite">
     <p class="headline">{{ headline() }}</p>
 
-    <div class="places" aria-hidden="true">
-      @if (rankUp().from !== null) {
-        <span class="old">{{ rankUp().from }}</span>
-        <span class="arrow">➜</span>
-      }
-      <span class="new">{{ rankUp().to }}</span>
-    </div>
+    @if (arrival(); as a) {
+      <div class="arrival-emoji" aria-hidden="true">{{ a.emoji }}</div>
+      <p class="sub">{{ arrivalText() }}</p>
+    }
 
-    <p class="sub">
-      @if (places(); as p) {
-        {{ p }} {{ p === 1 ? 'Platz' : 'Plätze' }} nach oben, jetzt auf <strong>Platz {{ rankUp().to }}</strong>!
-      } @else {
-        Neu in der Rangliste auf <strong>Platz {{ rankUp().to }}</strong>!
-      }
-    </p>
-    <p class="overtaken">Überholt: {{ overtakenText() }}</p>
+    @if (rankUp(); as up) {
+      <div class="places" aria-hidden="true">
+        @if (up.from !== null) {
+          <span class="old">{{ up.from }}</span>
+          <span class="arrow">➜</span>
+        }
+        <span class="new">{{ up.to }}</span>
+      </div>
+
+      <p class="sub">
+        @if (places(); as p) {
+          {{ p }} {{ p === 1 ? 'Platz' : 'Plätze' }} nach oben, jetzt auf <strong>Platz {{ up.to }}</strong>!
+        } @else {
+          Neu in der Rangliste auf <strong>Platz {{ up.to }}</strong>!
+        }
+      </p>
+      <p class="overtaken">Überholt: {{ overtakenText() }}</p>
+    }
     @for (text of recordTexts(); track text) {
       <p class="record">{{ text }}</p>
     }

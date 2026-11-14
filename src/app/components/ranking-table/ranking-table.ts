@@ -19,6 +19,10 @@ export class RankingTable {
   readonly rankUp = input<RankUp | null>(null);
   /** Weekly run streak per name; a flame is shown from `MIN_STREAK` weeks on. */
   readonly streaks = input<ReadonlyMap<string, number>>(new Map());
+  /** Name of the "Läufer der Woche" (most logged this week); gets a star. */
+  readonly weekLeader = input<string | null>(null);
+  /** Name of the "Aufsteiger der Woche" (biggest jump over their own usual week). */
+  readonly weekRiser = input<string | null>(null);
 
   /** The streak to show for a name, or 0 when too short to brag about. */
   streakOf(name: string): number {

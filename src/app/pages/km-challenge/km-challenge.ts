@@ -9,12 +9,21 @@ import { GoalBanner } from '../../components/goal-banner/goal-banner';
 import { LockScreen } from '../../components/app-lock-screen/app-lock-screen';
 import { LockService } from '../../services/lock-service';
 import { ToastService } from '../../services/toast-service';
-import { ChallengeForm } from '../../components/challenge-form/challenge-form';
+import { ChallengeForm, FormSubmission } from '../../components/challenge-form/challenge-form';
 import { PersonalStats } from '../../components/personal-stats/personal-stats';
 import { RankUpCelebration } from '../../components/rank-up-celebration/rank-up-celebration';
 import { SubmitFeedback } from '../../components/rank-up-celebration/submit-feedback';
+import { SubmitProgress } from '../../components/submit-progress/submit-progress';
 import { ChallengeEntry } from '../../interfaces/challenge.interface';
-import { newestFirst, progressPercent, streaksByName } from '../../utils/challenge-utils';
+import { WeekTrend } from '../../components/week-trend/week-trend';
+import {
+  newestFirst,
+  progressPercent,
+  rollingWeekTrend,
+  streaksByName,
+  trendChange,
+  weekTotal,
+} from '../../utils/challenge-utils';
 
 const BOOST_SEEN_KEY = 'km_boost_intro_seen';
 
@@ -29,6 +38,8 @@ const BOOST_SEEN_KEY = 'km_boost_intro_seen';
     ChallengeForm,
     PersonalStats,
     RankUpCelebration,
+    SubmitProgress,
+    WeekTrend,
   ],
   templateUrl: './km-challenge.html',
   styleUrls: ['./km-challenge.scss'],
@@ -49,6 +60,30 @@ export class KmChallenge {
   readonly boostInfoOpen = signal(false);
   readonly feedback = new SubmitFeedback();
   readonly streaks = computed(() => streaksByName(this.entries()));
+  /** This week's group km (always up to date locally) and the "Läufer der Woche" (from the backend). */
+  readonly week = computed(() => ({
+    total: weekTotal(this.entries()),
+    leader: this.kmChallengeService.week()?.leader ?? null,
+  }));
+  /** "Aufsteiger der Woche": biggest jump over one's own usual week (from the backend). */
+  readonly riser = computed(() => this.kmChallengeService.week()?.riser ?? null);
+  /** Group km of the last 7 days, day by day over 8 weeks (the sparkline). */
+  readonly trend = computed(() => rollingWeekTrend(this.entries()));
+  /** Last 7 days vs. the 7 days before (null until there is any history). */
+  readonly change = computed(() => {
+    const c = trendChange(this.trend());
+    return c && (c.last7 > 0 || c.previous7 > 0) ? c : null;
+  });
+  /** Compact form shown in the pill, e.g. "▲ +31 km". */
+  readonly changeLabel = computed(() => {
+    const delta = this.change()?.delta ?? 0;
+    const unit = this.kmChallengeService.config.metricUnit;
+    if (delta > 0) return `▲ +${delta} ${unit}`;
+    if (delta < 0) return `▼ −${-delta} ${unit}`;
+    return `■ ±0 ${unit}`;
+  });
+  /** The sparkline stays hidden until the change is clicked. */
+  readonly trendOpen = signal(false);
   readonly boostDay = this.kmChallengeService.isBoostDay();
   /** Extra km the boost added to the shared total today. */
   readonly boostBonus = computed(() => this.kmChallengeService.boostBonusToday(this.entries()));
@@ -90,12 +125,13 @@ export class KmChallenge {
     }
   }
 
-  async onSubmit({ name, value }: { name: string; value: number }) {
+  async onSubmit({ name, value, date, collection }: FormSubmission) {
     try {
       this.feedback.reset();
-      const result = await this.kmChallengeService.submitData(name, value);
+      const result = await this.kmChallengeService.submitData(name, value, date, collection);
+      const runDay = date ? new Date(`${date}T12:00:00`) : new Date();
       const boostNotice =
-        result && this.kmChallengeService.isBoostDay()
+        result && this.kmChallengeService.isBoostDay(runDay)
           ? '⚡ Dienstag-Boost: zählt doppelt für den Eurotrip!'
           : undefined;
       this.feedback.show(result, this.kmChallengeService.config.metricUnit, boostNotice);

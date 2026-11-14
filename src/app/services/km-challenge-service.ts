@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
-import { ChallengeConfig, ChallengeEntry } from '../interfaces/challenge.interface';
+import { Arrival, ChallengeConfig, ChallengeEntry, NextStop } from '../interfaces/challenge.interface';
+import { EUROPE_ROUTE_WAYPOINTS, LAP_DISTANCE_KM } from '../components/europe-map/europe-route.data';
+import { crossedStop, nextStop } from '../utils/challenge-utils';
 import { BaseChallengeService } from './base-challenge.service';
 
 /** Eurotrip kilometer challenge, including the Tuesday boost. */
@@ -24,6 +26,7 @@ export class KmChallengeService extends BaseChallengeService {
     metricUnit: 'km',
     goalValue: 12310,
     maxEntryValue: 200,
+    collections: { askAbove: 29, legacyAbove: 53 },
     milestones: [50, 100, 250, 500, 750, 1000],
     goals: [
       /*{ target:  2630, emoji: '🏖️', reward: 'Wir erreichen Lissabon!' },
@@ -43,6 +46,16 @@ export class KmChallengeService extends BaseChallengeService {
     weekday: 'short',
   });
   private readonly boostCache = new Map<string, boolean>();
+
+  /** The next Eurotrip city ahead of the shared total. */
+  protected override nextStop(total: number): NextStop | null {
+    return nextStop(total, EUROPE_ROUTE_WAYPOINTS, LAP_DISTANCE_KM);
+  }
+
+  /** Reaching the next Eurotrip city (or finishing the loop) with this entry. */
+  protected override detectArrival(before: number, after: number): Arrival | null {
+    return crossedStop(before, after, EUROPE_ROUTE_WAYPOINTS, LAP_DISTANCE_KM);
+  }
 
   protected override calculateTotal(entries: ChallengeEntry[]): number {
     return entries.reduce((sum, e) => sum + e.value * (this.isBoosted(e) ? this.BOOST.multiplier : 1), 0);
