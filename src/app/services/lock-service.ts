@@ -8,6 +8,8 @@ export class LockService {
   private resolveUnlock?: (unlocked: boolean) => void;
 
   requestUnlock(): Promise<boolean> {
+    // A request that is still open (e.g. a double tap) is cancelled, so its caller doesn't hang.
+    this.resolveUnlock?.(false);
     this._visible.set(true);
     return new Promise((resolve) => (this.resolveUnlock = resolve));
   }

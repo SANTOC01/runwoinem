@@ -29,7 +29,7 @@
       <ul class="badges">
         @for (b of s.badges; track b.label) {
           <li class="badge" [class.locked]="!b.earned"
-              [title]="b.earned ? b.label + ' – ' + b.hint : 'Noch offen: ' + b.hint">
+              [appTip]="b.earned ? b.label + ' – ' + b.hint : 'Noch offen: ' + b.hint">
             <span class="badge-emoji" aria-hidden="true">{{ b.emoji }}</span>
             <span class="badge-label">{{ b.label }}</span>
             <span class="visually-hidden">{{ b.earned ? '(erreicht)' : '(offen: ' + b.hint + ')' }}</span>

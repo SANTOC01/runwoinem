@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
+import { Tip } from '../../directives/tip';
 import { ChallengeEntry } from '../../interfaces/challenge.interface';
 
 const PAGE_SIZE = 30;
@@ -10,6 +11,7 @@ const DATE_FORMAT = new Intl.DateTimeFormat('de-DE', {
 
 @Component({
   selector: 'app-stats-table',
+  imports: [Tip],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './stats-table.html',
   styleUrls: ['./stats-table.scss'],

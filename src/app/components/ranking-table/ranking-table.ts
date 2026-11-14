@@ -1,4 +1,5 @@
 import { Component, ElementRef, Injector, afterNextRender, effect, inject, input, output } from '@angular/core';
+import { Tip } from '../../directives/tip';
 import { ChallengeRanking, RankUp } from '../../interfaces/challenge.interface';
 
 const RANK_EMOJIS = ['🏆', '🥈', '🥉'];
@@ -6,6 +7,7 @@ const MIN_STREAK = 2;
 
 @Component({
   selector: 'app-ranking-table',
+  imports: [Tip],
   templateUrl: './ranking-table.html',
   styleUrls: ['./ranking-table.scss'],
 })

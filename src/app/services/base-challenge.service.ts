@@ -81,14 +81,17 @@ export abstract class BaseChallengeService {
     await this.refreshAllData();
   }
 
-  async refreshAllData(): Promise<void> {
+  /** Fetches fresh data. Resolves to false if that failed (an error toast was shown). */
+  async refreshAllData(): Promise<boolean> {
     try {
       const response = await this.api.get<EntriesResponse>('getAll', { challenge: this.challengeId });
       this.applyServerData(response ?? {});
       this.fetchedAt = Date.now();
+      return true;
     } catch (error) {
       console.error(`Error refreshing ${this.challengeId} data:`, error);
       this.toast.show('Fehler beim Laden der Daten!', 4000);
+      return false;
     }
   }
 

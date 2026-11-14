@@ -103,7 +103,7 @@ html {
 
 .toast {
   visibility: hidden;
-  min-width: 300px;
+  min-width: min(300px, calc(100vw - 32px));
   background-color: rgba(255, 255, 255, 1);
   color: black;
   border-left: 8px solid #ff9800;
@@ -128,6 +128,32 @@ html {
   visibility: visible;
   opacity: 1;
   top: 50px;
+}
+
+// Hints from the appTip directive: tap an element to see its explanation (see directives/tip.ts).
+.tip-host {
+  cursor: help;
+
+  &:focus-visible {
+    outline: 2px solid #43c6ac;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+.tip-bubble {
+  position: fixed;
+  z-index: 2000;
+  max-width: min(260px, calc(100vw - 16px));
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #2c3e50;
+  color: #fff;
+  font-size: 14px;
+  line-height: 1.35;
+  text-align: left;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
 }
 
 // Add to your global styles (e.g., styles.scss) or dashboard.scss

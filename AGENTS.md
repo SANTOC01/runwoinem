@@ -18,7 +18,7 @@ Live at https://runwoinem.de (GitHub Pages).
 - `services/events-service.ts` – events, past events per year, participants (caches valid until midnight).
 - `services/local-cache.ts` – timestamped localStorage helpers. `lock-service.ts` – `requestUnlock()` promise + visible signal. `toast-service.ts` – simple toast.
 - `utils/` – pure helpers (`challenge-utils.ts`: sorting, progress, rank-up/records/next target; `event-utils.ts`: date format, distance filter). `directives/reveal-on-scroll.ts` – scroll-in animation.
-- `pages/` – route components (`dashboard`, `challenge`, `km-challenge`, `events-page`; `new-challenge` is an empty placeholder). `components/` – presentational pieces (europe-map with `europe-route.data.ts` waypoints, stats/ranking tables, lock screen, progress chart, …).
+- `pages/` – route components (`dashboard`, `challenge`, `km-challenge`, `events-page`). `components/` – presentational pieces (europe-map with `europe-route.data.ts` waypoints, stats/ranking tables, lock screen, progress chart, …).
 - Conventions: standalone components, signals (`input()`, `output()`, `computed()`, `toSignal`), `inject()`, new control flow (`@if/@for`). Output names must not clash with DOM events (`closed`, `cancelled`). `strict` + strictTemplates are on.
 
 ## Backend

@@ -6,7 +6,14 @@ import { EventsService } from '../../services/events-service';
 import { AppEvent } from '../../models/app-event';
 import { EventsModalComponent } from '../../components/events-modal/events-modal';
 import { RevealOnScroll } from '../../directives/reveal-on-scroll';
-import { FilterType, distText, formatEventDate, matchesFilter } from '../../utils/event-utils';
+import {
+  FilterType,
+  classifyDistance,
+  customDistanceKm,
+  distText,
+  formatEventDate,
+  matchesFilter,
+} from '../../utils/event-utils';
 
 const FILTER_EMOJI: Record<FilterType, string> = {
   Alle: '🗓️',
@@ -112,41 +119,13 @@ export class EventsPage {
     return (this.pastEventsByYear().get(year) ?? []).filter((e) => matchesFilter(e, filter));
   }
 
-  // Ordered highest → lowest priority
-  private readonly distanceTiers = [
-    { match: (s: string) => s.includes('🌄') || s.toLowerCase().includes('trail'), color: '#a15b00' },
-    {
-      match: (s: string) => s.includes('⚫') || /\b42\b/.test(s) || /\bmarathon\b/i.test(s),
-      color: '#2c3e50',
-      label: 'Marathon',
-    },
-    {
-      match: (s: string) => s.includes('🔴') || /\b21\b/.test(s) || /halb|half/i.test(s),
-      color: '#e74c3c',
-      label: 'Halbmarathon',
-    },
-    { match: (s: string) => s.includes('🟡') || /\b10\b/.test(s), color: '#f39c12', label: '10KM' },
-    { match: (s: string) => s.includes('🟢') || /\b5\b/.test(s), color: '#27ae60', label: '5KM' },
-  ];
-
   getDistanceBadge(dist: string): { color: string; label: string } {
-    for (const tier of this.distanceTiers) {
-      if (tier.match(dist)) return { color: tier.color, label: tier.label ?? 'Trail' };
-    }
-
-    // Custom distance: parse "(3,7)" or "(3.7)" → 3.7 km
-    const custom = dist.match(/\((\d+)[,.](\d+)\)/);
-    if (custom) {
-      const km = parseFloat(`${custom[1]}.${custom[2]}`);
-      const label = `${custom[1]},${custom[2]} KM`;
-      if (km >= 42) return { color: '#2c3e50', label };
-      if (km >= 21) return { color: '#e74c3c', label };
-      if (km >= 10) return { color: '#f39c12', label };
-      if (km >= 5) return { color: '#27ae60', label };
-      return { color: '#43c6ac', label };
-    }
-
-    return { color: '#43c6ac', label: distText(dist) };
+    const category = classifyDistance(dist);
+    const custom = customDistanceKm(dist);
+    const color = category ? FILTER_COLOR[category] : FILTER_COLOR.Alle;
+    // Custom distances ("(3,7)") show their exact km; other known ones show the category name.
+    if (custom) return { color, label: custom.label };
+    return { color, label: category ?? distText(dist) };
   }
 
   getFilterEmoji(filter: FilterType): string {
