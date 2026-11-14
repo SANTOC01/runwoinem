@@ -10,6 +10,7 @@ import {
   streaksByName,
   weekTotal,
   rollingWeekTrend,
+  roundValue,
   runDayOptions,
   trendChange,
   weekStart,
@@ -282,5 +283,22 @@ describe('rollingWeekTrend / trendChange', () => {
     const entries = [e('Anna', 30, '2026-11-12'), e('Anna', 10, '2026-11-05')];
     expect(trendChange(rollingWeekTrend(entries, now, 14))).toEqual({ last7: 30, previous7: 10, delta: 20 });
     expect(trendChange(rollingWeekTrend(entries, now, 7))).toBeNull();
+  });
+});
+
+describe('roundValue', () => {
+  it('rounds half up to whole units', () => {
+    expect(roundValue(9.5)).toBe(10);
+    expect(roundValue(9.4)).toBe(9);
+    expect(roundValue(9.6)).toBe(10);
+    expect(roundValue(12)).toBe(12);
+  });
+
+  it('reads sheet strings, including a decimal comma', () => {
+    expect(roundValue('9,5')).toBe(10);
+    expect(roundValue(' 9.4 ')).toBe(9);
+    expect(roundValue('300')).toBe(300);
+    expect(roundValue('abc')).toBe(0);
+    expect(roundValue(undefined)).toBe(0);
   });
 });

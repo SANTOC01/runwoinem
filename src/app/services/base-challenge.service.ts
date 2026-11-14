@@ -10,7 +10,7 @@ import {
   SubmitResult,
   WeekSummary,
 } from '../interfaces/challenge.interface';
-import { detectRankUp, detectRecords, nextTarget } from '../utils/challenge-utils';
+import { detectRankUp, detectRecords, nextTarget, roundValue } from '../utils/challenge-utils';
 import { ChartData } from '../models/chart-data';
 import { LockService } from './lock-service';
 import { ToastService } from './toast-service';
@@ -115,12 +115,13 @@ export abstract class BaseChallengeService {
     this.saveStateSignal.set('saving');
     let response: MutationResponse | null;
     try {
+      // Shown rounded right away; the sheet keeps the exact value.
       response = await this.mutate(
-        { name, value, date },
+        { name, value: roundValue(value), date },
         'add',
         'Eintrag erfolgreich hinzugefügt!',
         'Fehler beim Hinzufügen des Eintrags!',
-        runDate ? { date: runDate } : {},
+        { hohenmeter: value, ...(runDate ? { date: runDate } : {}) },
       );
     } catch (error) {
       this.saveStateSignal.set('error');
@@ -234,9 +235,7 @@ export abstract class BaseChallengeService {
   private processEntries(data: unknown[][]): ChallengeEntry[] {
     return data.map((row) => {
       const [name, value, date, id] = row as [string, string, string, string | undefined];
-      return id
-        ? { name, value: parseInt(value, 10), date, id: String(id) }
-        : { name, value: parseInt(value, 10), date };
+      return id ? { name, value: roundValue(value), date, id: String(id) } : { name, value: roundValue(value), date };
     });
   }
 

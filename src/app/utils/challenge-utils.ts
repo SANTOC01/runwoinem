@@ -11,6 +11,22 @@ import {
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+/**
+ * An entry's value as whole units, rounded half up (9.5 -> 10, 9.4 -> 9). Accepts numbers
+ * and sheet strings, including a decimal comma ("9,5"). Unreadable values count as 0.
+ */
+export function roundValue(raw: unknown): number {
+  const value =
+    typeof raw === 'number'
+      ? raw
+      : Number(
+          String(raw ?? '')
+            .trim()
+            .replace(',', '.'),
+        );
+  return Number.isFinite(value) ? Math.round(value) : 0;
+}
+
 /** Monday 00:00 (local) of the week containing the date, as a day number. */
 export function weekStart(date: Date): number {
   const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
