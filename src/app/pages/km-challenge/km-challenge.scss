@@ -55,6 +55,19 @@
     text-align: center;
   }
 
+  .week-pill {
+    width: fit-content;
+    max-width: 100%;
+    margin: 0 auto 1.25rem;
+    padding: 0.4rem 1rem;
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid #43c6ac;
+    border-radius: 999px;
+    color: #2c3e50;
+    font-size: 0.9rem;
+    text-align: center;
+  }
+
   .boost-overlay {
     position: fixed;
     inset: 0;

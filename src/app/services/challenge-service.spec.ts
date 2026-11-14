@@ -113,6 +113,42 @@ describe('Challenge services', () => {
       expect(second?.rankUp).toBeNull();
     });
 
+    it('reports route progress and reaching the next Eurotrip city', async () => {
+      // Total 180 km, Köln is at 190 km. No boost, whatever weekday the test runs on.
+      api.get.and.resolveTo({ main: [['Anna', '180', '2025-01-01T10:00:00Z']] });
+      const service = TestBed.inject(KmChallengeService);
+      spyOn(service, 'isBoosted').and.returnValue(false);
+      await service.loadData();
+
+      const small = await service.submitData('Ben', 5);
+      expect(small?.arrival).toBeNull();
+      expect(small?.route).toEqual({ name: 'Köln', remaining: 5, added: 5 });
+      const result = await service.submitData('Ben', 10);
+      expect(result?.name).toBe('Ben');
+      expect(result?.arrival).toEqual({ name: 'Köln', emoji: '📍', finish: false });
+      expect(result?.route?.name).toBe('Paris');
+    });
+
+    it('tracks the save state of a new entry', async () => {
+      api.get.and.resolveTo({ main: [] });
+      const service = TestBed.inject(KmChallengeService);
+      await service.loadData();
+      expect(service.saveState()).toBe('idle');
+
+      let release!: () => void;
+      api.post.and.returnValue(new Promise((resolve) => (release = () => resolve({}))));
+      const pending = service.submitData('Anna', 5);
+      await new Promise((r) => setTimeout(r)); // let the unlock resolve
+      expect(service.saveState()).toBe('saving');
+      release();
+      await pending;
+      expect(service.saveState()).toBe('done');
+
+      api.post.and.rejectWith(new Error('offline'));
+      await expectAsync(service.submitData('Anna', 5)).toBeRejected();
+      expect(service.saveState()).toBe('error');
+    });
+
     it('reports the extra km added by the Tuesday boost today', () => {
       const service = TestBed.inject(KmChallengeService);
       const tuesday = new Date('2026-11-10T12:00:00Z');

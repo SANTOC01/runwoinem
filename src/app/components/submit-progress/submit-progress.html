@@ -1,0 +1,18 @@
+@if (phase() !== 'hidden') {
+  <div class="overlay" [class.done]="phase() === 'done'">
+    <div class="card" role="status" aria-live="polite">
+      <div class="track" aria-hidden="true">
+        <span class="lane"></span>
+        <span class="runner"><span class="runner-body">🏃</span></span>
+        <span class="flag">🏁</span>
+      </div>
+      @if (phase() === 'done') {
+        <p class="title">✅ Eingetragen!</p>
+      } @else {
+        <p class="title">{{ message() }}</p>
+        <p class="hint">Bitte kurz warten und die Seite offen lassen.</p>
+        <span class="dots" aria-hidden="true"><span></span><span></span><span></span></span>
+      }
+    </div>
+  </div>
+}

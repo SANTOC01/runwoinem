@@ -26,6 +26,20 @@
       </p>
     }
 
+    @if (week(); as w) {
+      <p class="week-pill">
+        📅 Diese Woche: <strong>{{ w.total }} {{ kmChallengeService.config.metricUnit }}</strong> gemeinsam
+        @if (w.leader; as l) {
+          · ⭐ {{ l.name }} führt mit {{ l.value }} {{ kmChallengeService.config.metricUnit }}
+        } @else {
+          · noch niemand unterwegs – wer legt vor?
+        }
+        @if (riser(); as r) {
+          <br />📈 Aufsteiger: {{ r.name }} mit +{{ r.percent }} % über dem eigenen Schnitt
+        }
+      </p>
+    }
+
     @if (boostInfoOpen()) {
       <div class="boost-overlay" (click)="boostInfoOpen.set(false)">
         <div class="boost-modal" role="dialog" aria-modal="true" aria-labelledby="boost-title"
@@ -45,6 +59,7 @@
 
     <app-challenge-form
       [config]="kmChallengeService.config"
+      [busy]="kmChallengeService.saveState() === 'saving'"
       (submitted)="onSubmit($event)"
       (valueChanged)="onValueChange($event)">
     </app-challenge-form>
@@ -63,6 +78,8 @@
         [clickable]="true"
         [rankUp]="feedback.highlighted()"
         [streaks]="streaks()"
+        [weekLeader]="week().leader?.name ?? null"
+        [weekRiser]="riser()?.name ?? null"
         (nameSelected)="selectedName.set($event)">
       </app-ranking-table>
     </div>
@@ -90,12 +107,16 @@
   @if (feedback.celebrating(); as c) {
     <app-rank-up-celebration
       [rankUp]="c.rankUp"
+      [arrival]="c.arrival"
+      [name]="c.name"
       [records]="c.records"
       [target]="c.nextTarget"
       [unit]="kmChallengeService.config.metricUnit"
       (closed)="feedback.dismiss()">
     </app-rank-up-celebration>
   }
+
+  <app-submit-progress [state]="kmChallengeService.saveState()"></app-submit-progress>
 
   @if (lockService.visible()) {
     <app-lock-screen

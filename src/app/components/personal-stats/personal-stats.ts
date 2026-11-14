@@ -1,6 +1,6 @@
 import { Component, computed, input, output } from '@angular/core';
-import { ChallengeEntry } from '../../interfaces/challenge.interface';
-import { streakFromWeeks, weeklyTotals } from '../../utils/challenge-utils';
+import { Badge, ChallengeEntry } from '../../interfaces/challenge.interface';
+import { badgesFor, streakFromWeeks, weeklyTotals } from '../../utils/challenge-utils';
 
 interface PersonalStatsData {
   total: number;
@@ -12,6 +12,8 @@ interface PersonalStatsData {
   streak: number;
   rank: number;
   runners: number;
+  badges: Badge[];
+  earnedBadges: number;
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -54,6 +56,7 @@ export class PersonalStats {
     const totals = new Map<string, number>();
     for (const e of entries) totals.set(e.name, (totals.get(e.name) ?? 0) + e.value);
     const rank = [...totals.values()].filter((v) => v > total).length + 1;
+    const badges = badgesFor(mine, this.unit());
 
     return {
       total,
@@ -67,6 +70,8 @@ export class PersonalStats {
       streak,
       rank,
       runners: totals.size,
+      badges,
+      earnedBadges: badges.filter((b) => b.earned).length,
     };
   }
 }

@@ -1,6 +1,14 @@
-import { inject } from '@angular/core';
+import { inject, signal } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { ChallengeConfig, ChallengeEntry, ChallengeRanking, SubmitResult } from '../interfaces/challenge.interface';
+import {
+  Arrival,
+  ChallengeConfig,
+  ChallengeEntry,
+  ChallengeRanking,
+  NextStop,
+  SaveState,
+  SubmitResult,
+} from '../interfaces/challenge.interface';
 import { detectRankUp, detectRecords, nextTarget } from '../utils/challenge-utils';
 import { ChartData } from '../models/chart-data';
 import { LockService } from './lock-service';
@@ -25,8 +33,12 @@ export abstract class BaseChallengeService {
   private readonly rankingsSubject = new BehaviorSubject<ChallengeRanking[]>([]);
   private readonly totalSubject = new BehaviorSubject<number>(0);
   private readonly chartDataSubject = new BehaviorSubject<ChartData>({ labels: [], values: [] });
+  private readonly saveStateSignal = signal<SaveState>('idle');
   private dataLoaded = false;
   private fetchedAt: number | null = null;
+
+  /** Progress of the latest new entry, from after the unlock until the backend answered. */
+  readonly saveState = this.saveStateSignal.asReadonly();
 
   readonly entries$ = this.entriesSubject.asObservable();
   readonly rankings$ = this.rankingsSubject.asObservable();
@@ -73,19 +85,39 @@ export abstract class BaseChallengeService {
 
     const entriesBefore = this.entriesSubject.value;
     const rankingsBefore = this.rankingsSubject.value;
-    await this.mutate(
-      { name, value, date: new Date().toISOString() },
-      'add',
-      'Eintrag erfolgreich hinzugefügt!',
-      'Fehler beim Hinzufügen des Eintrags!',
-    );
+    const totalBefore = this.totalSubject.value;
+    this.saveStateSignal.set('saving');
+    try {
+      await this.mutate(
+        { name, value, date: new Date().toISOString() },
+        'add',
+        'Eintrag erfolgreich hinzugefügt!',
+        'Fehler beim Hinzufügen des Eintrags!',
+      );
+    } catch (error) {
+      this.saveStateSignal.set('error');
+      throw error;
+    }
+    this.saveStateSignal.set('done');
+
     const rankingsAfter = this.rankingsSubject.value;
+    const totalAfter = this.totalSubject.value;
+    const stop = this.nextStop?.(totalAfter) ?? null;
     return {
+      name,
       rankUp: detectRankUp(rankingsBefore, rankingsAfter, name),
       records: detectRecords(entriesBefore, this.entriesSubject.value, name, this.config.milestones),
       nextTarget: nextTarget(rankingsAfter, name),
+      arrival: this.detectArrival?.(totalBefore, totalAfter) ?? null,
+      route: stop ? { ...stop, added: totalAfter - totalBefore } : null,
     };
   }
+
+  /** Optional: a stop on the shared route reached by moving the total from `before` to `after`. */
+  protected detectArrival?(before: number, after: number): Arrival | null;
+
+  /** Optional: the next stop on the shared route for a total. */
+  protected nextStop?(total: number): NextStop | null;
 
   async deleteData(entry: ChallengeEntry): Promise<void> {
     if (!(await this.lockService.requestUnlock())) return;

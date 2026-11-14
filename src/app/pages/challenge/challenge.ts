@@ -12,12 +12,22 @@ import { ToastService } from '../../services/toast-service';
 import { ChallengeForm } from '../../components/challenge-form/challenge-form';
 import { RankUpCelebration } from '../../components/rank-up-celebration/rank-up-celebration';
 import { SubmitFeedback } from '../../components/rank-up-celebration/submit-feedback';
+import { SubmitProgress } from '../../components/submit-progress/submit-progress';
 import { ChallengeEntry } from '../../interfaces/challenge.interface';
 import { newestFirst, progressPercent, streaksByName } from '../../utils/challenge-utils';
 
 @Component({
   selector: 'app-challenge',
-  imports: [StatsTable, RankingTable, ProgressChart, GoalBanner, LockScreen, ChallengeForm, RankUpCelebration],
+  imports: [
+    StatsTable,
+    RankingTable,
+    ProgressChart,
+    GoalBanner,
+    LockScreen,
+    ChallengeForm,
+    RankUpCelebration,
+    SubmitProgress,
+  ],
   templateUrl: './challenge.html',
   styleUrls: ['./challenge.scss'],
 })

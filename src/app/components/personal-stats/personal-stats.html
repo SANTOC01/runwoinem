@@ -20,6 +20,18 @@
           <span class="lbl">Aktuelle Serie 🔥</span>
         </div>
       </div>
+
+      <h3 class="badges-title">Abzeichen {{ s.earnedBadges }}/{{ s.badges.length }}</h3>
+      <ul class="badges">
+        @for (b of s.badges; track b.label) {
+          <li class="badge" [class.locked]="!b.earned"
+              [title]="b.earned ? b.label + ' – ' + b.hint : 'Noch offen: ' + b.hint">
+            <span class="badge-emoji" aria-hidden="true">{{ b.emoji }}</span>
+            <span class="badge-label">{{ b.label }}</span>
+            <span class="visually-hidden">{{ b.earned ? '(erreicht)' : '(offen: ' + b.hint + ')' }}</span>
+          </li>
+        }
+      </ul>
     } @else {
       <p>Keine Einträge gefunden.</p>
     }

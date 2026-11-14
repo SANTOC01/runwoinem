@@ -1,5 +1,17 @@
 import { ChallengeEntry } from '../interfaces/challenge.interface';
-import { detectRankUp, detectRecords, nextTarget, streaksByName } from './challenge-utils';
+import {
+  badgesFor,
+  crossedStop,
+  detectRankUp,
+  detectRecords,
+  longestStreak,
+  nextStop,
+  nextTarget,
+  streaksByName,
+  thisWeek,
+  weekRiser,
+  weekStart,
+} from './challenge-utils';
 
 const r = (...pairs: [string, number][]) => pairs.map(([name, value]) => ({ name, value }));
 /** Local-time entry so week boundaries don't depend on the machine's timezone. */
@@ -112,5 +124,152 @@ describe('detectRankUp', () => {
     const before = r(['Anna', 50]);
     const after = r(['Anna', 50], ['Eve', 5]);
     expect(detectRankUp(before, after, 'Eve')).toBeNull();
+  });
+});
+
+describe('longestStreak', () => {
+  it('finds the longest run of consecutive weeks, ignoring order and duplicates', () => {
+    const w = weekStart(new Date('2026-11-02T12:00:00'));
+    expect(longestStreak([w, w - 7, w - 14, w - 35, w - 42, w])).toBe(3);
+    expect(longestStreak([])).toBe(0);
+  });
+});
+
+describe('thisWeek', () => {
+  const now = new Date('2026-11-12T12:00:00'); // Thursday, week starts Mon 2026-11-09
+
+  it('sums the current week and finds the leader', () => {
+    const entries = [
+      e('Anna', 10, '2026-11-09'),
+      e('Ben', 8, '2026-11-10'),
+      e('Ben', 5, '2026-11-12'),
+      e('Anna', 99, '2026-11-08'), // Sunday of the previous week
+    ];
+    expect(thisWeek(entries, now)).toEqual({ total: 23, leader: { name: 'Ben', value: 13 } });
+  });
+
+  it('can leave names out of the leader spot while still counting their km', () => {
+    const entries = [e('Max', 50, '2026-11-10'), e('Ben', 8, '2026-11-10')];
+    expect(thisWeek(entries, now, ['max'])).toEqual({ total: 58, leader: { name: 'Ben', value: 8 } });
+  });
+
+  it('has no leader when nobody logged this week', () => {
+    expect(thisWeek([e('Anna', 10, '2026-11-01')], now)).toEqual({ total: 0, leader: null });
+  });
+});
+
+describe('crossedStop', () => {
+  const stops = [
+    { name: 'Weinheim', emoji: '🏁', cumulativeKm: 0 },
+    { name: 'Köln', cumulativeKm: 190 },
+    { name: 'Paris', emoji: '🗼', cumulativeKm: 690 },
+  ];
+
+  it('returns the furthest stop passed', () => {
+    expect(crossedStop(180, 200, stops, 1000)).toEqual({ name: 'Köln', emoji: '📍', finish: false });
+    expect(crossedStop(180, 700, stops, 1000)).toEqual({ name: 'Paris', emoji: '🗼', finish: false });
+  });
+
+  it('counts landing exactly on a stop, but not starting on it', () => {
+    expect(crossedStop(100, 190, stops, 1000)?.name).toBe('Köln');
+    expect(crossedStop(190, 200, stops, 1000)).toBeNull();
+  });
+
+  it('reports finishing the lap', () => {
+    expect(crossedStop(990, 1005, stops, 1000)).toEqual({ name: 'Weinheim', emoji: '🏆', finish: true });
+  });
+
+  it('is null when nothing was passed or the total went down', () => {
+    expect(crossedStop(0, 50, stops, 1000)).toBeNull();
+    expect(crossedStop(700, 600, stops, 1000)).toBeNull();
+  });
+});
+
+describe('badgesFor', () => {
+  const earned = (entries: ChallengeEntry[], unit = 'km') =>
+    badgesFor(entries, unit)
+      .filter((b) => b.earned)
+      .map((b) => b.label);
+
+  it('awards run count, long-run and Tuesday badges', () => {
+    // 2026-10-06 .. 2026-11-03 are five Tuesdays in five consecutive weeks.
+    const tuesdays = ['2026-10-06', '2026-10-13', '2026-10-20', '2026-10-27', '2026-11-03'];
+    const entries = [...tuesdays.map((d) => e('Anna', 5, d)), e('Anna', 22, '2026-11-05')];
+    expect(earned(entries)).toEqual(['Erster Schritt', 'Waidsee-Stammgast', 'Am Ball', 'Halbmarathon']);
+  });
+
+  it('leaves out distance badges for non-km challenges', () => {
+    const labels = badgesFor([e('Anna', 500, '2026-11-05')], 'HM').map((b) => b.label);
+    expect(labels).not.toContain('Marathon');
+    expect(earned([e('Anna', 500, '2026-11-05')], 'HM')).toEqual(['Erster Schritt']);
+  });
+});
+
+describe('detectRecords: beating last week', () => {
+  // Week of 2026-10-26: 30 (best week), week of 2026-11-02: 10, this week (2026-11-09): 6 so far.
+  const before = [e('Anna', 30, '2026-10-26'), e('Anna', 10, '2026-11-02'), e('Anna', 6, '2026-11-09')];
+
+  it('fires once when this week passes last week', () => {
+    const after = [...before, e('Anna', 6, '2026-11-10')];
+    expect(detectRecords(before, after, 'Anna', [])).toEqual([{ kind: 'beatLastWeek', value: 10 }]);
+
+    const later = [...after, e('Anna', 3, '2026-11-11')];
+    expect(detectRecords(after, later, 'Anna', [])).toEqual([]);
+  });
+
+  it('is replaced by the best-week record when both apply', () => {
+    const after = [...before, e('Anna', 26, '2026-11-10')];
+    expect(detectRecords(before, after, 'Anna', []).map((h) => h.kind)).toEqual(['bestWeek']);
+  });
+});
+
+describe('weekRiser', () => {
+  const now = new Date('2026-11-12T12:00:00'); // week starts Mon 2026-11-09
+  const entries = [
+    // Ben: usually 10 per week, 15 this week -> +50 %
+    e('Ben', 10, '2026-10-26'),
+    e('Ben', 10, '2026-11-02'),
+    e('Ben', 15, '2026-11-10'),
+    // Cleo: usually 20, 22 this week -> +10 %
+    e('Cleo', 20, '2026-10-26'),
+    e('Cleo', 20, '2026-11-02'),
+    e('Cleo', 22, '2026-11-10'),
+    // Dana: only one earlier week, not enough history
+    e('Dana', 5, '2026-11-02'),
+    e('Dana', 50, '2026-11-10'),
+    // Eve: below her usual week
+    e('Eve', 40, '2026-10-26'),
+    e('Eve', 40, '2026-11-02'),
+    e('Eve', 5, '2026-11-10'),
+  ];
+
+  it('picks the biggest jump over the own usual week', () => {
+    expect(weekRiser(entries, now)).toEqual({ name: 'Ben', value: 15, percent: 50 });
+  });
+
+  it('skips the given names', () => {
+    expect(weekRiser(entries, now, ['ben'])).toEqual({ name: 'Cleo', value: 22, percent: 10 });
+  });
+
+  it('is null when nobody beats their usual week', () => {
+    expect(weekRiser(entries, now, ['Ben', 'Cleo'])).toBeNull();
+  });
+});
+
+describe('nextStop', () => {
+  const stops = [
+    { name: 'Weinheim', cumulativeKm: 0 },
+    { name: 'Köln', cumulativeKm: 190 },
+    { name: 'Paris', cumulativeKm: 690 },
+  ];
+
+  it('returns the next stop and the distance to it', () => {
+    expect(nextStop(100, stops, 1000)).toEqual({ name: 'Köln', remaining: 90 });
+    expect(nextStop(190, stops, 1000)).toEqual({ name: 'Paris', remaining: 500 });
+  });
+
+  it('leads back to the start after the last stop and ends with the lap', () => {
+    expect(nextStop(700, stops, 1000)).toEqual({ name: 'Weinheim', remaining: 300 });
+    expect(nextStop(1000, stops, 1000)).toBeNull();
   });
 });

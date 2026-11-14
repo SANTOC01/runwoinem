@@ -10,6 +10,8 @@ import { ChallengeConfig } from '../../interfaces/challenge.interface';
 })
 export class ChallengeForm {
   readonly config = input.required<ChallengeConfig>();
+  /** True while an entry is being saved: the button is disabled to avoid double entries. */
+  readonly busy = input(false);
   readonly submitted = output<{ name: string; value: number }>();
   readonly valueChanged = output<{ name: string; value: number }>();
 
@@ -17,7 +19,7 @@ export class ChallengeForm {
   value: number | null = null;
 
   onSubmit() {
-    if (this.name && this.value != null) {
+    if (!this.busy() && this.name && this.value != null) {
       this.submitted.emit({ name: this.name, value: this.value });
     }
   }

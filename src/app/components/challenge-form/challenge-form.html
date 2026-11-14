@@ -13,9 +13,9 @@
     (input)="onValueChange()"/>
   <button
     (click)="onSubmit()"
-    [disabled]="!config().active"
+    [disabled]="!config().active || busy()"
     [class.disabled]="!config().active">
-    Absenden
+    {{ busy() ? 'Wird gespeichert…' : 'Absenden' }}
   </button>
   @if (!config().active) {
     <p class="challenge-status">🔒 Challenge beendet – danke für eure Teilnahme!</p>

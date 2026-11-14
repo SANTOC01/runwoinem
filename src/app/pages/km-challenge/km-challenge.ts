@@ -13,10 +13,12 @@ import { ChallengeForm } from '../../components/challenge-form/challenge-form';
 import { PersonalStats } from '../../components/personal-stats/personal-stats';
 import { RankUpCelebration } from '../../components/rank-up-celebration/rank-up-celebration';
 import { SubmitFeedback } from '../../components/rank-up-celebration/submit-feedback';
+import { SubmitProgress } from '../../components/submit-progress/submit-progress';
 import { ChallengeEntry } from '../../interfaces/challenge.interface';
-import { newestFirst, progressPercent, streaksByName } from '../../utils/challenge-utils';
+import { newestFirst, progressPercent, streaksByName, thisWeek, weekRiser } from '../../utils/challenge-utils';
 
 const BOOST_SEEN_KEY = 'km_boost_intro_seen';
+const SPOTLIGHT_SKIP = ['Vini'];
 
 @Component({
   selector: 'app-km-challenge',
@@ -29,6 +31,7 @@ const BOOST_SEEN_KEY = 'km_boost_intro_seen';
     ChallengeForm,
     PersonalStats,
     RankUpCelebration,
+    SubmitProgress,
   ],
   templateUrl: './km-challenge.html',
   styleUrls: ['./km-challenge.scss'],
@@ -49,6 +52,13 @@ export class KmChallenge {
   readonly boostInfoOpen = signal(false);
   readonly feedback = new SubmitFeedback();
   readonly streaks = computed(() => streaksByName(this.entries()));
+  /** This week's group km and the "Läufer der Woche". */
+  readonly week = computed(() => thisWeek(this.entries(), new Date(), SPOTLIGHT_SKIP));
+  /** "Aufsteiger der Woche": biggest jump over one's own usual week (never the leader, to spread the spotlight). */
+  readonly riser = computed(() => {
+    const leader = this.week().leader?.name;
+    return weekRiser(this.entries(), new Date(), leader ? [...SPOTLIGHT_SKIP, leader] : SPOTLIGHT_SKIP);
+  });
   readonly boostDay = this.kmChallengeService.isBoostDay();
   /** Extra km the boost added to the shared total today. */
   readonly boostBonus = computed(() => this.kmChallengeService.boostBonusToday(this.entries()));
