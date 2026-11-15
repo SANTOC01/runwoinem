@@ -8,7 +8,7 @@
       <th>Datum</th>
       <th>Löschen</th>
     </tr>
-    @for (row of rows(); track row.entry.id ?? $index; let i = $index) {
+    @for (row of rows(); track row.entry.id ?? $index) {
       <tr>
         <td>{{ row.entry.name }}</td>
         <td>
@@ -23,7 +23,7 @@
         </td>
         <td>{{ row.dateLabel }}</td>
         <td>
-          @if (i === 0) {
+          @if (row.deletable) {
             <button (click)="deleteRequested.emit(row.entry)" class="delete-btn">❌</button>
           }
         </td>

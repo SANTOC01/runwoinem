@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
 import { Tip } from '../../directives/tip';
+import { OwnEntriesService } from '../../services/own-entries.service';
 import { ChallengeEntry } from '../../interfaces/challenge.interface';
 
 const PAGE_SIZE = 30;
@@ -24,6 +25,7 @@ export class StatsTable {
   readonly boostFootnote = input('');
   readonly deleteRequested = output<ChallengeEntry>();
 
+  private readonly ownEntries = inject(OwnEntriesService);
   private readonly visibleCount = signal(PAGE_SIZE);
 
   readonly rows = computed(() => {
@@ -34,6 +36,9 @@ export class StatsTable {
         entry,
         boosted: !!boosted && boosted(entry),
         dateLabel: DATE_FORMAT.format(new Date(entry.date)),
+        // Only entries submitted from this device in the last week, wherever they are in the list
+        // (a run logged for an earlier day is not at the top). Other people's entries never.
+        deletable: this.ownEntries.isOwn(entry.id),
       }));
   });
   readonly hasBoosted = computed(() => {
