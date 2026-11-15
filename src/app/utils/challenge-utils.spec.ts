@@ -9,6 +9,7 @@ import {
   nextStop,
   nextTarget,
   streaksByName,
+  streaksEndingToday,
   weekTotal,
   rollingWeekTrend,
   roundValue,
@@ -105,6 +106,25 @@ describe('streaksByName', () => {
 
   it('is 0 when the last run is older than last week', () => {
     expect(streaksByName([e('Dan', 5, '2026-10-20')], now).get('Dan')).toBe(0);
+  });
+});
+
+describe('streaksEndingToday', () => {
+  const sunday = new Date('2026-11-15T12:00:00'); // last day of the week starting 2026-11-09
+  const entries = [
+    e('Anna', 5, '2026-11-03'), // streak, nothing this week -> ends tonight
+    e('Anna', 5, '2026-10-27'),
+    e('Ben', 5, '2026-11-12'), // already ran this week -> safe
+    e('Ben', 5, '2026-11-03'),
+    e('Dan', 5, '2026-10-20'), // streak already over
+  ];
+
+  it('flags people with a streak but no entry this week, on Sunday', () => {
+    expect([...streaksEndingToday(entries, sunday)]).toEqual(['Anna']);
+  });
+
+  it('flags nobody on other days', () => {
+    expect(streaksEndingToday(entries, new Date('2026-11-14T12:00:00')).size).toBe(0); // Saturday
   });
 });
 

@@ -23,7 +23,12 @@
             <span class="week-star" appTip="Aufsteiger der Woche: mehr als sonst gelaufen">📈</span>
           }
           @if (streakOf(rank.name); as weeks) {
-            <span class="streak" [appTip]="weeks + ' Wochen in Folge gelaufen'">🔥{{ weeks }}</span>
+            @if (streaksEndingToday().has(rank.name)) {
+              <span class="streak"
+                    [appTip]="weeks + ' Wochen in Folge gelaufen – lauf heute noch, sonst ist die Serie vorbei!'">🔥{{ weeks }}⏳</span>
+            } @else {
+              <span class="streak" [appTip]="weeks + ' Wochen in Folge gelaufen'">🔥{{ weeks }}</span>
+            }
           }
         </td>
         <td>{{ rank.value }} {{ unit() }}</td>

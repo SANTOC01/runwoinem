@@ -21,6 +21,8 @@ export class RankingTable {
   readonly rankUp = input<RankUp | null>(null);
   /** Weekly run streak per name; a flame is shown from `MIN_STREAK` weeks on. */
   readonly streaks = input<ReadonlyMap<string, number>>(new Map());
+  /** Names whose streak ends tonight unless they log something; their flame gets an hourglass. */
+  readonly streaksEndingToday = input<ReadonlySet<string>>(new Set());
   /** Name of the "Läufer der Woche" (most logged this week); gets a star. */
   readonly weekLeader = input<string | null>(null);
   /** Name of the "Aufsteiger der Woche" (biggest jump over their own usual week). */
