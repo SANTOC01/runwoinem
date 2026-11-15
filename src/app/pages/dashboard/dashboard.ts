@@ -10,6 +10,7 @@ import { EventsModalComponent } from '../../components/events-modal/events-modal
 import { AppEvent } from '../../models/app-event';
 import { ToastService } from '../../services/toast-service';
 import { Loading } from '../../components/app-loading/app-loading';
+import { WHATSAPP_GROUP_URL } from '../../links';
 
 @Component({
   selector: 'app-dashboard',
@@ -24,6 +25,7 @@ export class Dashboard {
   private readonly toast = inject(ToastService);
 
   readonly nextRun = Dashboard.computeNextRun(new Date());
+  readonly whatsappUrl = WHATSAPP_GROUP_URL;
   readonly mapOpen = signal(false);
   readonly selectedEvent = signal<AppEvent | null>(null);
   readonly eurotripBgImage = signal('');

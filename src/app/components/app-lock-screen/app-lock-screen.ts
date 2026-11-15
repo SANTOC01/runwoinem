@@ -1,5 +1,6 @@
 import { Component, NgZone, ElementRef, AfterViewInit, OnDestroy, inject, output, viewChild } from '@angular/core';
 import { ToastService } from '../../services/toast-service';
+import { WHATSAPP_GROUP_URL } from '../../links';
 
 @Component({
   selector: 'app-lock-screen',
@@ -25,6 +26,11 @@ import { ToastService } from '../../services/toast-service';
           }
         </div>
 
+        <p class="unlock-help">
+          Muster nicht bekannt? Du bekommst es in unserer
+          <a [href]="whatsappUrl" target="_blank" rel="noopener">WhatsApp-Gruppe</a>.
+        </p>
+
         <button class="unlock-cancel" (click)="onCancel()">Abbrechen</button>
       </div>
     </div>
@@ -34,6 +40,7 @@ import { ToastService } from '../../services/toast-service';
 export class LockScreen implements AfterViewInit, OnDestroy {
   private readonly toastService = inject(ToastService);
   private readonly ngZone = inject(NgZone);
+  readonly whatsappUrl = WHATSAPP_GROUP_URL;
 
   readonly success = output<void>();
   readonly cancelled = output<void>();
