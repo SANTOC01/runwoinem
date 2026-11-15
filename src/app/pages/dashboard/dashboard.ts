@@ -3,7 +3,6 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { DecimalPipe } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { Events } from '../../components/events/events';
-import { ChallengeService } from '../../services/challenge-service';
 import { KmChallengeService } from '../../services/km-challenge-service';
 import { EventsService } from '../../services/events-service';
 import { EuropeMap } from '../../components/europe-map/europe-map';
@@ -20,7 +19,6 @@ import { Loading } from '../../components/app-loading/app-loading';
   styleUrls: ['./dashboard.scss'],
 })
 export class Dashboard {
-  private readonly challengeService = inject(ChallengeService);
   private readonly kmChallengeService = inject(KmChallengeService);
   private readonly eventsService = inject(EventsService);
   private readonly toast = inject(ToastService);
@@ -31,21 +29,19 @@ export class Dashboard {
   readonly eurotripBgImage = signal('');
 
   readonly kmTotal = toSignal(this.kmChallengeService.total$, { initialValue: 0 });
-  private readonly hmRankings = toSignal(this.challengeService.rankings$, { initialValue: [] });
   private readonly kmRankings = toSignal(this.kmChallengeService.rankings$, { initialValue: [] });
-  /** The widgets appear as soon as either challenge has data. */
-  readonly showWidget = computed(() => this.hmRankings().length > 0 || this.kmRankings().length > 0);
+  private readonly kmLoaded = signal(false);
+  /** The widgets appear once the Eurotrip data is there (or loading it has finished, even if it failed). */
+  readonly showWidget = computed(() => this.kmLoaded() || this.kmRankings().length > 0);
 
   constructor() {
-    Promise.all([
-      this.eventsService.loadEvents(),
-      this.challengeService.loadData(),
-      this.kmChallengeService.loadData(),
-    ]);
+    this.eventsService.loadEvents();
+    this.kmChallengeService.loadData().finally(() => this.kmLoaded.set(true));
 
-    // Background refresh after 5 seconds — skip if data was just freshly loaded
+    // loadData already revalidates the challenge; after 5 s also refresh the events (cached till
+    // midnight). Challenge data fetched moments ago is not fetched again.
     const timer = setTimeout(() => {
-      if (!this.challengeService.isFreshlyLoaded()) this.forceRefreshData();
+      this.refreshInBackground();
     }, 5000);
     inject(DestroyRef).onDestroy(() => clearTimeout(timer));
   }
@@ -69,12 +65,8 @@ export class Dashboard {
     return { relative: `in ${days} Tagen`, dateLabel, soon: false };
   }
 
-  private async forceRefreshData() {
-    const results = await Promise.all([
-      this.eventsService.refreshEvents(),
-      this.challengeService.refreshAllData(),
-      this.kmChallengeService.refreshAllData(),
-    ]);
+  private async refreshInBackground() {
+    const results = await Promise.all([this.eventsService.refreshEvents(), this.kmChallengeService.revalidate()]);
     // Only claim "live" if nothing failed; otherwise the error toast stays visible.
     if (results.every(Boolean)) this.toast.show('🟢 Live');
   }

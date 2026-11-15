@@ -61,6 +61,13 @@ body {
   max-height: 415px;
 }
 
+/* A finished challenge shows only its ranking: full width of its card, every row, no scrolling. */
+.data-section.final-ranking .ranking-container {
+  max-width: none;
+  max-height: none;
+  overflow: visible;
+}
+
 h1 {
   font-size: 2rem;
   font-weight: bold;

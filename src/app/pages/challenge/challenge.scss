@@ -35,10 +35,14 @@
     border-radius: 15px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 
-    app-stats-table,
     app-ranking-table {
       flex: 1;
       min-width: 0;
+    }
+
+    /* Only the final ranking is left: a narrow centered card instead of two columns. */
+    &.final-ranking {
+      max-width: 460px;
     }
   }
 
