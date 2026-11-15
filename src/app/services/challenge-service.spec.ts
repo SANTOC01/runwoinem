@@ -27,7 +27,7 @@ describe('Challenge services', () => {
   });
   afterEach(() => localStorage.clear());
 
-  describe('ChallengeService (HM1)', () => {
+  describe('loading and caching (shared by all live challenges)', () => {
     it('loads entries and computes rankings, total and chart data', async () => {
       api.get.and.resolveTo({
         main: [
@@ -36,10 +36,10 @@ describe('Challenge services', () => {
           ['Anna', '400', '2025-01-03T10:00:00Z'],
         ],
       });
-      const service = TestBed.inject(ChallengeService);
+      const service = TestBed.inject(KmChallengeService);
       await service.loadData();
 
-      expect(api.get).toHaveBeenCalledWith('getAll', { challenge: 'HM1' });
+      expect(api.get).toHaveBeenCalledWith('getAll', { challenge: 'KM1' });
       expect(await firstValueFrom(service.total$)).toBe(1200);
       expect(await firstValueFrom(service.rankings$)).toEqual([
         { name: 'Anna', value: 700 },
@@ -50,13 +50,13 @@ describe('Challenge services', () => {
 
     it('uses a fresh cache instead of fetching', async () => {
       api.get.and.resolveTo({ main: [['Anna', '10', '2025-01-01T10:00:00Z']] });
-      await TestBed.inject(ChallengeService).loadData();
+      await TestBed.inject(KmChallengeService).loadData();
 
       // Simulate a second visit: new service instance, same localStorage.
       TestBed.resetTestingModule();
       configure();
       api.get.calls.reset();
-      const again = TestBed.inject(ChallengeService);
+      const again = TestBed.inject(KmChallengeService);
       await again.loadData();
 
       expect(api.get).not.toHaveBeenCalled();
@@ -64,11 +64,40 @@ describe('Challenge services', () => {
       expect(again.isFreshlyLoaded()).toBeTrue();
     });
 
-    it('refuses new entries when the challenge is inactive', async () => {
+    it('shows an older cache at once and replaces it with the fetched list', async () => {
+      const oneHourAgo = Date.now() - 60 * 60 * 1000;
+      localStorage.setItem(
+        'km_challenge_data',
+        JSON.stringify({
+          data: { v: 2, entries: [{ name: 'Anna', value: 10, date: '2025-01-01T10:00:00Z' }], week: null },
+          timestamp: oneHourAgo,
+        }),
+      );
+      let answer!: (value: unknown) => void;
+      api.get.and.returnValue(new Promise((resolve) => (answer = resolve)));
+      const service = TestBed.inject(KmChallengeService);
+
+      await service.loadData(); // resolves with the cached list, fetch still running
+      expect(await firstValueFrom(service.total$)).toBe(10);
+      expect(api.get).toHaveBeenCalledTimes(1);
+
+      answer({ main: [['Anna', '25', '2025-01-01T10:00:00Z']] });
+      await service.refreshAllData(); // shares the running fetch
+      expect(api.get).toHaveBeenCalledTimes(1);
+      expect(await firstValueFrom(service.total$)).toBe(25);
+    });
+  });
+
+  describe('ChallengeService (HM1, finished)', () => {
+    it('serves the frozen final ranking without fetching and drops the old cache', () => {
+      localStorage.setItem('gipfelstuermer_entries', '{}');
       const service = TestBed.inject(ChallengeService);
-      await service.submitData('Anna', 10);
-      expect(lock.requestUnlock).not.toHaveBeenCalled();
-      expect(api.post).not.toHaveBeenCalled();
+
+      expect(service.config.active).toBeFalse();
+      expect(service.total).toBe(100336);
+      expect(service.rankings[0]).toEqual({ name: 'Vera', value: 36283 });
+      expect(api.get).not.toHaveBeenCalled();
+      expect(localStorage.getItem('gipfelstuermer_entries')).toBeNull();
     });
   });
 
@@ -87,6 +116,31 @@ describe('Challenge services', () => {
 
       await service.deleteData(entry);
       expect(await firstValueFrom(service.entries$)).toEqual([]);
+    });
+
+    it('keeps a deleted entry gone when an older fetch answers afterwards', async () => {
+      const day = '2025-01-01T10:00:00Z';
+      const both = {
+        main: [
+          ['Anna', 10, day, 'a1'],
+          ['Ben', 5, day, 'b1'],
+        ],
+      };
+      api.get.and.resolveTo(both);
+      const service = TestBed.inject(KmChallengeService);
+      await service.loadData();
+
+      // A background refresh starts, then Anna's entry is deleted before it answers.
+      let answer!: (value: unknown) => void;
+      api.get.and.returnValue(new Promise((resolve) => (answer = resolve)));
+      const refresh = service.refreshAllData();
+      api.post.and.resolveTo({ status: 'deleted', main: [['Ben', 5, day, 'b1']] });
+      const [anna] = (await firstValueFrom(service.entries$)).filter((e) => e.id === 'a1');
+      await service.deleteData(anna);
+
+      answer(both); // read before the delete: still contains Anna
+      await refresh;
+      expect((await firstValueFrom(service.entries$)).map((e) => e.id)).toEqual(['b1']);
     });
 
     it('returns a rank-up when an entry climbs the ranking', async () => {

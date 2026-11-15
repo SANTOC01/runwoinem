@@ -1,69 +1,34 @@
 <div class="challenge-container">
   <div class="content-wrapper">
     <div class="header">
-      <h1>{{ challengeService.config.title }}</h1>
+      <h1>{{ config.title }}</h1>
       <app-goal-banner
-        [total]="total()"
-        [goals]="challengeService.config.goals"
-        [unit]="challengeService.config.metricUnit">
+        [total]="total"
+        [goals]="config.goals"
+        [unit]="config.metricUnit">
       </app-goal-banner>
     </div>
 
-    <app-challenge-form
-      [config]="challengeService.config"
-      [busy]="challengeService.saveState() === 'saving'"
-      (submitted)="onSubmit($event)"
-      (valueChanged)="onValueChange($event)">
-    </app-challenge-form>
-
-    <div class="data-section">
-      <app-stats-table
-        [entries]="entries()"
-        [unit]="challengeService.config.metricUnit"
-        (deleteRequested)="onDelete($event)">
-      </app-stats-table>
+    <div class="data-section final-ranking">
       <app-ranking-table
-        [rankings]="rankings()"
-        [unit]="challengeService.config.metricUnit"
-        [rankUp]="feedback.highlighted()"
-        [streaks]="streaks()">
+        [rankings]="rankings"
+        [unit]="config.metricUnit">
       </app-ranking-table>
     </div>
 
     <div class="progress-section">
       <div class="progress-header">
-        <h2>📈 Fortschritt Gesamt: {{ total() }} {{challengeService.config.metricUnit}}</h2>
+        <h2>📈 Fortschritt Gesamt: {{ total }} {{ config.metricUnit }}</h2>
         <div class="progress-bar">
-          <div class="progress" [style.width.%]="progressPercentage()">
-            {{ progressPercentage() }}%
+          <div class="progress" [style.width.%]="progressPercentage">
+            {{ progressPercentage }}%
           </div>
         </div>
       </div>
       <app-progress-chart
-        [total]="total()"
-        [config]="challengeService.config">
+        [total]="total"
+        [config]="config">
       </app-progress-chart>
     </div>
   </div>
-
-  @if (feedback.celebrating(); as c) {
-    <app-rank-up-celebration
-      [rankUp]="c.rankUp"
-      [arrival]="c.arrival"
-      [name]="c.name"
-      [records]="c.records"
-      [target]="c.nextTarget"
-      [unit]="challengeService.config.metricUnit"
-      (closed)="feedback.dismiss()">
-    </app-rank-up-celebration>
-  }
-
-  <app-submit-progress [state]="challengeService.saveState()"></app-submit-progress>
-
-  @if (lockService.visible()) {
-    <app-lock-screen
-      (success)="lockService.handleUnlockSuccess()"
-      (cancelled)="lockService.handleUnlockCancel()">
-    </app-lock-screen>
-  }
 </div>

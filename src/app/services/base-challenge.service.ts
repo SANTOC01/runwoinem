@@ -17,7 +17,10 @@ import { ToastService } from './toast-service';
 import { SheetApi } from './sheet-api.service';
 import { readCache, writeCache } from './local-cache';
 
-const CACHE_DURATION_MS = 5 * 60 * 1000;
+/** How old a cached list may be and still be shown while the fresh one loads. */
+const CACHE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+/** Data fetched within this window is not fetched again when a page is opened. */
+const REVALIDATE_AFTER_MS = 30_000;
 
 /** Rows are [name, value, date, id?, kind?]; `week` comes from newer backends only. */
 interface EntriesResponse {
@@ -58,6 +61,12 @@ export abstract class BaseChallengeService {
   private readonly weekSignal = signal<WeekSummary | null>(null);
   private dataLoaded = false;
   private fetchedAt: number | null = null;
+  /** Bumped when an add/delete starts or ends: lists fetched across such a change may miss it. */
+  private changeSeq = 0;
+  /** Adds/deletes sent but not answered yet; a fetched list may not contain them. */
+  private pendingMutations = 0;
+  /** The running fetch, shared by everyone who asks for fresh data meanwhile. */
+  private inflight: { seq: number; promise: Promise<boolean> } | null = null;
 
   /** Progress of the latest new entry, from after the unlock until the backend answered. */
   readonly saveState = this.saveStateSignal.asReadonly();
@@ -69,22 +78,45 @@ export abstract class BaseChallengeService {
   readonly total$ = this.totalSubject.asObservable();
   readonly chartData$ = this.chartDataSubject.asObservable();
 
+  /**
+   * Stale-while-revalidate: shows the cached list right away (if any) and fetches the fresh one
+   * in the background, unless that happened moments ago. Resolves once there is something to show.
+   */
   async loadData(): Promise<void> {
-    if (this.dataLoaded) return;
-    const cached = readCache<Partial<CachedData>>(this.cacheKey, (ts) => Date.now() - ts < CACHE_DURATION_MS);
-    // Older versions cached other shapes (e.g. without collection flags): fetch fresh instead.
-    if (cached?.data?.v === CACHE_VERSION && Array.isArray(cached.data.entries)) {
-      this.updateState(cached.data.entries, cached.data.week ?? null);
-      this.fetchedAt = cached.timestamp;
-      return;
+    if (!this.dataLoaded) this.loadFromCache();
+    if (!this.dataLoaded) {
+      await this.refreshAllData();
+    } else {
+      void this.revalidate();
     }
-    await this.refreshAllData();
   }
 
-  /** Fetches fresh data. Resolves to false if that failed (an error toast was shown). */
-  async refreshAllData(): Promise<boolean> {
+  /** Fetches fresh data unless it was fetched within `maxAgeMs`. Resolves to false if fetching failed. */
+  revalidate(maxAgeMs = REVALIDATE_AFTER_MS): Promise<boolean> {
+    return this.isFreshlyLoaded(maxAgeMs) ? Promise.resolve(true) : this.refreshAllData();
+  }
+
+  /**
+   * Fetches fresh data. Resolves to false if that failed (an error toast was shown).
+   * Calls while a fetch is running share it, unless an add/delete happened since it started.
+   */
+  refreshAllData(): Promise<boolean> {
+    if (this.inflight?.seq !== this.changeSeq) {
+      const seq = this.changeSeq;
+      const promise = this.fetchAll(seq).finally(() => {
+        if (this.inflight?.promise === promise) this.inflight = null;
+      });
+      this.inflight = { seq, promise };
+    }
+    return this.inflight.promise;
+  }
+
+  private async fetchAll(seq: number): Promise<boolean> {
     try {
       const response = await this.api.get<EntriesResponse>('getAll', { challenge: this.challengeId });
+      // An add/delete started or finished meanwhile: this list may predate it (e.g. still contain
+      // a just deleted entry). The add/delete brings its own fresh list, so drop this one.
+      if (seq !== this.changeSeq || this.pendingMutations > 0) return true;
       this.applyServerData(response ?? {});
       this.fetchedAt = Date.now();
       return true;
@@ -95,8 +127,17 @@ export abstract class BaseChallengeService {
     }
   }
 
+  private loadFromCache(): void {
+    const cached = readCache<Partial<CachedData>>(this.cacheKey, (ts) => Date.now() - ts < CACHE_MAX_AGE_MS);
+    // Older versions cached other shapes (e.g. without collection flags): fetch fresh instead.
+    if (cached?.data?.v === CACHE_VERSION && Array.isArray(cached.data.entries)) {
+      this.updateState(cached.data.entries, cached.data.week ?? null);
+      this.fetchedAt = cached.timestamp;
+    }
+  }
+
   /** True if data was fetched or loaded from cache within the last `withinMs` ms. */
-  isFreshlyLoaded(withinMs = 30_000): boolean {
+  isFreshlyLoaded(withinMs = REVALIDATE_AFTER_MS): boolean {
     return this.fetchedAt !== null && Date.now() - this.fetchedAt < withinMs;
   }
 
@@ -186,9 +227,12 @@ export abstract class BaseChallengeService {
     errorMessage: string,
     extra: Record<string, unknown> = {},
   ): Promise<MutationResponse | null> {
+    this.changeSeq++;
+    this.pendingMutations++;
+    let response: MutationResponse | null;
     try {
       this.updateLocalState(entry, action);
-      const response = await this.api.post<MutationResponse | null>({
+      response = await this.api.post<MutationResponse | null>({
         action,
         name: entry.name,
         hohenmeter: entry.value,
@@ -196,15 +240,26 @@ export abstract class BaseChallengeService {
         ...(entry.id ? { id: entry.id } : {}),
         ...extra,
       });
-      if (response?.main) this.applyServerData(response);
-      this.toast.show(okMessage);
-      return response;
     } catch (error) {
+      this.endMutation();
       console.error(`Error during ${action}:`, error);
       await this.refreshAllData();
       this.toast.show(errorMessage, 4000);
       throw error;
     }
+    this.endMutation();
+    // With another add/delete still underway this list lacks it; the last answer gets applied.
+    if (response?.main && this.pendingMutations === 0) {
+      this.applyServerData(response);
+      this.fetchedAt = Date.now();
+    }
+    this.toast.show(okMessage);
+    return response;
+  }
+
+  private endMutation(): void {
+    this.pendingMutations--;
+    this.changeSeq++;
   }
 
   private updateLocalState(entry: ChallengeEntry, action: 'add' | 'delete'): void {
