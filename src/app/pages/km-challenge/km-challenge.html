@@ -102,6 +102,7 @@
         [clickable]="true"
         [rankUp]="feedback.highlighted()"
         [streaks]="streaks()"
+        [streaksEndingToday]="streaksEndingToday()"
         [weekLeader]="week().leader?.name ?? null"
         [weekRiser]="riser()?.name ?? null"
         (nameSelected)="selectedName.set($event)">

@@ -103,6 +103,25 @@ export function streaksByName(entries: ChallengeEntry[], now = new Date()): Map<
   return new Map([...weeksByName].map(([name, weeks]) => [name, streakFromWeeks(weeks, now)]));
 }
 
+/**
+ * Names whose streak ends tonight: it is Sunday (the last day of the week) and they have a
+ * streak but nothing logged this week yet.
+ */
+export function streaksEndingToday(entries: ChallengeEntry[], now = new Date()): Set<string> {
+  if (now.getDay() !== 0) return new Set();
+  const thisWeek = weekStart(now);
+  const loggedThisWeek = new Set<string>();
+  for (const e of entries) {
+    const d = new Date(e.date);
+    if (!isNaN(d.getTime()) && weekStart(d) === thisWeek) loggedThisWeek.add(e.name);
+  }
+  const ending = new Set<string>();
+  for (const [name, weeks] of streaksByName(entries, now)) {
+    if (weeks > 0 && !loggedThisWeek.has(name)) ending.add(name);
+  }
+  return ending;
+}
+
 /** Longest run of consecutive weeks ever (not only the current streak). */
 export function longestStreak(weeks: Iterable<number>): number {
   const sorted = [...new Set(weeks)].sort((a, b) => a - b);

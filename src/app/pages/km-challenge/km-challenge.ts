@@ -22,6 +22,7 @@ import {
   progressPercent,
   rollingWeekTrend,
   streaksByName,
+  streaksEndingToday,
   trendChange,
   weekTotal,
 } from '../../utils/challenge-utils';
@@ -62,6 +63,8 @@ export class KmChallenge {
   readonly boostInfoOpen = signal(false);
   readonly feedback = new SubmitFeedback();
   readonly streaks = computed(() => streaksByName(this.entries()));
+  /** Streaks that end tonight (Sunday, nothing logged this week yet): shown with an hourglass. */
+  readonly streaksEndingToday = computed(() => streaksEndingToday(this.entries()));
   /** This week's group km (always up to date locally) and the "Läufer der Woche" (from the backend). */
   readonly week = computed(() => ({
     total: weekTotal(this.entries()),
