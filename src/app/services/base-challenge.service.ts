@@ -15,6 +15,7 @@ import { ChartData } from '../models/chart-data';
 import { LockService } from './lock-service';
 import { ToastService } from './toast-service';
 import { SheetApi } from './sheet-api.service';
+import { OwnEntriesService } from './own-entries.service';
 import { readCache, writeCache } from './local-cache';
 
 /** How old a cached list may be and still be shown while the fresh one loads. */
@@ -52,6 +53,7 @@ export abstract class BaseChallengeService {
   protected readonly api = inject(SheetApi);
   private readonly lockService = inject(LockService);
   private readonly toast = inject(ToastService);
+  private readonly ownEntries = inject(OwnEntriesService);
 
   private readonly entriesSubject = new BehaviorSubject<ChallengeEntry[]>([]);
   private readonly rankingsSubject = new BehaviorSubject<ChallengeRanking[]>([]);
@@ -182,6 +184,7 @@ export abstract class BaseChallengeService {
     // With a fresh list from the server, compare against exactly that list without the new
     // entry, so celebrations stay correct even if others logged since this page loaded.
     const id = response?.entry?.[3];
+    if (id) this.ownEntries.add(String(id)); // stays deletable from this device
     if (response?.main && id) {
       name = String(response.entry?.[0] ?? name);
       before = this.entriesSubject.value.filter((e) => e.id !== id);
@@ -214,6 +217,7 @@ export abstract class BaseChallengeService {
   async deleteData(entry: ChallengeEntry): Promise<void> {
     if (!(await this.lockService.requestUnlock())) return;
     await this.mutate(entry, 'delete', 'Eintrag gelöscht.', 'Fehler beim Löschen des Eintrags!');
+    if (entry.id) this.ownEntries.remove(entry.id);
   }
 
   /**

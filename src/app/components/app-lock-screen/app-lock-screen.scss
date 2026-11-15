@@ -39,6 +39,17 @@
       margin-bottom: 20px;
       color: #666;
     }
+
+    .unlock-help {
+      margin: 0;
+      font-size: 0.85rem;
+      line-height: 1.4;
+
+      a {
+        color: #128c7e;
+        font-weight: 600;
+      }
+    }
   }
 
   .grid-container {

@@ -3,6 +3,7 @@ import { firstValueFrom } from 'rxjs';
 import { ChallengeService } from './challenge-service';
 import { KmChallengeService } from './km-challenge-service';
 import { LockService } from './lock-service';
+import { OwnEntriesService } from './own-entries.service';
 import { SheetApi } from './sheet-api.service';
 
 describe('Challenge services', () => {
@@ -224,6 +225,13 @@ describe('Challenge services', () => {
       await service.deleteData(entries[1]);
       expect(api.post).toHaveBeenCalledWith(jasmine.objectContaining({ action: 'delete', id: 'b1' }));
       expect((await firstValueFrom(service.entries$)).map((e) => e.id)).toEqual(['a1', 'c1', 'n1']);
+
+      // The backdated entry stays deletable from this device until it is deleted.
+      const own = TestBed.inject(OwnEntriesService);
+      expect(own.isOwn('n1')).toBeTrue();
+      expect(own.isOwn('a1')).toBeFalse();
+      await service.deleteData(entries[3]);
+      expect(own.isOwn('n1')).toBeFalse();
     });
 
     it('refuses values above the per-entry maximum before asking for the unlock', async () => {
